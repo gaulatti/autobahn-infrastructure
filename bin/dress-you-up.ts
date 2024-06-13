@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { DressYouUpStack } from '../lib/dress-you-up-stack';
+import { DressYouUpStack } from '../lib';
 
 const app = new cdk.App();
 new DressYouUpStack(app, 'DressYouUpStack', {
