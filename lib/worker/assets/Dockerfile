@@ -1,5 +1,5 @@
 # Use Ubuntu as the base image
-FROM ubuntu:latest
+FROM public.ecr.aws/ubuntu/ubuntu:latest
 
 # Update Package List and install dependencies
 RUN apt-get update && \
