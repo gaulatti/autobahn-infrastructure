@@ -1,5 +1,14 @@
 import { Stack } from 'aws-cdk-lib';
-import { AwsLogDriver, Cluster, ContainerImage, CpuArchitecture, FargateService, FargateTaskDefinition, OperatingSystemFamily } from 'aws-cdk-lib/aws-ecs';
+import {
+  AwsLogDriver,
+  Cluster,
+  ContainerImage,
+  CpuArchitecture,
+  FargateService,
+  FargateTaskDefinition,
+  OperatingSystemFamily,
+  Protocol,
+} from 'aws-cdk-lib/aws-ecs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 /**
@@ -39,6 +48,7 @@ const createFargateService = (stack: Stack, cluster: Cluster) => {
     containerName: `${stack.stackName}ServerFargateContainer`,
     image: ContainerImage.fromAsset('./lib/server/assets'),
     logging: logDriver,
+    portMappings: [{ containerPort: 80, protocol: Protocol.TCP }],
   });
 
   /**

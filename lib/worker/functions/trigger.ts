@@ -1,6 +1,8 @@
 import { Duration, Stack } from 'aws-cdk-lib';
 import { SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Cluster, FargateTaskDefinition } from 'aws-cdk-lib/aws-ecs';
+import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
@@ -28,7 +30,7 @@ const createTriggerLambda = (
    */
   const triggerLambdaSpec = {
     functionName: `${stack.stackName}Trigger`,
-    entry: './lib/functions/trigger.src.ts',
+    entry: './lib/worker/functions/trigger.src.ts',
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
@@ -49,6 +51,19 @@ const createTriggerLambda = (
    */
   const triggerLambda = new NodejsFunction(stack, `${triggerLambdaSpec.functionName}Lambda`, triggerLambdaSpec);
   fargateTaskDefinition.grantRun(triggerLambda);
+
+
+  /**
+   * Represents the rule that triggers the Lambda function.
+   */
+  const eventRule = new Rule(stack, `${triggerLambdaSpec.functionName}Rule`, {
+    schedule: Schedule.rate(Duration.minutes(1)),
+  });
+
+  /**
+   * Adds the Lambda function as a target for the rule.
+   */
+  eventRule.addTarget(new LambdaFunction(triggerLambda));
 
   return { triggerLambda };
 };

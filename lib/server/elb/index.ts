@@ -37,7 +37,7 @@ const createLoadBalancer = (stack: Stack, service: FargateService, vpc: Vpc, sec
    */
   const targetGroup = new ApplicationTargetGroup(stack, `${stack.stackName}ServerTargetGroup`, {
     vpc,
-    targetType: TargetType.INSTANCE,
+    targetType: TargetType.IP,
     protocol: ApplicationProtocol.HTTP,
     port: 80,
     healthCheck: {
