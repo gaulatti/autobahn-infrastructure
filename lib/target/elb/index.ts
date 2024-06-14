@@ -24,6 +24,7 @@ const createLoadBalancer = (stack: Stack, service: FargateService, vpc: Vpc, sec
    * Create the Load Balancer
    */
   const loadBalancer = new ApplicationLoadBalancer(stack, `${stack.stackName}TargetLoadBalancer`, {
+    loadBalancerName: `${stack.stackName}TargetLoadBalancer`,
     vpc: vpc,
     internetFacing: true,
     vpcSubnets: {
@@ -36,6 +37,7 @@ const createLoadBalancer = (stack: Stack, service: FargateService, vpc: Vpc, sec
    * Create the Target Group which will handle the requests
    */
   const targetGroup = new ApplicationTargetGroup(stack, `${stack.stackName}TargetTargetGroup`, {
+    targetGroupName: `${stack.stackName}TargetTargetGroup`,
     vpc,
     targetType: TargetType.IP,
     protocol: ApplicationProtocol.HTTP,

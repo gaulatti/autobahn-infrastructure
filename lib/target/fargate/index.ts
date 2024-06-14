@@ -1,5 +1,14 @@
 import { Stack } from 'aws-cdk-lib';
-import { AwsLogDriver, Cluster, ContainerImage, CpuArchitecture, FargateService, FargateTaskDefinition, OperatingSystemFamily, Protocol } from 'aws-cdk-lib/aws-ecs';
+import {
+  AwsLogDriver,
+  Cluster,
+  ContainerImage,
+  CpuArchitecture,
+  FargateService,
+  FargateTaskDefinition,
+  OperatingSystemFamily,
+  Protocol,
+} from 'aws-cdk-lib/aws-ecs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 /**

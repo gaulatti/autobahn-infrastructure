@@ -52,7 +52,6 @@ const createTriggerLambda = (
   const triggerLambda = new NodejsFunction(stack, `${triggerLambdaSpec.functionName}Lambda`, triggerLambdaSpec);
   fargateTaskDefinition.grantRun(triggerLambda);
 
-
   /**
    * Represents the rule that triggers the Lambda function.
    */
