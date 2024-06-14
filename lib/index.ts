@@ -7,9 +7,9 @@ class DressYouUpStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    createServerInfrastructure(this);
+    const { dnsName } = createServerInfrastructure(this);
 
-    createWorkerInfrastructure(this);
+    createWorkerInfrastructure(this, dnsName);
   }
 }
 

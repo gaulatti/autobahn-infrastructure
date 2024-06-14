@@ -2,6 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { createSecurityGroup, createVpc } from './network';
 import { createCluster } from './compute';
 import { createFargateService } from './fargate';
+import { createLoadBalancer } from './elb';
 
 const createServerInfrastructure = (stack: Stack) => {
   /**
@@ -23,6 +24,18 @@ const createServerInfrastructure = (stack: Stack) => {
    * Create Fargate Service
    */
   const { fargateService } = createFargateService(stack, cluster);
+
+  /**
+   * Create Load Balancer
+   */
+  const { loadBalancer } = createLoadBalancer(stack, fargateService, vpc, securityGroup);
+
+  /**
+   * Return the DNS name of the load balancer
+   */
+  return {
+    dnsName: loadBalancer.loadBalancerDnsName,
+  };
 };
 
 export { createServerInfrastructure };

@@ -24,7 +24,7 @@ const createTriggerLambda = (
   /**
    * Represents the parameters used by the Fargate service.
    */
-  const { urlParameter, apiKeyParameter, targetParameter } = parameters;
+  const { urlParameter, apiKeyParameter } = parameters;
 
   /**
    * Represents the trigger Lambda function specification.
@@ -40,7 +40,6 @@ const createTriggerLambda = (
       API_KEY_PARAMETER: apiKeyParameter.stringValue,
       SUBNETS: cluster.vpc.privateSubnets.map((subnet) => subnet.subnetId).join(','),
       SECURITY_GROUP: securityGroup.securityGroupId,
-      TARGET_PARAMETER: targetParameter.stringValue,
       CLUSTER: cluster.clusterArn,
       TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
       CONTAINER_NAME: fargateTaskDefinition.defaultContainer!.containerName,
