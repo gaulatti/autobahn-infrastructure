@@ -1,7 +1,6 @@
 import { Stack } from 'aws-cdk-lib';
-import { AwsLogDriver, ContainerImage, CpuArchitecture, FargateTaskDefinition, OperatingSystemFamily, Secret } from 'aws-cdk-lib/aws-ecs';
+import { AwsLogDriver, ContainerImage, CpuArchitecture, FargateTaskDefinition, OperatingSystemFamily } from 'aws-cdk-lib/aws-ecs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { Secret as SSMSecret } from 'aws-cdk-lib/aws-secretsmanager';
 
 /**
  * Creates a Fargate task definition with the specified stack and secrets.
@@ -39,7 +38,7 @@ const createFargateTask = (stack: Stack) => {
    */
   fargateTaskDefinition.addContainer(`${stack.stackName}LighthouseFargateContainer`, {
     containerName: `${stack.stackName}LighthouseFargateContainer`,
-    image: ContainerImage.fromAsset('./lib/assets'),
+    image: ContainerImage.fromAsset('./lib/worker/assets'),
     logging: logDriver,
   });
 
