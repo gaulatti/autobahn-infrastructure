@@ -2,24 +2,14 @@ import { Stack } from 'aws-cdk-lib';
 import { createCluster } from './compute';
 import { createFargateTask } from './fargate';
 import { createTriggerLambda } from './functions/trigger';
-import { createSecurityGroup, createVpc } from './network';
 import { createParameters } from './secrets';
+import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 
-const createWorkerInfrastructure = (stack: Stack, serverDnsName: string, targetDnsName: string) => {
+const createWorkerInfrastructure = (stack: Stack, vpc: Vpc, securityGroup: SecurityGroup, serverDnsName: string, targetDnsName: string) => {
   /**
    * Create Secrets
    */
   const { apiKeyParameter } = createParameters(stack);
-
-  /**
-   * Create VPC
-   */
-  const { vpc } = createVpc(stack);
-
-  /**
-   * Create Security Group
-   */
-  const { securityGroup } = createSecurityGroup(stack, vpc);
 
   /**
    * Create Cluster

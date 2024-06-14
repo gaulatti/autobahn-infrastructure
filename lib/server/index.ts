@@ -1,20 +1,10 @@
 import { Stack } from 'aws-cdk-lib';
-import { createSecurityGroup, createVpc } from './network';
 import { createCluster } from './compute';
 import { createFargateService } from './fargate';
 import { createLoadBalancer } from './elb';
+import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 
-const createServerInfrastructure = (stack: Stack) => {
-  /**
-   * Create VPC
-   */
-  const { vpc } = createVpc(stack);
-
-  /**
-   * Create Security Group
-   */
-  const { securityGroup } = createSecurityGroup(stack, vpc);
-
+const createServerInfrastructure = (stack: Stack, vpc: Vpc, securityGroup: SecurityGroup) => {
   /**
    * Create Cluster
    */
