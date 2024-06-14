@@ -7,7 +7,7 @@ import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
  * @returns An object containing the created VPC.
  */
 const createVpc = (stack: Stack) => {
-  const vpc = new Vpc(stack, `${stack.stackName}ServerVPC`, {
+  const vpc = new Vpc(stack, `${stack.stackName}TargetVPC`, {
     vpcName: `${stack.stackName}VPC`,
     maxAzs: 2,
   });
@@ -23,9 +23,9 @@ const createVpc = (stack: Stack) => {
  * @returns An object containing the created security group.
  */
 const createSecurityGroup = (stack: Stack, vpc: Vpc) => {
-  const securityGroup = new SecurityGroup(stack, `${stack.stackName}ServerSecurityGroup`, {
+  const securityGroup = new SecurityGroup(stack, `${stack.stackName}TargetSecurityGroup`, {
     vpc,
-    securityGroupName: `${stack.stackName}ServerSecurityGroup`,
+    securityGroupName: `${stack.stackName}TargetSecurityGroup`,
   });
 
   return { securityGroup };

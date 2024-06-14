@@ -4,7 +4,7 @@ import { createCluster } from './compute';
 import { createFargateService } from './fargate';
 import { createLoadBalancer } from './elb';
 
-const createServerInfrastructure = (stack: Stack) => {
+const createTargetInfrastructure = (stack: Stack) => {
   /**
    * Create VPC
    */
@@ -34,8 +34,8 @@ const createServerInfrastructure = (stack: Stack) => {
    * Return the DNS name of the load balancer
    */
   return {
-    serverDnsName: loadBalancer.loadBalancerDnsName,
+    targetDnsName: loadBalancer.loadBalancerDnsName,
   };
 };
 
-export { createServerInfrastructure };
+export { createTargetInfrastructure };

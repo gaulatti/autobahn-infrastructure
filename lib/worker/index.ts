@@ -5,11 +5,11 @@ import { createTriggerLambda } from './functions/trigger';
 import { createSecurityGroup, createVpc } from './network';
 import { createParameters } from './secrets';
 
-const createWorkerInfrastructure = (stack: Stack, serverDnsName: string) => {
+const createWorkerInfrastructure = (stack: Stack, serverDnsName: string, targetDnsName: string) => {
   /**
    * Create Secrets
    */
-  const { urlParameter, apiKeyParameter } = createParameters(stack, serverDnsName);
+  const { apiKeyParameter } = createParameters(stack);
 
   /**
    * Create VPC
@@ -34,7 +34,7 @@ const createWorkerInfrastructure = (stack: Stack, serverDnsName: string) => {
   /**
    * Create Trigger Lambda
    */
-  const triggerLambda = createTriggerLambda(stack, { urlParameter, apiKeyParameter }, fargateTaskDefinition, cluster, securityGroup);
+  const triggerLambda = createTriggerLambda(stack, serverDnsName, targetDnsName, apiKeyParameter, fargateTaskDefinition, cluster, securityGroup);
 };
 
 export { createWorkerInfrastructure };

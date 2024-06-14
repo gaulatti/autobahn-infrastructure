@@ -12,7 +12,7 @@ const ecsClient = new ECSClient();
  * @param _event - The event object passed to the Lambda function.
  */
 const main = async (_event: any) => {
-  const { URL_PARAMETER, API_KEY_PARAMETER, CLUSTER, TASK_DEFINITION, CONTAINER_NAME, SUBNETS, SECURITY_GROUP } = process.env;
+  const { URL_PARAMETER, TARGET_PARAMETER, API_KEY_PARAMETER, CLUSTER, TASK_DEFINITION, CONTAINER_NAME, SUBNETS, SECURITY_GROUP } = process.env;
   const subnets = SUBNETS!.split(',');
 
   /**
@@ -35,6 +35,7 @@ const main = async (_event: any) => {
           name: CONTAINER_NAME,
           environment: [
             { name: 'URL_PARAMETER', value: URL_PARAMETER },
+            { name: 'TARGET_PARAMETER', value: TARGET_PARAMETER },
             { name: 'API_KEY_PARAMETER', value: API_KEY_PARAMETER },
             { name: 'LHCI_BUILD_CONTEXT__COMMIT_TIME', value: new Date().toISOString() },
             { name: 'LHCI_BUILD_CONTEXT__CURRENT_HASH', value: new Date().toISOString() },

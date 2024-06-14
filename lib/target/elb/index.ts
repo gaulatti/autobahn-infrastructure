@@ -23,7 +23,7 @@ const createLoadBalancer = (stack: Stack, service: FargateService, vpc: Vpc, sec
   /**
    * Create the Load Balancer
    */
-  const loadBalancer = new ApplicationLoadBalancer(stack, `${stack.stackName}ServerLoadBalancer`, {
+  const loadBalancer = new ApplicationLoadBalancer(stack, `${stack.stackName}TargetLoadBalancer`, {
     vpc: vpc,
     internetFacing: true,
     vpcSubnets: {
@@ -35,7 +35,7 @@ const createLoadBalancer = (stack: Stack, service: FargateService, vpc: Vpc, sec
   /**
    * Create the Target Group which will handle the requests
    */
-  const targetGroup = new ApplicationTargetGroup(stack, `${stack.stackName}ServerTargetGroup`, {
+  const targetGroup = new ApplicationTargetGroup(stack, `${stack.stackName}TargetTargetGroup`, {
     vpc,
     targetType: TargetType.INSTANCE,
     protocol: ApplicationProtocol.HTTP,
@@ -53,9 +53,9 @@ const createLoadBalancer = (stack: Stack, service: FargateService, vpc: Vpc, sec
   });
 
   /**
-   * This listener for the Load Balancer will handle all HTTPS traffic
+   * This listener for the Load Balancer will handle all HTTP traffic
    */
-  loadBalancer.addListener(`${stack.stackName}ServerListener`, {
+  loadBalancer.addListener(`${stack.stackName}TargetListener`, {
     port: 80,
     defaultAction: ListenerAction.forward([targetGroup]),
   });
@@ -63,10 +63,10 @@ const createLoadBalancer = (stack: Stack, service: FargateService, vpc: Vpc, sec
   /**
    * Export the DNS name of the Load Balancer
    */
-  new CfnOutput(stack, `${stack.stackName}ServerLoadBalancerDNS`, {
+  new CfnOutput(stack, `${stack.stackName}TargetLoadBalancerDNS`, {
     value: loadBalancer.loadBalancerDnsName,
     description: 'The DNS name of the load balancer',
-    exportName: `${stack.stackName}LoadBalancerDNS`,
+    exportName: `${stack.stackName}TargetLoadBalancerDNS`,
   });
 
   return { loadBalancer };

@@ -16,16 +16,13 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
  */
 const createTriggerLambda = (
   stack: Stack,
-  parameters: Record<string, StringParameter>,
+  serverDnsName: string,
+  targetDnsName: string,
+  apiKeyParameter: StringParameter,
   fargateTaskDefinition: FargateTaskDefinition,
   cluster: Cluster,
   securityGroup: SecurityGroup
 ) => {
-  /**
-   * Represents the parameters used by the Fargate service.
-   */
-  const { urlParameter, apiKeyParameter } = parameters;
-
   /**
    * Represents the trigger Lambda function specification.
    */
@@ -36,7 +33,8 @@ const createTriggerLambda = (
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
     environment: {
-      URL_PARAMETER: urlParameter.stringValue,
+      URL_PARAMETER: serverDnsName,
+      TARGET_PARAMETER: targetDnsName,
       API_KEY_PARAMETER: apiKeyParameter.stringValue,
       SUBNETS: cluster.vpc.privateSubnets.map((subnet) => subnet.subnetId).join(','),
       SECURITY_GROUP: securityGroup.securityGroupId,
