@@ -21,6 +21,7 @@ const createFargateService = (stack: Stack, cluster: Cluster) => {
    * Represents the CloudWatch log group.
    */
   const logGroup = new LogGroup(stack, `${stack.stackName}ServerLogGroup`, {
+    logGroupName: `${stack.stackName}Server`,
     retention: RetentionDays.ONE_WEEK,
   });
 
@@ -36,8 +37,8 @@ const createFargateService = (stack: Stack, cluster: Cluster) => {
    * Represents the Fargate task definition.
    */
   const fargateTaskDefinition = new FargateTaskDefinition(stack, `${stack.stackName}ServerFargateTask`, {
-    cpu: 4096,
-    memoryLimitMiB: 8192,
+    cpu: 1024,
+    memoryLimitMiB: 2048,
     runtimePlatform: { cpuArchitecture: CpuArchitecture.X86_64, operatingSystemFamily: OperatingSystemFamily.LINUX },
   });
 
@@ -45,7 +46,7 @@ const createFargateService = (stack: Stack, cluster: Cluster) => {
    * Adds a container to the Fargate task definition.
    */
   fargateTaskDefinition.addContainer(`${stack.stackName}ServerFargateContainer`, {
-    containerName: `${stack.stackName}ServerFargateContainer`,
+    containerName: `${stack.stackName}Server`,
     image: ContainerImage.fromAsset('./lib/server/assets'),
     logging: logDriver,
     portMappings: [{ containerPort: 9001, protocol: Protocol.TCP }],
@@ -55,6 +56,7 @@ const createFargateService = (stack: Stack, cluster: Cluster) => {
    * Represents the Fargate service.
    */
   const fargateService = new FargateService(stack, `${stack.stackName}ServerFargateService`, {
+    serviceName: `${stack.stackName}Server`,
     cluster,
     taskDefinition: fargateTaskDefinition,
     desiredCount: 1,

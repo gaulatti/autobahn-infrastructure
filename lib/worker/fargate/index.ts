@@ -12,6 +12,7 @@ const createFargateTask = (stack: Stack) => {
    * Represents the CloudWatch log group.
    */
   const logGroup = new LogGroup(stack, `${stack.stackName}WorkerLogGroup`, {
+    logGroupName: `${stack.stackName}Worker`,
     retention: RetentionDays.ONE_WEEK,
   });
 
@@ -36,7 +37,7 @@ const createFargateTask = (stack: Stack) => {
    * Adds a container to the Fargate task definition.
    */
   fargateTaskDefinition.addContainer(`${stack.stackName}WorkerFargateContainer`, {
-    containerName: `${stack.stackName}WorkerFargateContainer`,
+    containerName: `${stack.stackName}Worker`,
     image: ContainerImage.fromAsset('./lib/worker/assets'),
     logging: logDriver,
   });
