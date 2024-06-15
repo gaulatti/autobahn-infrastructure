@@ -8,7 +8,7 @@ import { CfnEIP, Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/
  */
 const createVpc = (stack: Stack) => {
   const vpc = new Vpc(stack, `${stack.stackName}TargetVPC`, {
-    vpcName: `${stack.stackName}VPC`,
+    vpcName: `${stack.stackName}Target`,
     maxAzs: 2,
   });
 
@@ -25,7 +25,7 @@ const createVpc = (stack: Stack) => {
 const createSecurityGroup = (stack: Stack, vpc: Vpc, eip: CfnEIP) => {
   const securityGroup = new SecurityGroup(stack, `${stack.stackName}TargetSecurityGroup`, {
     vpc,
-    securityGroupName: `${stack.stackName}TargetSecurityGroup`,
+    securityGroupName: `${stack.stackName}Target`,
   });
 
   securityGroup.addIngressRule(

@@ -16,16 +16,16 @@ const createVpc = (stack: Stack) => {
    * Represents the VPC (Virtual Private Cloud).
    */
   const vpc = new Vpc(stack, `${stack.stackName}CommonVPC`, {
-    vpcName: `${stack.stackName}VPC`,
+    vpcName: `${stack.stackName}Common`,
     maxAzs: 2,
     natGateways: 1,
     subnetConfiguration: [
       {
-        name: `${stack.stackName}PublicSubnet`,
+        name: `${stack.stackName}Public`,
         subnetType: SubnetType.PUBLIC,
       },
       {
-        name: `${stack.stackName}PrivateSubnet`,
+        name: `${stack.stackName}Private`,
         subnetType: SubnetType.PRIVATE_WITH_EGRESS,
       },
     ],
