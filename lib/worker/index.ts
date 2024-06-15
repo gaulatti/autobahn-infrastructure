@@ -1,7 +1,7 @@
 import { Stack } from 'aws-cdk-lib';
 import { createFargateTask } from './fargate';
 import { createTriggerLambda } from './functions/trigger';
-import { createParameters } from './secrets';
+import { createParameters } from './parameters';
 import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Cluster } from 'aws-cdk-lib/aws-ecs';
 
