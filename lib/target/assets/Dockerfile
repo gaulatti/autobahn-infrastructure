@@ -17,6 +17,7 @@ WORKDIR /usr/src/app
 
 # Add entrypoint script
 COPY entrypoint.sh /usr/src/app/entrypoint.sh
+COPY index.html /usr/src/app/index.html
 RUN chmod +x /usr/src/app/entrypoint.sh
 
 # Set the entrypoint
