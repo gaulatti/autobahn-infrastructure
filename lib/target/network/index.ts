@@ -10,12 +10,6 @@ const createVpc = (stack: Stack) => {
   const vpc = new Vpc(stack, `${stack.stackName}TargetVPC`, {
     vpcName: `${stack.stackName}VPC`,
     maxAzs: 2,
-    subnetConfiguration: [
-      {
-        name: `${stack.stackName}TargetSubnet`,
-        subnetType: SubnetType.PUBLIC,
-      },
-    ],
   });
 
   return { vpc };
