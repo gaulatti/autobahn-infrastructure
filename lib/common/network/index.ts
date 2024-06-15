@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 
 /**
  * Creates a VPC (Virtual Private Cloud) for the given stack.
@@ -10,6 +10,17 @@ const createVpc = (stack: Stack) => {
   const vpc = new Vpc(stack, `${stack.stackName}CommonVPC`, {
     vpcName: `${stack.stackName}VPC`,
     maxAzs: 2,
+    natGateways: 1,
+    subnetConfiguration: [
+      {
+        name: `${stack.stackName}PublicSubnet`,
+        subnetType: SubnetType.PUBLIC,
+      },
+      {
+        name: `${stack.stackName}PrivateSubnet`,
+        subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+      },
+    ],
   });
 
   return { vpc };
