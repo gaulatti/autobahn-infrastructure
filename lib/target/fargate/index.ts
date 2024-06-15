@@ -48,7 +48,7 @@ const createFargateService = (stack: Stack, cluster: Cluster) => {
     containerName: `${stack.stackName}TargetFargateContainer`,
     image: ContainerImage.fromAsset('./lib/target/assets'),
     logging: logDriver,
-    portMappings: [{ containerPort: 80, protocol: Protocol.TCP }],
+    portMappings: [{ containerPort: 8080, protocol: Protocol.TCP }],
   });
 
   /**
