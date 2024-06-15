@@ -11,14 +11,14 @@ class DressYouUpStack extends Stack {
     super(scope, id, props);
 
     /**
-     * Create the target infrastructure. This is separate from server and worker.
-     */
-    const { targetDnsName } = createTargetInfrastructure(this);
-
-    /**
      * Create the common infrastructure. This is shared between server and worker.
      */
-    const { vpc, securityGroup, cluster } = createCommonInfrastructure(this);
+    const { vpc, securityGroup, cluster, eip } = createCommonInfrastructure(this);
+
+    /**
+     * Create the target infrastructure. This is separate from server and worker.
+     */
+    const { targetDnsName } = createTargetInfrastructure(this, eip);
 
     /**
      * Create the server infrastructure

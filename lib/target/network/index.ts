@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { CfnEIP, Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 
 /**
  * Creates a VPC (Virtual Private Cloud) for the given stack.
@@ -22,11 +22,17 @@ const createVpc = (stack: Stack) => {
  * @param vpc - The VPC to associate the security group with.
  * @returns An object containing the created security group.
  */
-const createSecurityGroup = (stack: Stack, vpc: Vpc) => {
+const createSecurityGroup = (stack: Stack, vpc: Vpc, eip: CfnEIP) => {
   const securityGroup = new SecurityGroup(stack, `${stack.stackName}TargetSecurityGroup`, {
     vpc,
     securityGroupName: `${stack.stackName}TargetSecurityGroup`,
   });
+
+  securityGroup.addIngressRule(
+    Peer.ipv4(`${eip.ref}/32`),
+    Port.tcp(80),
+    'Allow inbound HTTP traffic from Lighthouse'
+  );
 
   return { securityGroup };
 };

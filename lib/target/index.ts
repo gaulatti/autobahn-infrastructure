@@ -3,8 +3,9 @@ import { createSecurityGroup, createVpc } from './network';
 import { createCluster } from './compute';
 import { createFargateService } from './fargate';
 import { createLoadBalancer } from './elb';
+import { CfnEIP } from 'aws-cdk-lib/aws-ec2';
 
-const createTargetInfrastructure = (stack: Stack) => {
+const createTargetInfrastructure = (stack: Stack, eip: CfnEIP) => {
   /**
    * Create VPC
    */
@@ -13,7 +14,7 @@ const createTargetInfrastructure = (stack: Stack) => {
   /**
    * Create Security Group
    */
-  const { securityGroup } = createSecurityGroup(stack, vpc);
+  const { securityGroup } = createSecurityGroup(stack, vpc, eip);
 
   /**
    * Create Cluster

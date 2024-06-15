@@ -6,7 +6,7 @@ const createCommonInfrastructure = (stack: Stack) => {
   /**
    * Create VPC
    */
-  const { vpc } = createVpc(stack);
+  const { vpc, eip } = createVpc(stack);
 
   /**
    * Create Security Group
@@ -25,6 +25,7 @@ const createCommonInfrastructure = (stack: Stack) => {
     vpc,
     securityGroup,
     cluster,
+    eip
   };
 };
 

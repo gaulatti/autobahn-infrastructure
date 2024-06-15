@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { CfnEIP, NatProvider, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 
 /**
  * Creates a VPC (Virtual Private Cloud) for the given stack.
@@ -7,6 +7,14 @@ import { SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
  * @returns An object containing the created VPC.
  */
 const createVpc = (stack: Stack) => {
+  /**
+   * Represents the Elastic IP address.
+   */
+  const eip = new CfnEIP(stack, `${stack.stackName}NATIP`);
+
+  /**
+   * Represents the VPC (Virtual Private Cloud).
+   */
   const vpc = new Vpc(stack, `${stack.stackName}CommonVPC`, {
     vpcName: `${stack.stackName}VPC`,
     maxAzs: 2,
@@ -21,9 +29,17 @@ const createVpc = (stack: Stack) => {
         subnetType: SubnetType.PRIVATE_WITH_EGRESS,
       },
     ],
+
+    /**
+     * Represents the NAT gateway provider.
+     * Useful to allowlist all Lighthouse traffic through the NAT gateway.
+     */
+    natGatewayProvider: NatProvider.gateway({
+      eipAllocationIds: [eip.attrAllocationId],
+    }),
   });
 
-  return { vpc };
+  return { vpc, eip };
 };
 
 /**
@@ -42,4 +58,5 @@ const createSecurityGroup = (stack: Stack, vpc: Vpc) => {
   return { securityGroup };
 };
 
-export { createVpc, createSecurityGroup };
+export { createSecurityGroup, createVpc };
+
