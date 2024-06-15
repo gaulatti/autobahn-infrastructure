@@ -9,7 +9,7 @@ import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 const createVpc = (stack: Stack) => {
   const vpc = new Vpc(stack, `${stack.stackName}CommonVPC`, {
     vpcName: `${stack.stackName}VPC`,
-    maxAzs: 1,
+    maxAzs: 2,
   });
 
   return { vpc };
