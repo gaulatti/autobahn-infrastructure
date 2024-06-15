@@ -49,7 +49,7 @@ const createLoadBalancer = (stack: Stack, service: FargateService, vpc: Vpc, sec
       timeout: Duration.seconds(5),
       healthyThresholdCount: 2,
       unhealthyThresholdCount: 2,
-      healthyHttpCodes: '200,401',
+      healthyHttpCodes: '200,401,302',
     },
     targets: [service],
   });
