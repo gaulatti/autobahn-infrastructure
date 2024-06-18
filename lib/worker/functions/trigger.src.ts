@@ -34,8 +34,8 @@ const main = async (_event: any) => {
         {
           name: CONTAINER_NAME,
           environment: [
-            { name: 'URL_PARAMETER', value: URL_PARAMETER },
-            { name: 'TARGET_PARAMETER', value: TARGET_PARAMETER },
+            { name: 'URL_PARAMETER', value: `https://${URL_PARAMETER}` },
+            { name: 'TARGET_PARAMETER', value: `https://${TARGET_PARAMETER}` },
             { name: 'API_KEY_PARAMETER', value: API_KEY_PARAMETER },
             { name: 'LHCI_BUILD_CONTEXT__COMMIT_TIME', value: new Date().toISOString() },
             { name: 'LHCI_BUILD_CONTEXT__CURRENT_HASH', value: new Date().toISOString() },
