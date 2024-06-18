@@ -15,7 +15,7 @@ RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.d
     apt-get install -y ./google-chrome-stable_current_amd64.deb
 
 # Install Lighthouse CI CLI
-RUN npm install -g @lhci/cli
+RUN npm install -g @lhci/cli lighthouse
 
 # Create directory for Lighthouse CI configuration and set it as the working directory
 WORKDIR /usr/src/app
