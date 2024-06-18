@@ -1,41 +1,24 @@
 import { Stack } from 'aws-cdk-lib';
-import { createSecurityGroup, createVpc } from './network';
-import { createCluster } from './compute';
-import { createFargateService } from './fargate';
-import { createLoadBalancer } from './elb';
 import { CfnEIP } from 'aws-cdk-lib/aws-ec2';
+import { createDistribution } from './network';
+import { createBucket } from './storage';
 
 const createTargetInfrastructure = (stack: Stack, eip: CfnEIP) => {
   /**
-   * Create VPC
+   * Create S3 Bucket
    */
-  const { vpc } = createVpc(stack);
+  const { bucket } = createBucket(stack);
 
   /**
-   * Create Security Group
+   * Create CloudFront Distribution
    */
-  const { securityGroup } = createSecurityGroup(stack, vpc, eip);
-
-  /**
-   * Create Cluster
-   */
-  const { cluster } = createCluster(stack, vpc);
-
-  /**
-   * Create Fargate Service
-   */
-  const { fargateService } = createFargateService(stack, cluster);
-
-  /**
-   * Create Load Balancer
-   */
-  const { loadBalancer } = createLoadBalancer(stack, fargateService, vpc, securityGroup);
+  const { distribution } = createDistribution(stack, bucket, eip);
 
   /**
    * Return the DNS name of the load balancer
    */
   return {
-    targetDnsName: loadBalancer.loadBalancerDnsName,
+    targetDnsName: distribution.distributionDomainName,
   };
 };
 
