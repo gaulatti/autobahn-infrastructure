@@ -10,7 +10,7 @@ sleep 5
 mkdir -p ./.lighthouseci
 
 # Run Lighthouse using the pre-started Chrome instance
-lighthouse --port=9222 --chrome-flags="--no-sandbox --disable-dev-shm-usage --headless --remote-debugging-port=9222" $TARGET_PARAMETER --output=json --output-path=./.lighthouseci/lhr-123456789.json
+lighthouse --port=9222 --chrome-flags="--no-sandbox --disable-dev-shm-usage --headless --remote-debugging-port=9222" $TARGET_PARAMETER $PRESET_FLAG --output=json --output-path=./.lighthouseci/lhr-123456789.json
 
 echo "Lighthouse Complete, time to upload"
 

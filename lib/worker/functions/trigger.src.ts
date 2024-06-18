@@ -37,6 +37,7 @@ const main = async (_event: any) => {
             { name: 'URL_PARAMETER', value: `http://${URL_PARAMETER}` },
             { name: 'TARGET_PARAMETER', value: `https://${TARGET_PARAMETER}` },
             { name: 'API_KEY_PARAMETER', value: API_KEY_PARAMETER },
+            { name: 'PRESET_FLAG', value: Math.floor(Math.random() * 2) ? '--preset=desktop': ''},
             { name: 'LHCI_BUILD_CONTEXT__COMMIT_TIME', value: new Date().toISOString() },
             { name: 'LHCI_BUILD_CONTEXT__CURRENT_HASH', value: new Date().toISOString() },
             { name: 'LHCI_BUILD_CONTEXT__COMMIT_MESSAGE', value: new Date().toISOString() },
