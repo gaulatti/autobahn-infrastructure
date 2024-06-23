@@ -14,4 +14,10 @@ lighthouse --port=9222 --chrome-flags="--no-sandbox --disable-dev-shm-usage --he
 
 echo "Lighthouse Complete, time to upload"
 
-lhci upload --config=./lhci.config.js
+# Generate a random UUID for the filename
+UUID=$(uuidgen)
+
+# Upload the Lighthouse report to the S3 bucket with a random UUID filename
+aws s3 cp ./.lighthouseci/lhr-123456789.json s3://$BUCKET_NAME/$UUID.json
+
+echo "Upload Complete"
