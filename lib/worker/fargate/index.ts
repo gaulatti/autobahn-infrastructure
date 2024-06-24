@@ -30,8 +30,8 @@ const createFargateTask = (stack: Stack, observabilityBucket: Bucket) => {
    * Represents the Fargate task definition.
    */
   const fargateTaskDefinition = new FargateTaskDefinition(stack, `${stack.stackName}WorkerFargateTask`, {
-    cpu: 4096,
-    memoryLimitMiB: 8192,
+    cpu: 8192,
+    memoryLimitMiB: 16384,
     runtimePlatform: { cpuArchitecture: CpuArchitecture.X86_64, operatingSystemFamily: OperatingSystemFamily.LINUX },
   });
 
