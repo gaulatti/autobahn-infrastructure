@@ -19,5 +19,6 @@ UUID=$(uuidgen)
 
 # Upload the Lighthouse report to the S3 bucket with a random UUID filename
 aws s3 cp ./.lighthouseci/lhr-123456789.json s3://$BUCKET_NAME/$UUID.json
+lhci upload --config=./lhci.config.js
 
 echo "Upload Complete"
