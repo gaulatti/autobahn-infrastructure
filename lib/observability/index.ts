@@ -1,6 +1,7 @@
 import { Stack } from 'aws-cdk-lib';
 import { createBucket } from './storage';
 import { createProcessingLambda } from './functions/processing';
+import { createDashboard } from './dashboard';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**
@@ -12,6 +13,11 @@ const createObservabilityInfrastructure = (stack: Stack) => {
    * Process Lambda
    */
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket);
+
+  /**
+   * Dashboard
+   */
+  const { dashboard } = createDashboard(stack);
 
   return { observabilityBucket };
 };
