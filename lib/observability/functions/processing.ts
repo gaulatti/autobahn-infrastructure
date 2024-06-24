@@ -16,7 +16,7 @@ const createProcessingLambda = (stack: Stack, observabilityBucket: Bucket) => {
    * Create Processing Lambda
    */
   const processingLambda = new NodejsFunction(stack, 'ProcessingLambda', {
-    functionName: `${stack.stackName}Trigger`,
+    functionName: `${stack.stackName}Processing`,
     entry: './lib/observability/functions/processing.src.ts',
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
