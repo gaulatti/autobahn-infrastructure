@@ -55,7 +55,7 @@ const createTriggerLambda = (
    * Represents the rule that triggers the Lambda function.
    */
   const eventRule = new Rule(stack, `${triggerLambdaSpec.functionName}Rule`, {
-    schedule: Schedule.rate(Duration.minutes(1)),
+    schedule: Schedule.rate(Duration.minutes(2)),
   });
 
   /**
