@@ -14,6 +14,7 @@ const ecsClient = new ECSClient();
 const main = async (_event: any) => {
   const { URL_PARAMETER, TARGET_PARAMETER, API_KEY_PARAMETER, CLUSTER, TASK_DEFINITION, CONTAINER_NAME, SUBNETS, SECURITY_GROUP } = process.env;
   const subnets = SUBNETS!.split(',');
+  const isDesktop = Math.floor(Math.random() * 2);
 
   /**
    * Represents the parameters used to run the Fargate task.
@@ -37,13 +38,13 @@ const main = async (_event: any) => {
             { name: 'URL_PARAMETER', value: `http://${URL_PARAMETER}` },
             { name: 'TARGET_PARAMETER', value: `https://${TARGET_PARAMETER}` },
             { name: 'API_KEY_PARAMETER', value: API_KEY_PARAMETER },
-            { name: 'PRESET_FLAG', value: Math.floor(Math.random() * 2) ? '--preset=desktop': ''},
+            { name: 'PRESET_FLAG', value: isDesktop ? '--preset=desktop': ''},
             { name: 'LHCI_BUILD_CONTEXT__COMMIT_TIME', value: new Date().toISOString() },
             { name: 'LHCI_BUILD_CONTEXT__CURRENT_HASH', value: new Date().toISOString() },
             { name: 'LHCI_BUILD_CONTEXT__COMMIT_MESSAGE', value: new Date().toISOString() },
-            { name: 'LHCI_BUILD_CONTEXT__CURRENT_BRANCH', value: 'prod' },
-            { name: 'LHCI_BUILD_CONTEXT__AUTHOR', value: 'example.com' },
-            { name: 'LHCI_BUILD_CONTEXT__AVATAR_URL', value: 'https://fakeimg.pl/400x400/112233/CCC?text=Example' },
+            { name: 'LHCI_BUILD_CONTEXT__CURRENT_BRANCH', value: isDesktop ? 'prod' : 'prod-mobile' },
+            { name: 'LHCI_BUILD_CONTEXT__AUTHOR', value: 'biobiochile.cl' },
+            { name: 'LHCI_BUILD_CONTEXT__AVATAR_URL', value: 'https://asset.brandfetch.io/idtzNzscMc/idgVrYH4hN.png?updated=1712188035350' },
           ],
         },
       ],
