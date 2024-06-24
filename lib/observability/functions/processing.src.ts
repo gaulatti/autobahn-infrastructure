@@ -116,6 +116,10 @@ const main = async (event: S3Event) => {
               Name: 'Stage',
               Value: 'prod',
             },
+            {
+                Name: 'Viewport',
+                Value: isMobile ? 'mobile' : 'desktop',
+            }
           ],
           Unit: metric.numericUnit === 'millisecond' ? StandardUnit.Milliseconds : StandardUnit.None,
           Value: metric.numericValue,
