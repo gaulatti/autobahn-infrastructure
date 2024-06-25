@@ -31,7 +31,7 @@ class DressYouUpStack extends Stack {
     /**
      * Create the worker infrastructure
      */
-    createWorkerInfrastructure(this, vpc, securityGroup, cluster, serverDnsName, observabilityBucket);
+    createWorkerInfrastructure(this, securityGroup, cluster, serverDnsName, observabilityBucket);
   }
 }
 

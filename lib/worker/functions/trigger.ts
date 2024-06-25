@@ -5,6 +5,8 @@ import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Topic } from 'aws-cdk-lib/aws-sns';
+import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 /**
@@ -14,6 +16,7 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
  * @param fargateTaskDefinition - The Fargate task definition.
  * @param cluster - The cluster where the Fargate service is running.
  * @param securityGroup - The security group associated with the Fargate service.
+ * @param triggerTopic - The SNS topic that triggers the Lambda function.
  * @returns An object containing the created trigger Lambda function.
  */
 const createTriggerLambda = (
@@ -22,7 +25,8 @@ const createTriggerLambda = (
   apiKeyParameter: StringParameter,
   fargateTaskDefinition: FargateTaskDefinition,
   cluster: Cluster,
-  securityGroup: SecurityGroup
+  securityGroup: SecurityGroup,
+  triggerTopic: Topic
 ) => {
   /**
    * Represents the trigger Lambda function specification.
@@ -35,7 +39,6 @@ const createTriggerLambda = (
     timeout: Duration.minutes(1),
     environment: {
       URL_PARAMETER: serverDnsName,
-      TARGET_PARAMETER: 'www.cnn.com',
       API_KEY_PARAMETER: apiKeyParameter.stringValue,
       SUBNETS: cluster.vpc.privateSubnets.map((subnet) => subnet.subnetId).join(','),
       SECURITY_GROUP: securityGroup.securityGroupId,
@@ -62,6 +65,11 @@ const createTriggerLambda = (
    * Adds the Lambda function as a target for the rule.
    */
   eventRule.addTarget(new LambdaFunction(triggerLambda));
+
+  /**
+   * Adds the Lambda function as a target for the SNS topic.
+   */
+  triggerTopic.addSubscription(new LambdaSubscription(triggerLambda));
 
   return { triggerLambda };
 };
