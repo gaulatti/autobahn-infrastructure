@@ -164,6 +164,7 @@ const createDashboard = (stack: Stack) => {
           value: metric.alarm.mobileThreshold,
         },
       ],
+      verticalAnnotations: [{ label: 'Target Switch', date: '2024-06-25T16:30:00.000Z' }],
     });
 
     row.push(widget);

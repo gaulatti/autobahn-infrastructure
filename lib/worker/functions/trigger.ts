@@ -35,7 +35,7 @@ const createTriggerLambda = (
     timeout: Duration.minutes(1),
     environment: {
       URL_PARAMETER: serverDnsName,
-      TARGET_PARAMETER: 'www.biobiochile.cl',
+      TARGET_PARAMETER: 'www.cnn.com',
       API_KEY_PARAMETER: apiKeyParameter.stringValue,
       SUBNETS: cluster.vpc.privateSubnets.map((subnet) => subnet.subnetId).join(','),
       SECURITY_GROUP: securityGroup.securityGroupId,
