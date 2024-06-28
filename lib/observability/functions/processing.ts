@@ -24,6 +24,7 @@ const createProcessingLambda = (stack: Stack, observabilityBucket: Bucket) => {
     environment: {
       BUCKET_NAME: observabilityBucket.bucketName,
     },
+    memorySize: 1024,
   });
 
   /**
