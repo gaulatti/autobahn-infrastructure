@@ -126,7 +126,7 @@ const createDashboard = (stack: Stack) => {
         },
         region: 'us-east-1',
         statistic: 'p90',
-        period: Duration.minutes(5),
+        period: Duration.minutes(10),
       });
 
       const threshold = viewport === 'desktop' ? metric.alarm.desktopThreshold : metric.alarm.mobileThreshold;
