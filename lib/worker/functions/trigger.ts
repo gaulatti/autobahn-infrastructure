@@ -1,8 +1,6 @@
 import { Duration, Stack } from 'aws-cdk-lib';
 import { SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Cluster, FargateTaskDefinition } from 'aws-cdk-lib/aws-ecs';
-import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
-import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
@@ -53,18 +51,6 @@ const createTriggerLambda = (
    */
   const triggerLambda = new NodejsFunction(stack, `${triggerLambdaSpec.functionName}Lambda`, triggerLambdaSpec);
   fargateTaskDefinition.grantRun(triggerLambda);
-
-  /**
-   * Represents the rule that triggers the Lambda function.
-   */
-  const eventRule = new Rule(stack, `${triggerLambdaSpec.functionName}Rule`, {
-    schedule: Schedule.rate(Duration.minutes(10)),
-  });
-
-  /**
-   * Adds the Lambda function as a target for the rule.
-   */
-  eventRule.addTarget(new LambdaFunction(triggerLambda));
 
   /**
    * Adds the Lambda function as a target for the SNS topic.
