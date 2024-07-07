@@ -3,8 +3,15 @@ import { createBuckets } from './storage';
 import { createProcessingLambda } from './functions/processing';
 import { createDashboard } from './dashboard';
 import { createDistribution } from './network';
+import { createSecrets } from './secrets';
+import { createBuildProject } from './build';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
+  /**
+   * Secrets
+   */
+  const { certificateArnSecret, githubTokenSecret, frontendFqdnSecret } = createSecrets(stack);
+
   /**
    * Storage (S3)
    */
@@ -19,11 +26,6 @@ const createObservabilityInfrastructure = (stack: Stack) => {
    * Dashboard
    */
   const { dashboard } = createDashboard(stack);
-
-  /**
-   * Frontend
-   */
-  const { distribution } = createDistribution(stack, frontendBucket);
 
   /**
    * Return the bucket for the ECS Task to upload the files
