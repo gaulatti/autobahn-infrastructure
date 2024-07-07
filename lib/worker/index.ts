@@ -37,7 +37,7 @@ const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, 
   /**
    * Create Trigger Lambda
    */
-  const triggerLambda = createTriggerLambda(stack, serverDnsName, apiKeyParameter, fargateTaskDefinition, cluster, securityGroup, triggerTopic);
+  const triggerLambda = createTriggerLambda(stack, serverDnsName, fargateTaskDefinition, cluster, securityGroup, triggerTopic);
 };
 
 export { createWorkerInfrastructure };
