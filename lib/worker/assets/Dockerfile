@@ -25,9 +25,6 @@ RUN npm install -g lighthouse
 # Create directory for Lighthouse CI configuration and set it as the working directory
 WORKDIR /usr/src/app
 
-# Copy Lighthouse CI configuration file (assuming you have an lhci.config.js file in the same directory as the Dockerfile)
-COPY lhci.config.js .
-
 # Add entrypoint script
 COPY entrypoint.sh /usr/src/app/entrypoint.sh
 RUN chmod +x /usr/src/app/entrypoint.sh
