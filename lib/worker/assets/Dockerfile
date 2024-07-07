@@ -20,7 +20,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     ./aws/install
 
 # Install Lighthouse CI CLI
-RUN npm install -g @lhci/cli lighthouse
+RUN npm install -g lighthouse
 
 # Create directory for Lighthouse CI configuration and set it as the working directory
 WORKDIR /usr/src/app

@@ -1,7 +1,6 @@
 import { Stack } from 'aws-cdk-lib';
 import { createFargateTask } from './fargate';
 import { createTriggerLambda } from './functions/trigger';
-import { createParameters } from './parameters';
 import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Cluster } from 'aws-cdk-lib/aws-ecs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
@@ -17,11 +16,6 @@ import { createTopics } from './events';
  * @param observabilityBucket - The bucket for observability.
  */
 const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, cluster: Cluster, serverDnsName: string, observabilityBucket: Bucket) => {
-  /**
-   * Create Secrets
-   */
-  const { apiKeyParameter } = createParameters(stack);
-
   /**
    * Create SNS Topics
    */

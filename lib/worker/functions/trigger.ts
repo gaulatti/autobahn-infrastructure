@@ -20,7 +20,6 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 const createTriggerLambda = (
   stack: Stack,
   serverDnsName: string,
-  apiKeyParameter: StringParameter,
   fargateTaskDefinition: FargateTaskDefinition,
   cluster: Cluster,
   securityGroup: SecurityGroup,
@@ -37,7 +36,6 @@ const createTriggerLambda = (
     timeout: Duration.minutes(1),
     environment: {
       URL_PARAMETER: serverDnsName,
-      API_KEY_PARAMETER: apiKeyParameter.stringValue,
       SUBNETS: cluster.vpc.privateSubnets.map((subnet) => subnet.subnetId).join(','),
       SECURITY_GROUP: securityGroup.securityGroupId,
       CLUSTER: cluster.clusterArn,
