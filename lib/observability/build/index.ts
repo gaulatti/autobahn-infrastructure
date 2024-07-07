@@ -39,6 +39,7 @@ const createBuildProject = (stack: Stack, bucket: Bucket, distribution: CloudFro
 
   /**
    * Represents the GitHub source credentials to access the repository.
+   * Use this only if your account does not have another stack with GitHub creds (only one per account is allowed)
    */
   const credentials = new GitHubSourceCredentials(stack, `${stack.stackName}GitHubCreds`, {
     accessToken: sourceToken.secretValue,
