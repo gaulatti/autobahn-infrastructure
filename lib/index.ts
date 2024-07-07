@@ -2,7 +2,6 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { createCommonInfrastructure } from './common';
 import { createObservabilityInfrastructure } from './observability';
-import { createServerInfrastructure } from './server';
 import { createWorkerInfrastructure } from './worker';
 
 /**
@@ -24,14 +23,9 @@ class DressYouUpStack extends Stack {
     const { vpc, securityGroup, cluster, eip } = createCommonInfrastructure(this);
 
     /**
-     * Create the server infrastructure
-     */
-    const { serverDnsName } = createServerInfrastructure(this, vpc, securityGroup, cluster);
-
-    /**
      * Create the worker infrastructure
      */
-    createWorkerInfrastructure(this, securityGroup, cluster, serverDnsName, observabilityBucket);
+    createWorkerInfrastructure(this, securityGroup, cluster, observabilityBucket);
   }
 }
 

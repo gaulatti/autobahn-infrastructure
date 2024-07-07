@@ -15,7 +15,7 @@ import { createTopics } from './events';
  * @param serverDnsName - The DNS name of the server.
  * @param observabilityBucket - The bucket for observability.
  */
-const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, cluster: Cluster, serverDnsName: string, observabilityBucket: Bucket) => {
+const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, cluster: Cluster, observabilityBucket: Bucket) => {
   /**
    * Create SNS Topics
    */
@@ -37,7 +37,7 @@ const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, 
   /**
    * Create Trigger Lambda
    */
-  const triggerLambda = createTriggerLambda(stack, serverDnsName, fargateTaskDefinition, cluster, securityGroup, triggerTopic);
+  const triggerLambda = createTriggerLambda(stack, fargateTaskDefinition, cluster, securityGroup, triggerTopic);
 };
 
 export { createWorkerInfrastructure };
