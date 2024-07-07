@@ -1,13 +1,17 @@
 import { Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { camelToKebab } from '../../common/utils';
+import { randomUUID } from 'crypto';
 
-const createBucket = (stack: Stack) => {
+const createBuckets = (stack: Stack) => {
   const observabilityBucket = new Bucket(stack, `${stack.stackName}ObservabilityBucket`, {
-    bucketName: camelToKebab(`${stack.stackName}ObservabilityBucket`),
+    bucketName: randomUUID(),
   });
 
-  return { observabilityBucket };
+  const frontendBucket = new Bucket(stack, `${stack.stackName}FrontendBucket`, {
+    bucketName: randomUUID(),
+  });
+
+  return { observabilityBucket, frontendBucket };
 };
 
-export { createBucket };
+export { createBuckets };
