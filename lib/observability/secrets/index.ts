@@ -24,9 +24,19 @@ const createSecrets = (stack: Stack) => {
   const frontendFqdnSecret = new Secret(stack, `${stack.stackName}FrontendFQDNSecret`);
 
   /**
+   * The secret containing the frontend FQDN.
+   */
+  const appleSecret = new Secret(stack, `${stack.stackName}AppleAuthSecret`);
+
+  /**
+   * The secret containing the frontend FQDN.
+   */
+  const googleSecret = new Secret(stack, `${stack.stackName}GoogleAuthSecret`);
+
+  /**
    * Return the created secrets.
    */
-  return { certificateArnSecret, githubTokenSecret, frontendFqdnSecret };
+  return { certificateArnSecret, githubTokenSecret, frontendFqdnSecret, appleSecret, googleSecret };
 };
 
 export { createSecrets };

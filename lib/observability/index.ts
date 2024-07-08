@@ -5,12 +5,24 @@ import { createDashboard } from './dashboard';
 import { createDistribution } from './network';
 import { createSecrets } from './secrets';
 import { createBuildProject } from './build';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { createCognitoAuth } from './authorization';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Secrets
    */
-  const { certificateArnSecret, githubTokenSecret, frontendFqdnSecret } = createSecrets(stack);
+  const { certificateArnSecret, githubTokenSecret, frontendFqdnSecret, appleSecret, googleSecret } = createSecrets(stack);
+
+  /**
+   * Certificate
+   */
+  const certificate = Certificate.fromCertificateArn(stack, `${stack.stackName}Certificate`, certificateArnSecret.secretValue.unsafeUnwrap());
+
+  /**
+   * Auth
+   */
+  const { userPool } = createCognitoAuth(stack, frontendFqdnSecret, appleSecret, googleSecret);
 
   /**
    * Storage (S3)
@@ -18,7 +30,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   const { observabilityBucket, frontendBucket } = createBuckets(stack);
 
   /**
-   * Process Lambda
+   * Lambdas
    */
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket);
 
@@ -46,7 +58,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Frontend
    */
-  const { distribution } = createDistribution(stack, frontendBucket, certificateArnSecret, frontendFqdnSecret);
+  const { distribution } = createDistribution(stack, frontendBucket, frontendFqdnSecret, certificate);
 
   /**
    * Frontend AutoBuild Project
