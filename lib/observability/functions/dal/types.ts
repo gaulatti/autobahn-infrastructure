@@ -8,12 +8,11 @@ export interface BaseRequest {
 }
 export interface GetUserRequest extends BaseRequest {
   type: RequestType.GetUser;
-  userId: string;
+  userId: number;
 }
 
 export interface CreateUserRequest extends BaseRequest {
   type: RequestType.CreateUser;
-  username: string;
   email: string;
 }
 

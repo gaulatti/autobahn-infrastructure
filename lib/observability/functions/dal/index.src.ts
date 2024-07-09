@@ -27,9 +27,11 @@ const main = async (request: AllowedRequest) => {
   switch (request.type) {
     case RequestType.GetUser:
       console.log(request as GetUserRequest);
+      return JSON.stringify({ userId: 123, name: 'Alice' });
       break;
     case RequestType.CreateUser:
       console.log(request as CreateUserRequest);
+      return JSON.stringify({ userId: 123, name: 'Alice' });
       break;
     default:
       throw new Error('Invalid request type');
