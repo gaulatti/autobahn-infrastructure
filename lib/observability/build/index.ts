@@ -13,7 +13,6 @@ import {
 } from 'aws-cdk-lib/aws-codebuild';
 import { UserPool, UserPoolClient, UserPoolDomain } from 'aws-cdk-lib/aws-cognito';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 
 /**
  * Creates a CodeBuild project to build React assets and deploy them to S3 and CloudFront.

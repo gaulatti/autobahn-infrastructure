@@ -5,7 +5,6 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
-import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 /**
  * Creates a trigger Lambda function for the specified stack.

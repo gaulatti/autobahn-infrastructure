@@ -1,6 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
 import { AwsLogDriver, ContainerImage, CpuArchitecture, FargateTaskDefinition, OperatingSystemFamily } from 'aws-cdk-lib/aws-ecs';
-import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 
