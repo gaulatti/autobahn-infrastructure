@@ -18,6 +18,7 @@ const createDataAccessLambda = (stack: Stack) => {
     memorySize: 1024,
     environment: {
       DATABASE_SECRET: process.env.DATABASE_SECRET_ARN!,
+      DATABASE_FQDN: process.env.DATABASE_FQDN!,
     }
   });
 

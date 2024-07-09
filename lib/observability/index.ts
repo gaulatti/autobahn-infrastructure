@@ -34,13 +34,15 @@ const createObservabilityInfrastructure = (stack: Stack) => {
    *
    * - CERTIFICATE_ARN: The ARN of the certificate to use for the frontend distribution.
    * - FRONTEND_FQDN: The fully qualified domain name (FQDN) of the frontend website.
+   * - DATABASE_SECRET_ARN: The ARN of the secret containing the database credentials.
+   * - DATABASE_FQDN: The fully qualified domain name (FQDN) of the database.
    *
    * Plus, GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set for
    * the Google Identity Provider (required in createCognitoAuth function)
    */
 
-  if (!process.env.CERTIFICATE_ARN || !process.env.FRONTEND_FQDN || !process.env.DATABASE_SECRET_ARN) {
-    console.error('Please set the following environment variables: CERTIFICATE_ARN, FRONTEND_FQDN, DATABASE_SECRET_ARN');
+  if (!process.env.CERTIFICATE_ARN || !process.env.FRONTEND_FQDN || !process.env.DATABASE_SECRET_ARN || !process.env.DATABASE_FQDN) {
+    console.error('Missing environment variables. Please set CERTIFICATE_ARN, FRONTEND_FQDN, DATABASE_SECRET_ARN, and DATABASE_FQDN.');
     return { observabilityBucket };
   }
   /**
