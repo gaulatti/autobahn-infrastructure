@@ -1,4 +1,5 @@
 import { Duration, Stack } from 'aws-cdk-lib';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
@@ -15,7 +16,18 @@ const createDataAccessLambda = (stack: Stack) => {
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
     memorySize: 1024,
+    environment: {
+      DATABASE_SECRET: process.env.DATABASE_SECRET_ARN!,
+    }
   });
+
+  /**
+   * Add permissions to the Lambda function to access the Database secret.
+   */
+  dataAccessLambda.addToRolePolicy(new PolicyStatement({
+    actions: ['secretsmanager:GetSecretValue'],
+    resources: [process.env.DATABASE_SECRET_ARN!],
+  }));
 
   return { dataAccessLambda };
 };
