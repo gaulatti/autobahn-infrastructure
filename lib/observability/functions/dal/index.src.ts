@@ -1,7 +1,9 @@
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 
+/**
+ * This function retrieves the secret value from the Database secret.
+ */
 const client = new SecretsManagerClient({});
-
 let databaseCredentials: Record<string, string> | undefined;
 
 const main = async (event: any) => {
