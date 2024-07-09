@@ -17,7 +17,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
  * @param stack - The AWS CloudFormation stack.
  * @param oktaMetadataSecret - The Okta metadata secret.
  */
-const createCognitoAuth = (stack: Stack, preAuthenticationLambda: NodejsFunction, postAuthenticationLambda: NodejsFunction) => {
+const createCognitoAuth = (stack: Stack, preSignUpLambda: NodejsFunction, postConfirmationLambda: NodejsFunction) => {
   /**
    * Create User Pool
    */
@@ -25,8 +25,8 @@ const createCognitoAuth = (stack: Stack, preAuthenticationLambda: NodejsFunction
     userPoolName: `${stack.stackName}UserPool`,
     selfSignUpEnabled: true,
     lambdaTriggers: {
-      preAuthentication: preAuthenticationLambda,
-      postAuthentication: postAuthenticationLambda,
+      preSignUp: preSignUpLambda,
+      postConfirmation: postConfirmationLambda,
     },
   });
 
@@ -81,24 +81,10 @@ const createCognitoAuth = (stack: Stack, preAuthenticationLambda: NodejsFunction
   });
 
   /**
-   * Create User Pool Resource Server
-   */
-  new CfnUserPoolResourceServer(stack, `${stack.stackName}SamlAttributeMapping`, {
-    name: 'Okta',
-    identifier: 'saml',
-    userPoolId: userPool.userPoolId,
-    scopes: [
-      {
-        scopeName: 'email',
-        scopeDescription: 'email',
-      },
-    ],
-  });
-
-  /**
    * Create User Pool Mobile Client
    */
   userPool.addClient(`${stack.stackName}PoolMobileClient`, {
+    userPoolClientName: `${stack.stackName}PoolMobileClient`,
     oAuth: {
       flows: {
         authorizationCodeGrant: true,

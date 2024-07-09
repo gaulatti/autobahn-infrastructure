@@ -1,7 +1,7 @@
 import { Stack } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { createCognitoAuth } from './authorization';
-import { createPostAuthenticationTrigger, createPreAuthenticationTrigger } from './authorization/triggers';
+import { createPreSignUpTrigger, createPostConfirmationTrigger } from './authorization/triggers';
 import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
 import { createDataAccessLambda } from './functions/dal';
@@ -20,8 +20,8 @@ const createObservabilityInfrastructure = (stack: Stack) => {
    */
   const { dataAccessLambda } = createDataAccessLambda(stack);
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
-  const { preAuthenticationLambda } = createPreAuthenticationTrigger(stack, dataAccessLambda);
-  const { postAuthenticationLambda } = createPostAuthenticationTrigger(stack, dataAccessLambda);
+  const { preSignUpLambda } = createPreSignUpTrigger(stack, dataAccessLambda);
+  const { postConfirmationLambda } = createPostConfirmationTrigger(stack, dataAccessLambda);
 
   /**
    * Dashboard
@@ -51,7 +51,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Auth
    */
-  const { userPool, userPoolDomain, userPoolClient} = createCognitoAuth(stack, preAuthenticationLambda, postAuthenticationLambda);
+  const { userPool, userPoolDomain, userPoolClient } = createCognitoAuth(stack, preSignUpLambda, postConfirmationLambda);
 
   /**
    * Frontend

@@ -9,12 +9,12 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
  * @param dataAccessLambda - The data access lambda function.
  * @returns The pre-authentication trigger handler.
  */
-const createPreAuthenticationTrigger = (stack: Stack, dataAccessLambda: NodejsFunction) => {
+const createPreSignUpTrigger = (stack: Stack, dataAccessLambda: NodejsFunction) => {
   /**
    * Creates a new pre-authentication trigger handler.
    */
-  const preAuthenticationLambda = new NodejsFunction(stack, `${stack.stackName}PreAuthenticationTrigger`, {
-    handler: 'preAuthentication',
+  const preSignUpLambda = new NodejsFunction(stack, `${stack.stackName}PreAuthenticationTrigger`, {
+    handler: 'preSignUp',
     entry: './lib/observability/authorization/triggers/authentication.src.ts',
     runtime: Runtime.NODEJS_20_X,
     allowPublicSubnet: true,
@@ -23,7 +23,7 @@ const createPreAuthenticationTrigger = (stack: Stack, dataAccessLambda: NodejsFu
     },
   });
 
-  return { preAuthenticationLambda };
+  return { preSignUpLambda };
 };
 
 /**
@@ -33,12 +33,12 @@ const createPreAuthenticationTrigger = (stack: Stack, dataAccessLambda: NodejsFu
  * @param dataAccessLambda - The data access lambda function.
  * @returns The post-authentication trigger handler.
  */
-const createPostAuthenticationTrigger = (stack: Stack, dataAccessLambda: NodejsFunction) => {
+const createPostConfirmationTrigger = (stack: Stack, dataAccessLambda: NodejsFunction) => {
   /**
    * Creates a new post-authentication trigger handler.
    */
-  const postAuthenticationLambda = new NodejsFunction(stack, `${stack.stackName}PostAuthenticationTrigger`, {
-    handler: 'postAuthentication',
+  const postConfirmationLambda = new NodejsFunction(stack, `${stack.stackName}PostAuthenticationTrigger`, {
+    handler: 'postConfirmation',
     entry: './lib/observability/authorization/triggers/authentication.src.ts',
     runtime: Runtime.NODEJS_20_X,
     allowPublicSubnet: true,
@@ -47,7 +47,7 @@ const createPostAuthenticationTrigger = (stack: Stack, dataAccessLambda: NodejsF
     },
   });
 
-  return { postAuthenticationLambda };
+  return { postConfirmationLambda };
 };
 
-export { createPostAuthenticationTrigger, createPreAuthenticationTrigger };
+export { createPreSignUpTrigger, createPostConfirmationTrigger };
