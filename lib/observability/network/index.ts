@@ -1,8 +1,7 @@
 import { Stack } from 'aws-cdk-lib';
-import { Certificate, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { CloudFrontWebDistribution, OriginAccessIdentity, ViewerCertificate } from 'aws-cdk-lib/aws-cloudfront';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 
 /**
  * Creates a CloudFront distribution for the specified stack and S3 bucket.
@@ -11,7 +10,7 @@ import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
  * @param bucket - The S3 bucket to be used as the origin source.
  * @returns The created CloudFront distribution.
  */
-const createDistribution = (stack: Stack, s3BucketSource: Bucket, frontendFqdnSecret: Secret, certificate: ICertificate) => {
+const createDistribution = (stack: Stack, s3BucketSource: Bucket, certificate: ICertificate) => {
   /**
    * Represents the CloudFront Origin Access Identity (OAI).
    */
@@ -36,7 +35,7 @@ const createDistribution = (stack: Stack, s3BucketSource: Bucket, frontendFqdnSe
       },
     ],
     viewerCertificate: ViewerCertificate.fromAcmCertificate(certificate, {
-      aliases: [frontendFqdnSecret.secretValue.unsafeUnwrap()],
+      aliases: [process.env.FRONTEND_FQDN!],
     }),
     errorConfigurations: [
       {

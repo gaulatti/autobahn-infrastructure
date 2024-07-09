@@ -7,20 +7,9 @@ import { createDashboard } from './dashboard';
 import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
 import { createDistribution } from './network';
-import { createSecrets } from './secrets';
 import { createBuckets } from './storage';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
-  /**
-   * Secrets
-   */
-  const { certificateArnSecret, frontendFqdnSecret, appleSecret, googleSecret } = createSecrets(stack);
-
-  /**
-   * Certificate
-   */
-  const certificate = Certificate.fromCertificateArn(stack, `${stack.stackName}Certificate`, certificateArnSecret.secretValue.unsafeUnwrap());
-
   /**
    * Storage (S3)
    */
@@ -35,35 +24,39 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   const { postAuthenticationLambda } = createPostAuthenticationTrigger(stack, dataAccessLambda);
 
   /**
-   * Auth
-   */
-  const { userPool } = createCognitoAuth(stack, frontendFqdnSecret, preAuthenticationLambda, postAuthenticationLambda, appleSecret, googleSecret);
-
-  /**
    * Dashboard
    */
   const { dashboard } = createDashboard(stack);
 
   /**
-   * Important: For the following code snippets to work, a first deployment without them has to be executed
-   * to create the secrets. Then, manually the secrets need to be updated with the correct values before
-   * creating the distribution and the autobuild project.
+   * Important: For the following code snippets to work, the following
+   * values must be set in the environment variables:
    *
-   * The reason why we're using secrets here is to ensure that the secrets are not stored in the codebase.
+   * - CERTIFICATE_ARN: The ARN of the certificate to use for the frontend distribution.
+   * - FRONTEND_FQDN: The fully qualified domain name (FQDN) of the frontend website.
    *
-   * That explains why Secrets are used instead of System Manager Parameters.
-   *
-   * TL;DR:
-   * 1. Deploy the stack without the following code snippets (frontend distribution and autobuild project)
-   * 2. Update the secrets with the correct values in the AWS Console
-   * 3. Uncomment the following code snippets
-   * 4. Deploy the stack again
+   * Plus, GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set for
+   * the Google Identity Provider (required in createCognitoAuth function)
    */
+
+  if (!process.env.CERTIFICATE_ARN || !process.env.FRONTEND_FQDN) {
+    console.error('Please set the CERTIFICATE_ARN and FRONTEND_FQDN environment variables.');
+    return { observabilityBucket };
+  }
+  /**
+   * Certificate
+   */
+  const certificate = Certificate.fromCertificateArn(stack, `${stack.stackName}Certificate`, process.env.CERTIFICATE_ARN);
+
+  /**
+   * Auth
+   */
+  const { userPool } = createCognitoAuth(stack, preAuthenticationLambda, postAuthenticationLambda);
 
   /**
    * Frontend
    */
-  const { distribution } = createDistribution(stack, frontendBucket, frontendFqdnSecret, certificate);
+  const { distribution } = createDistribution(stack, frontendBucket, certificate);
 
   /**
    * Frontend AutoBuild Project

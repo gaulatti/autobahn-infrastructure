@@ -6,11 +6,9 @@ import {
   UserPool,
   UserPoolClient,
   UserPoolDomain,
-  UserPoolIdentityProviderApple,
   UserPoolIdentityProviderGoogle,
 } from 'aws-cdk-lib/aws-cognito';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 
 /**
  * Creates a Cognito Pool with user pool, user pool domain, Okta identity provider,
@@ -19,14 +17,7 @@ import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
  * @param stack - The AWS CloudFormation stack.
  * @param oktaMetadataSecret - The Okta metadata secret.
  */
-const createCognitoAuth = (
-  stack: Stack,
-  frontendFqdnSecret: Secret,
-  preAuthenticationLambda: NodejsFunction,
-  postAuthenticationLambda: NodejsFunction,
-  appleSecret?: Secret,
-  googleSecret?: Secret,
-) => {
+const createCognitoAuth = (stack: Stack, preAuthenticationLambda: NodejsFunction, postAuthenticationLambda: NodejsFunction) => {
   /**
    * Create User Pool
    */
@@ -50,40 +41,14 @@ const createCognitoAuth = (
   });
 
   /**
-   * Create Identity Providers
-   */
-  if (appleSecret) {
-    try {
-      const { clientId, teamId, keyId, privateKey } = JSON.parse(appleSecret.secretValue.unsafeUnwrap());
-      new UserPoolIdentityProviderApple(stack, `${stack.stackName}AppleProvider`, {
-        userPool: userPool,
-        clientId,
-        teamId,
-        keyId,
-        privateKey,
-        scopes: ['profile', 'email', 'openid'],
-        attributeMapping: {
-          email: ProviderAttribute.APPLE_EMAIL,
-          familyName: ProviderAttribute.APPLE_LAST_NAME,
-          givenName: ProviderAttribute.APPLE_FIRST_NAME,
-          fullname: ProviderAttribute.APPLE_NAME,
-        },
-      });
-    } catch (e) {
-      console.error(`Error creating Apple Provider, ${e}`);
-    }
-  }
-
-  /**
    * Create Google Provider
    */
-  if (googleSecret) {
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     try {
-      const { clientId, clientSecret } = JSON.parse(googleSecret.secretValue.unsafeUnwrap());
       new UserPoolIdentityProviderGoogle(stack, `${stack.stackName}GoogleProvider`, {
         userPool,
-        clientId,
-        clientSecret,
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         scopes: ['profile', 'email', 'openid'],
         attributeMapping: {
           email: ProviderAttribute.GOOGLE_EMAIL,
@@ -110,8 +75,8 @@ const createCognitoAuth = (
         implicitCodeGrant: true,
       },
       scopes: [OAuthScope.OPENID, OAuthScope.COGNITO_ADMIN, OAuthScope.EMAIL, OAuthScope.PROFILE],
-      callbackUrls: ['http://localhost:5173', `https://${frontendFqdnSecret.secretValue.unsafeUnwrap()}`],
-      logoutUrls: ['http://localhost:5173/logout', `https://${frontendFqdnSecret.secretValue.unsafeUnwrap()}/logout`],
+      callbackUrls: ['http://localhost:5173', `https://${process.env.FRONTEND_FQDN}`],
+      logoutUrls: ['http://localhost:5173/logout', `https://${process.env.FRONTEND_FQDN}/logout`],
     },
   });
 
