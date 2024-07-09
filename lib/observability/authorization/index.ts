@@ -1,13 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import {
-  CfnUserPoolResourceServer,
-  OAuthScope,
-  ProviderAttribute,
-  UserPool,
-  UserPoolClient,
-  UserPoolDomain,
-  UserPoolIdentityProviderGoogle,
-} from 'aws-cdk-lib/aws-cognito';
+import { OAuthScope, ProviderAttribute, UserPool, UserPoolClient, UserPoolDomain, UserPoolIdentityProviderGoogle } from 'aws-cdk-lib/aws-cognito';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 /**

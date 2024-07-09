@@ -1,7 +1,7 @@
 import { Stack } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { createCognitoAuth } from './authorization';
-import { createPreSignUpTrigger, createPostConfirmationTrigger } from './authorization/triggers';
+import { createPostConfirmationTrigger, createPreSignUpTrigger } from './authorization/triggers';
 import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
 import { createDataAccessLambda } from './functions/dal';
@@ -39,8 +39,8 @@ const createObservabilityInfrastructure = (stack: Stack) => {
    * the Google Identity Provider (required in createCognitoAuth function)
    */
 
-  if (!process.env.CERTIFICATE_ARN || !process.env.FRONTEND_FQDN) {
-    console.error('Please set the CERTIFICATE_ARN and FRONTEND_FQDN environment variables.');
+  if (!process.env.CERTIFICATE_ARN || !process.env.FRONTEND_FQDN || !process.env.DATABASE_SECRET_ARN) {
+    console.error('Please set the following environment variables: CERTIFICATE_ARN, FRONTEND_FQDN, DATABASE_SECRET_ARN');
     return { observabilityBucket };
   }
   /**
