@@ -1,6 +1,17 @@
 import { SecretValue, Stack } from 'aws-cdk-lib';
 import { CloudFrontWebDistribution } from 'aws-cdk-lib/aws-cloudfront';
-import { Artifacts, BuildSpec, EventAction, FilterGroup, GitHubSourceCredentials, LinuxBuildImage, Project, Source } from 'aws-cdk-lib/aws-codebuild';
+import {
+  Artifacts,
+  BuildEnvironmentVariableType,
+  BuildSpec,
+  EventAction,
+  FilterGroup,
+  GitHubSourceCredentials,
+  LinuxBuildImage,
+  Project,
+  Source,
+} from 'aws-cdk-lib/aws-codebuild';
+import { UserPool, UserPoolClient, UserPoolDomain } from 'aws-cdk-lib/aws-cognito';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 
@@ -11,7 +22,14 @@ import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
  * @param distribution - The CloudFront distribution to invalidate after deployment.
  * @param sourceToken - The secret containing the GitHub access token.
  */
-const createBuildProject = (stack: Stack, bucket: Bucket, distribution: CloudFrontWebDistribution) => {
+const createBuildProject = (
+  stack: Stack,
+  bucket: Bucket,
+  distribution: CloudFrontWebDistribution,
+  userPool: UserPool,
+  userPoolDomain: UserPoolDomain,
+  userPoolClient: UserPoolClient
+) => {
   /**
    * Represents the build specification to build the React Assets.
    */
@@ -64,6 +82,24 @@ const createBuildProject = (stack: Stack, bucket: Bucket, distribution: CloudFro
     }),
     environment: {
       buildImage: LinuxBuildImage.STANDARD_5_0,
+      environmentVariables: {
+        VITE_PROD_FQDN: {
+          type: BuildEnvironmentVariableType.PLAINTEXT,
+          value: process.env.FRONTEND_FQDN,
+        },
+        VITE_USER_POOL_DOMAIN: {
+          type: BuildEnvironmentVariableType.PLAINTEXT,
+          value: `${userPoolDomain.domainName}.auth.${stack.region}.amazoncognito.com`,
+        },
+        VITE_USER_POOL_CLIENT_ID: {
+          type: BuildEnvironmentVariableType.PLAINTEXT,
+          value: userPoolClient.userPoolClientId,
+        },
+        VITE_USER_POOL_ID: {
+          type: BuildEnvironmentVariableType.PLAINTEXT,
+          value: userPool.userPoolId,
+        },
+      },
     },
     artifacts: Artifacts.s3({
       bucket: bucket,

@@ -110,7 +110,7 @@ const createCognitoAuth = (stack: Stack, preAuthenticationLambda: NodejsFunction
     },
   });
 
-  return { userPool };
+  return { userPool, userPoolDomain, userPoolClient };
 };
 
 export { createCognitoAuth };

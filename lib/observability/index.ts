@@ -51,7 +51,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Auth
    */
-  const { userPool } = createCognitoAuth(stack, preAuthenticationLambda, postAuthenticationLambda);
+  const { userPool, userPoolDomain, userPoolClient} = createCognitoAuth(stack, preAuthenticationLambda, postAuthenticationLambda);
 
   /**
    * Frontend
@@ -61,7 +61,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Frontend AutoBuild Project
    */
-  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution);
+  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution, userPool, userPoolDomain, userPoolClient);
 
   /**
    * Return the bucket for the ECS Task to upload the files
