@@ -14,6 +14,8 @@ const main = async (event: any) => {
       const response = await client.send(command);
       databaseCredentials = JSON.parse(response.SecretString!);
     }
+
+    console.log({ event });
   } catch (error) {
     console.error('Error retrieving secret:', error);
   }

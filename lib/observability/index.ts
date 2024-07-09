@@ -1,11 +1,11 @@
 import { Stack } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { createCognitoAuth } from './authorization';
-import { createPostConfirmationTrigger, createPreSignUpTrigger } from './authorization/triggers';
 import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
 import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
+import { createPostConfirmationTrigger, createPreSignUpTrigger } from './functions/authorization';
 import { createDistribution } from './network';
 import { createBuckets } from './storage';
 

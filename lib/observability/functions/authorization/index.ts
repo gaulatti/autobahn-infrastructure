@@ -15,7 +15,7 @@ const createPreSignUpTrigger = (stack: Stack, dataAccessLambda: NodejsFunction) 
    */
   const preSignUpLambda = new NodejsFunction(stack, `${stack.stackName}PreAuthenticationTrigger`, {
     handler: 'preSignUp',
-    entry: './lib/observability/authorization/triggers/authentication.src.ts',
+    entry: './lib/observability/functions/authorization/index.src.ts',
     runtime: Runtime.NODEJS_20_X,
     allowPublicSubnet: true,
     environment: {
@@ -39,7 +39,7 @@ const createPostConfirmationTrigger = (stack: Stack, dataAccessLambda: NodejsFun
    */
   const postConfirmationLambda = new NodejsFunction(stack, `${stack.stackName}PostAuthenticationTrigger`, {
     handler: 'postConfirmation',
-    entry: './lib/observability/authorization/triggers/authentication.src.ts',
+    entry: './lib/observability/functions/authorization/index.src.ts',
     runtime: Runtime.NODEJS_20_X,
     allowPublicSubnet: true,
     environment: {

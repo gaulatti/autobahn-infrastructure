@@ -11,7 +11,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 const createDataAccessLambda = (stack: Stack) => {
   const dataAccessLambda = new NodejsFunction(stack, `${stack.stackName}DataAccessLambda`, {
     functionName: `${stack.stackName}DataAccess`,
-    entry: './lib/observability/functions/dal.src.ts',
+    entry: './lib/observability/functions/dal/index.src.ts',
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
