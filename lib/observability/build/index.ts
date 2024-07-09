@@ -1,4 +1,4 @@
-import { Stack } from 'aws-cdk-lib';
+import { SecretValue, Stack } from 'aws-cdk-lib';
 import { CloudFrontWebDistribution } from 'aws-cdk-lib/aws-cloudfront';
 import { Artifacts, BuildSpec, EventAction, FilterGroup, GitHubSourceCredentials, LinuxBuildImage, Project, Source } from 'aws-cdk-lib/aws-codebuild';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
@@ -11,7 +11,7 @@ import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
  * @param distribution - The CloudFront distribution to invalidate after deployment.
  * @param sourceToken - The secret containing the GitHub access token.
  */
-const createBuildProject = (stack: Stack, bucket: Bucket, distribution: CloudFrontWebDistribution, sourceToken: Secret) => {
+const createBuildProject = (stack: Stack, bucket: Bucket, distribution: CloudFrontWebDistribution) => {
   /**
    * Represents the build specification to build the React Assets.
    */
@@ -40,10 +40,14 @@ const createBuildProject = (stack: Stack, bucket: Bucket, distribution: CloudFro
   /**
    * Represents the GitHub source credentials to access the repository.
    * Use this only if your account does not have another stack with GitHub creds (only one per account is allowed)
+   *
+   * For that purpose, set the env variable GITHUB_TOKEN with the GitHub access token.
    */
-  const credentials = new GitHubSourceCredentials(stack, `${stack.stackName}GitHubCreds`, {
-    accessToken: sourceToken.secretValue,
-  });
+  if (process.env.GITHUB_TOKEN) {
+    new GitHubSourceCredentials(stack, `${stack.stackName}GitHubCreds`, {
+      accessToken: SecretValue.unsafePlainText(process.env.GITHUB_TOKEN),
+    });
+  }
 
   /**
    * Represents the CodeBuild project to build the React Assets.

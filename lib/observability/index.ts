@@ -1,28 +1,25 @@
 import { Stack } from 'aws-cdk-lib';
-import { createBuckets } from './storage';
-import { createProcessingLambda } from './functions/processing';
-import { createDashboard } from './dashboard';
-import { createDistribution } from './network';
-import { createSecrets } from './secrets';
-import { createBuildProject } from './build';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { createCognitoAuth } from './authorization';
+import { createPostAuthenticationTrigger, createPreAuthenticationTrigger } from './authorization/triggers';
+import { createBuildProject } from './build';
+import { createDashboard } from './dashboard';
+import { createDataAccessLambda } from './functions/dal';
+import { createProcessingLambda } from './functions/processing';
+import { createDistribution } from './network';
+import { createSecrets } from './secrets';
+import { createBuckets } from './storage';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Secrets
    */
-  const { certificateArnSecret, githubTokenSecret, frontendFqdnSecret, appleSecret, googleSecret } = createSecrets(stack);
+  const { certificateArnSecret, frontendFqdnSecret, appleSecret, googleSecret } = createSecrets(stack);
 
   /**
    * Certificate
    */
   const certificate = Certificate.fromCertificateArn(stack, `${stack.stackName}Certificate`, certificateArnSecret.secretValue.unsafeUnwrap());
-
-  /**
-   * Auth
-   */
-  const { userPool } = createCognitoAuth(stack, frontendFqdnSecret, appleSecret, googleSecret);
 
   /**
    * Storage (S3)
@@ -32,7 +29,15 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Lambdas
    */
-  const { processingLambda } = createProcessingLambda(stack, observabilityBucket);
+  const { dataAccessLambda } = createDataAccessLambda(stack);
+  const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
+  const { preAuthenticationLambda } = createPreAuthenticationTrigger(stack, dataAccessLambda);
+  const { postAuthenticationLambda } = createPostAuthenticationTrigger(stack, dataAccessLambda);
+
+  /**
+   * Auth
+   */
+  const { userPool } = createCognitoAuth(stack, frontendFqdnSecret, preAuthenticationLambda, postAuthenticationLambda, appleSecret, googleSecret);
 
   /**
    * Dashboard
@@ -63,7 +68,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Frontend AutoBuild Project
    */
-  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution, githubTokenSecret);
+  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution);
 
   /**
    * Return the bucket for the ECS Task to upload the files

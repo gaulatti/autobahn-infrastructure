@@ -14,11 +14,6 @@ const createSecrets = (stack: Stack) => {
   const certificateArnSecret = new Secret(stack, `${stack.stackName}CertificateArnSecret`);
 
   /**
-   * The secret containing the GitHub token.
-   */
-  const githubTokenSecret = new Secret(stack, `${stack.stackName}GithubTokenSecret`);
-
-  /**
    * The secret containing the frontend FQDN.
    */
   const frontendFqdnSecret = new Secret(stack, `${stack.stackName}FrontendFQDNSecret`);
@@ -36,7 +31,7 @@ const createSecrets = (stack: Stack) => {
   /**
    * Return the created secrets.
    */
-  return { certificateArnSecret, githubTokenSecret, frontendFqdnSecret, appleSecret, googleSecret };
+  return { certificateArnSecret, frontendFqdnSecret, appleSecret, googleSecret };
 };
 
 export { createSecrets };

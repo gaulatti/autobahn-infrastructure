@@ -9,8 +9,8 @@ import {
   UserPoolIdentityProviderApple,
   UserPoolIdentityProviderGoogle,
 } from 'aws-cdk-lib/aws-cognito';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
-import { buildPostAuthenticationTrigger, buildPreAuthenticationTrigger } from './triggers';
 
 /**
  * Creates a Cognito Pool with user pool, user pool domain, Okta identity provider,
@@ -19,7 +19,14 @@ import { buildPostAuthenticationTrigger, buildPreAuthenticationTrigger } from '.
  * @param stack - The AWS CloudFormation stack.
  * @param oktaMetadataSecret - The Okta metadata secret.
  */
-const createCognitoAuth = (stack: Stack, frontendFqdnSecret: Secret, appleSecret?: Secret, googleSecret?: Secret) => {
+const createCognitoAuth = (
+  stack: Stack,
+  frontendFqdnSecret: Secret,
+  preAuthenticationLambda: NodejsFunction,
+  postAuthenticationLambda: NodejsFunction,
+  appleSecret?: Secret,
+  googleSecret?: Secret,
+) => {
   /**
    * Create User Pool
    */
@@ -27,8 +34,8 @@ const createCognitoAuth = (stack: Stack, frontendFqdnSecret: Secret, appleSecret
     userPoolName: `${stack.stackName}UserPool`,
     selfSignUpEnabled: true,
     lambdaTriggers: {
-      preAuthentication: buildPreAuthenticationTrigger(stack),
-      postAuthentication: buildPostAuthenticationTrigger(stack),
+      preAuthentication: preAuthenticationLambda,
+      postAuthentication: postAuthenticationLambda,
     },
   });
 
@@ -41,7 +48,6 @@ const createCognitoAuth = (stack: Stack, frontendFqdnSecret: Secret, appleSecret
       domainPrefix: `${stack.stackName.toLowerCase()}`,
     },
   });
-
 
   /**
    * Create Identity Providers
