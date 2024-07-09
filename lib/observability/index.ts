@@ -8,6 +8,7 @@ import { createProcessingLambda } from './functions/processing';
 import { createPostConfirmationTrigger, createPreSignUpTrigger } from './functions/authorization';
 import { createDistribution } from './network';
 import { createBuckets } from './storage';
+import { createKickoffLambda } from './functions/kickoff';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**
@@ -22,6 +23,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
   const { preSignUpLambda } = createPreSignUpTrigger(stack, dataAccessLambda);
   const { postConfirmationLambda } = createPostConfirmationTrigger(stack, dataAccessLambda);
+  const { kickoffLambda } = createKickoffLambda(stack, dataAccessLambda);
 
   /**
    * Dashboard
@@ -40,15 +42,16 @@ const createObservabilityInfrastructure = (stack: Stack) => {
    * Plus, GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set for
    * the Google Identity Provider (required in createCognitoAuth function)
    */
-
-  if (!process.env.CERTIFICATE_ARN || !process.env.FRONTEND_FQDN || !process.env.DATABASE_SECRET_ARN || !process.env.DATABASE_FQDN) {
-    console.error('Missing environment variables. Please set CERTIFICATE_ARN, FRONTEND_FQDN, DATABASE_SECRET_ARN, and DATABASE_FQDN.');
+  const requiredEnvVariables = ['CERTIFICATE_ARN', 'FRONTEND_FQDN', 'DATABASE_SECRET_ARN', 'DATABASE_FQDN', 'DATABASE_NAME'];
+  if (requiredEnvVariables.some(variable => !process.env[variable])) {
+    console.error(`Missing required environment variables: ${requiredEnvVariables.join(', ')}`);
     return { observabilityBucket };
   }
+
   /**
    * Certificate
    */
-  const certificate = Certificate.fromCertificateArn(stack, `${stack.stackName}Certificate`, process.env.CERTIFICATE_ARN);
+  const certificate = Certificate.fromCertificateArn(stack, `${stack.stackName}Certificate`, process.env.CERTIFICATE_ARN!);
 
   /**
    * Auth
