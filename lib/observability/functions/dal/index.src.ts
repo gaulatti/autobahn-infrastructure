@@ -1,4 +1,5 @@
-import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
+import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
+import { AllowedRequest, CreateUserRequest, GetUserRequest, RequestType } from './types';
 
 /**
  * This function retrieves the secret value from the Database secret.
@@ -6,7 +7,7 @@ import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-sec
 const client = new SecretsManagerClient({});
 let databaseCredentials: Record<string, string> | undefined;
 
-const main = async (event: any) => {
+const main = async (request: AllowedRequest) => {
   try {
     /**
      * Retrieve the secret value from the Database secret.
@@ -16,10 +17,22 @@ const main = async (event: any) => {
       const response = await client.send(command);
       databaseCredentials = JSON.parse(response.SecretString!);
     }
-
-    console.log({ event });
   } catch (error) {
     console.error('Error retrieving secret:', error);
+  }
+
+  /**
+   * Perform the operation based on the request type.
+   */
+  switch (request.type) {
+    case RequestType.GetUser:
+      console.log(request as GetUserRequest);
+      break;
+    case RequestType.CreateUser:
+      console.log(request as CreateUserRequest);
+      break;
+    default:
+      throw new Error('Invalid request type');
   }
 };
 
