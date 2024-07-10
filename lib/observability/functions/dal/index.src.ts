@@ -32,6 +32,13 @@ const main = async (request: AllowedRequest) => {
     sequelize = new Sequelize(process.env.DATABASE_NAME!, databaseCredentials.username, databaseCredentials.password, {
       host: process.env.DATABASE_FQDN!,
       dialect: 'mysql',
+      pool: {
+        max: 2,
+        min: 0,
+        idle: 0,
+        acquire: 3000,
+        evict: 60000,
+      },
     });
   }
 
