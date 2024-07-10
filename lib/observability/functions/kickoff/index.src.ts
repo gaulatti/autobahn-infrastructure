@@ -5,7 +5,7 @@ const main = async (event: any) => {
   console.log({ event });
 
   try {
-    const response = await DalClient.getUser(123);
+    const response = await DalClient.getUser(1);
     console.log(response);
   } catch (error) {
     console.error(error);

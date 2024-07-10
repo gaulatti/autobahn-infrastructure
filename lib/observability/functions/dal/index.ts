@@ -19,6 +19,19 @@ const createDataAccessLambda = (stack: Stack) => {
     environment: {
       DATABASE_SECRET: process.env.DATABASE_SECRET_ARN!,
       DATABASE_FQDN: process.env.DATABASE_FQDN!,
+      DATABASE_NAME: process.env.DATABASE_NAME!,
+    },
+    bundling: {
+      /**
+       * Sequelize for some reason has an unneeded dependency on pg-hstore.
+       * Given we're using MySQL, we can safely exclude this module.
+       */
+      externalModules: ['pg-hstore'],
+
+      /**
+       * Sequelize requires the mysql2 and sequelize modules to be present.
+       */
+      nodeModules: ['mysql2', 'sequelize']
     }
   });
 

@@ -54,10 +54,10 @@ class DalClient {
    * @param userId The ID of the user to get.
    * @returns The user with the given ID.
    */
-  public static async getUser(userId: number) {
+  public static async getUser(id: number) {
     const request: GetUserRequest = {
       type: RequestType.GetUser,
-      userId,
+      id,
     };
 
     return await DalClient.parsedInvoke(request);

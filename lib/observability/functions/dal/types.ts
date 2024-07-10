@@ -8,7 +8,7 @@ export interface BaseRequest {
 }
 export interface GetUserRequest extends BaseRequest {
   type: RequestType.GetUser;
-  userId: number;
+  id: number;
 }
 
 export interface CreateUserRequest extends BaseRequest {

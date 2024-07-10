@@ -31,6 +31,8 @@
   "dependencies": {
     "aws-cdk-lib": "2.146.0",
     "constructs": "^10.3.0",
+    "mysql2": "^3.10.2",
+    "sequelize": "^6.37.3",
     "source-map-support": "^0.5.21"
   }
 }
