@@ -9,6 +9,7 @@ import { createPreTokenGenerationTrigger } from './functions/authorization';
 import { createDistribution } from './network';
 import { createBuckets } from './storage';
 import { createKickoffLambda } from './functions/kickoff';
+import { createApi } from './api';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**
@@ -42,7 +43,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
    * the Google Identity Provider (required in createCognitoAuth function)
    */
   const requiredEnvVariables = ['CERTIFICATE_ARN', 'FRONTEND_FQDN', 'DATABASE_SECRET_ARN', 'DATABASE_FQDN', 'DATABASE_NAME'];
-  if (requiredEnvVariables.some(variable => !process.env[variable])) {
+  if (requiredEnvVariables.some((variable) => !process.env[variable])) {
     console.error(`Missing required environment variables: ${requiredEnvVariables.join(', ')}`);
     return { observabilityBucket };
   }
@@ -63,9 +64,14 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   const { distribution } = createDistribution(stack, frontendBucket, certificate);
 
   /**
+   * API
+   */
+  const { api } = createApi(stack, userPool);
+
+  /**
    * Frontend AutoBuild Project
    */
-  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution, userPool, userPoolDomain, userPoolClient);
+  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution, userPool, userPoolDomain, userPoolClient, api);
 
   /**
    * Return the bucket for the ECS Task to upload the files

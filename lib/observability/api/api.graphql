@@ -1,0 +1,39 @@
+scalar AWSDateTime
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  created_at: AWSDateTime!
+  updated_at: AWSDateTime!
+  deleted_at: AWSDateTime
+}
+
+
+# Teams
+type Team {
+  id: ID!
+  name: String!
+  created_at: AWSDateTime!
+  updated_at: AWSDateTime!
+  deleted_at: AWSDateTime
+}
+
+# Core
+type Feature {
+  key: String!
+  is_enabled: Boolean!
+}
+
+type Kickoff {
+  teams: [Team]
+  features: [Feature]
+  me: User
+}
+
+type Query {
+  kickoff: Kickoff
+
+  # Get Current User Data
+  me: User
+}
