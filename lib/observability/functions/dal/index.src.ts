@@ -1,7 +1,7 @@
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
-import { AllowedRequest, CreateUserRequest, GetUserByEmailRequest, GetUserRequest, RequestType } from './types';
 import { Sequelize } from 'sequelize';
 import { defineModels } from './entity';
+import { AllowedRequest, GetUserByEmailRequest, GetUserRequest, RequestType } from './types';
 
 /**
  * This function retrieves the secret value from the Database secret.
@@ -66,8 +66,7 @@ const main = async (request: AllowedRequest) => {
   /**
    * Define the models for the database.
    */
-  const { User, Team, Project, Target, PerformanceExecution, Schedule, PerformanceStatistic, BounceStatistic, Assignment, Beacon, Engagement } =
-    defineModels(sequelize);
+  const { User, Team, Project, Target, Schedule, Assignment, Beacon, Engagement } = defineModels(sequelize);
 
   /**
    * Perform the operation based on the request type.
@@ -80,7 +79,7 @@ const main = async (request: AllowedRequest) => {
     case RequestType.GetUserByEmail:
       return prepareOutput(User.findOne({ where: { email: (request as GetUserByEmailRequest).email } }));
     case RequestType.CreateUser:
-      return prepareOutput(User.create({ ...request, created_at: new Date(), updated_at: new Date() }));
+      return prepareOutput(User.create({ ...request }));
     default:
       throw new Error('Invalid request type');
   }

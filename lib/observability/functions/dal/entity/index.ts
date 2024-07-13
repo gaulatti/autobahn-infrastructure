@@ -34,14 +34,17 @@ const defineUser = (sequelize: Sequelize): ModelStatic<Model> => {
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
+        defaultValue: null,
       },
     },
     {
@@ -73,14 +76,17 @@ const defineTeam = (sequelize: Sequelize): ModelStatic<Model> => {
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
+        defaultValue: null,
       },
     },
     {
@@ -126,6 +132,49 @@ const defineProject = (sequelize: Sequelize): ModelStatic<Model> => {
 };
 
 /**
+ * Defines the Membership model in the database.
+ *
+ * @param {Sequelize} sequelize - The Sequelize instance.
+ * @returns {Model} The Membership model.
+ */
+const defineMembership = (sequelize: Sequelize): ModelStatic<Model> => {
+  return sequelize.define(
+    'Membership',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      teams_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'teams',
+          key: 'id',
+        },
+      },
+      users_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+      },
+      role: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+    },
+    {
+      tableName: 'memberships',
+      underscored: true,
+    }
+  );
+};
+
+/**
  * Defines the Target model in the database.
  *
  * @param {Sequelize} sequelize - The Sequelize instance.
@@ -155,314 +204,31 @@ const defineTarget = (sequelize: Sequelize): ModelStatic<Model> => {
       url: {
         type: DataTypes.TEXT,
         allowNull: true,
+        defaultValue: null,
       },
       lambda_arn: {
         type: DataTypes.STRING(110),
         allowNull: true,
+        defaultValue: null,
       },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
+        defaultValue: null,
       },
     },
     {
       tableName: 'targets',
-      underscored: true,
-    }
-  );
-};
-
-/**
- * Defines the PerformanceExecution model in the database.
- *
- * @param {Sequelize} sequelize - The Sequelize instance.
- * @returns {Model} The PerformanceExecution model.
- */
-const definePerformanceExecution = (sequelize: Sequelize): ModelStatic<Model> => {
-  return sequelize.define(
-    'PerformanceExecution',
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      providers_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      teams_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'teams',
-          key: 'id',
-        },
-      },
-      targets_id: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'targets',
-          key: 'id',
-        },
-      },
-      uuid: {
-        type: DataTypes.STRING(45),
-        allowNull: false,
-      },
-      url: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-      },
-      status: {
-        type: DataTypes.STRING(45),
-        allowNull: false,
-      },
-      fcp: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      lcp: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      si: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      cls: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      tti: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      performance_score: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      pleasantness_score: {
-        type: DataTypes.STRING(45),
-        allowNull: true,
-      },
-      mode: {
-        type: DataTypes.STRING(45),
-        allowNull: false,
-      },
-      created_at: {
-        type: DataTypes.STRING(45),
-        allowNull: false,
-      },
-      updated_at: {
-        type: DataTypes.STRING(45),
-        allowNull: false,
-      },
-      ended_at: {
-        type: DataTypes.STRING(45),
-        allowNull: true,
-      },
-    },
-    {
-      tableName: 'performance_executions',
-      underscored: true,
-    }
-  );
-};
-
-/**
- * Defines the Schedule model in the database.
- *
- * @param {Sequelize} sequelize - The Sequelize instance.
- * @returns {Model} The Schedule model.
- */
-const defineSchedule = (sequelize: Sequelize): ModelStatic<Model> => {
-  return sequelize.define(
-    'Schedule',
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      targets_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'targets',
-          key: 'id',
-        },
-      },
-      provider: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      cron: {
-        type: DataTypes.STRING(45),
-        allowNull: false,
-      },
-      next_execution: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      created_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      deleted_at: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
-    },
-    {
-      tableName: 'schedules',
-      underscored: true,
-    }
-  );
-};
-
-/**
- * Defines the PerformanceStatistic model in the database.
- *
- * @param {Sequelize} sequelize - The Sequelize instance.
- * @returns {Model} The PerformanceStatistic model.
- */
-const definePerformanceStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
-  return sequelize.define(
-    'PerformanceStatistic',
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      projects_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'projects',
-          key: 'id',
-        },
-      },
-      targets_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'targets',
-          key: 'id',
-        },
-      },
-      type: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      fcp: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      lcp: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      tti: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      si: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      cls: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      score: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      n: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      mode: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      date_from: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      pleasantness_score: {
-        type: DataTypes.STRING(45),
-        allowNull: true,
-      },
-      date_to: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-    },
-    {
-      tableName: 'performance_statistics',
-      underscored: true,
-    }
-  );
-};
-
-/**
- * Defines the BounceStatistic model in the database.
- *
- * @param {Sequelize} sequelize - The Sequelize instance.
- * @returns {Model} The BounceStatistic model.
- */
-const defineBounceStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
-  return sequelize.define(
-    'BounceStatistic',
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      targets_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'targets',
-          key: 'id',
-        },
-      },
-      rate: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      mode: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      date_from: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      date_to: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-    },
-    {
-      tableName: 'bounce_statistics',
       underscored: true,
     }
   );
@@ -491,11 +257,11 @@ const defineAssignment = (sequelize: Sequelize): ModelStatic<Model> => {
           key: 'id',
         },
       },
-      users_id: {
+      memberships_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'users',
+          model: 'memberships',
           key: 'id',
         },
       },
@@ -537,6 +303,7 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
       targets_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        defaultValue: null,
         references: {
           model: 'targets',
           key: 'id',
@@ -545,6 +312,7 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
       triggered_by: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        defaultValue: null,
         references: {
           model: 'assignments',
           key: 'id',
@@ -555,7 +323,7 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
         allowNull: false,
       },
       url: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.TEXT,
         allowNull: false,
       },
       provider: {
@@ -569,22 +337,27 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
       fcp: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+        defaultValue: 0.00,
       },
       lcp: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+        defaultValue: 0.00,
       },
       tti: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+        defaultValue: 0.00,
       },
       si: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+        defaultValue: 0.00,
       },
       cls: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+        defaultValue: 0.00,
       },
       mode: {
         type: DataTypes.INTEGER,
@@ -593,10 +366,12 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
       performance_score: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        defaultValue: 0,
       },
       pleasantness_score: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        defaultValue: null,
       },
       status: {
         type: DataTypes.INTEGER,
@@ -605,10 +380,12 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       ended_at: {
         type: DataTypes.DATE,
@@ -617,6 +394,7 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
+        defaultValue: null,
       },
     },
     {
@@ -668,18 +446,182 @@ const defineEngagement = (sequelize: Sequelize): ModelStatic<Model> => {
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
+        defaultValue: null,
       },
     },
     {
       tableName: 'engagement',
+      underscored: true,
+    }
+  );
+};
+
+/**
+ * Defines the Schedule model in the database.
+ *
+ * @param {Sequelize} sequelize - The Sequelize instance.
+ * @returns {Model} The Schedule model.
+ */
+const defineSchedule = (sequelize: Sequelize): ModelStatic<Model> => {
+  return sequelize.define(
+    'Schedule',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      targets_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'targets',
+          key: 'id',
+        },
+      },
+      provider: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      cron: {
+        type: DataTypes.STRING(45),
+        allowNull: false,
+      },
+      next_execution: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
+      },
+    },
+    {
+      tableName: 'schedules',
+      underscored: true,
+    }
+  );
+};
+
+/**
+ * Defines the Statistic model in the database.
+ *
+ * @param {Sequelize} sequelize - The Sequelize instance.
+ * @returns {Model} The Statistic model.
+ */
+const defineStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
+  return sequelize.define(
+    'Statistic',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      targets_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'targets',
+          key: 'id',
+        },
+      },
+      provider: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      period: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      statistic: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      fcp: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      lcp: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      tti: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      si: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      cls: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      mode: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      count: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      performance_score: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      pleasantness_score: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
+      },
+      date_from: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      date_to: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
+      },
+    },
+    {
+      tableName: 'statistics',
       underscored: true,
     }
   );
@@ -695,43 +637,37 @@ const defineModels = (sequelize: Sequelize) => {
   const User = defineUser(sequelize);
   const Team = defineTeam(sequelize);
   const Project = defineProject(sequelize);
+  const Membership = defineMembership(sequelize);
   const Target = defineTarget(sequelize);
-  const PerformanceExecution = definePerformanceExecution(sequelize);
-  const Schedule = defineSchedule(sequelize);
-  const PerformanceStatistic = definePerformanceStatistic(sequelize);
-  const BounceStatistic = defineBounceStatistic(sequelize);
   const Assignment = defineAssignment(sequelize);
   const Beacon = defineBeacon(sequelize);
   const Engagement = defineEngagement(sequelize);
+  const Schedule = defineSchedule(sequelize);
+  const Statistic = defineStatistic(sequelize);
 
   // Define associations
   Project.belongsTo(Team, { foreignKey: 'teams_id' });
   Target.belongsTo(Project, { foreignKey: 'projects_id' });
-  PerformanceExecution.belongsTo(Team, { foreignKey: 'teams_id' });
-  PerformanceExecution.belongsTo(Target, { foreignKey: 'targets_id' });
-  Schedule.belongsTo(Target, { foreignKey: 'targets_id' });
-  PerformanceStatistic.belongsTo(Project, { foreignKey: 'projects_id' });
-  PerformanceStatistic.belongsTo(Target, { foreignKey: 'targets_id' });
-  BounceStatistic.belongsTo(Target, { foreignKey: 'targets_id' });
   Assignment.belongsTo(Project, { foreignKey: 'projects_id' });
-  Assignment.belongsTo(User, { foreignKey: 'users_id' });
+  Assignment.belongsTo(Membership, { foreignKey: 'memberships_id' });
   Beacon.belongsTo(Team, { foreignKey: 'teams_id' });
   Beacon.belongsTo(Target, { foreignKey: 'targets_id' });
   Beacon.belongsTo(Assignment, { foreignKey: 'triggered_by' });
   Engagement.belongsTo(Target, { foreignKey: 'targets_id' });
+  Schedule.belongsTo(Target, { foreignKey: 'targets_id' });
+  Statistic.belongsTo(Target, { foreignKey: 'targets_id' });
 
   return {
     User,
     Team,
     Project,
+    Membership,
     Target,
-    PerformanceExecution,
-    Schedule,
-    PerformanceStatistic,
-    BounceStatistic,
     Assignment,
     Beacon,
     Engagement,
+    Schedule,
+    Statistic,
   };
 };
 
