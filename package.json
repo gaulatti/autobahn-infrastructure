@@ -10,7 +10,8 @@
     "watch": "tsc -w",
     "test": "jest --config jest.config.ts",
     "cdk": "cdk",
-    "cdk:diff": "cdk diff"
+    "cdk:diff": "cdk diff",
+    "view:schema": "graphqlviz ./lib/observability/api/api.graphql | dot -Tpdf | open -f -a Preview"
   },
   "devDependencies": {
     "@aws-sdk/client-cloudwatch": "^3.600.0",
