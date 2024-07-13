@@ -1,5 +1,6 @@
 export enum RequestType {
   GetUser = 'GetUser',
+  GetUserBySub = 'GetUserBySub',
   ListUsers = 'ListUsers',
   GetUserByEmail = 'GetUserByEmail',
   CreateUser = 'CreateUser',
@@ -9,15 +10,12 @@ export interface BaseRequest {
   type: string;
 }
 export interface GetUserRequest extends BaseRequest {
-  type: RequestType.GetUser;
-  id: number;
+  type: RequestType.GetUser | RequestType.GetUserBySub | RequestType.GetUserByEmail;
+  payload: number | string;
 }
+
 export interface ListUsersRequest extends BaseRequest {
   type: RequestType.ListUsers;
-}
-export interface GetUserByEmailRequest extends BaseRequest {
-  type: RequestType.GetUserByEmail;
-  email: string;
 }
 
 export interface CreateUserRequest extends BaseRequest {
@@ -28,4 +26,4 @@ export interface CreateUserRequest extends BaseRequest {
   last_name: string;
 }
 
-export type AllowedRequest = ListUsersRequest | GetUserRequest | GetUserByEmailRequest | CreateUserRequest;
+export type AllowedRequest = ListUsersRequest | GetUserRequest | CreateUserRequest;

@@ -1,7 +1,7 @@
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 import { Sequelize } from 'sequelize';
 import { defineModels } from './entity';
-import { AllowedRequest, GetUserByEmailRequest, GetUserRequest, RequestType } from './types';
+import { AllowedRequest, GetUserRequest, RequestType } from './types';
 
 /**
  * This function retrieves the secret value from the Database secret.
@@ -9,20 +9,6 @@ import { AllowedRequest, GetUserByEmailRequest, GetUserRequest, RequestType } fr
 const client = new SecretsManagerClient({});
 let databaseCredentials: Record<string, string>;
 let sequelize: Sequelize;
-
-/**
- * Prepares the output by converting it to a JSON string if it exists.
- * @param input - The input promise.
- * @returns A JSON string representation of the output if it exists, otherwise null.
- */
-const prepareOutput = async (input: Promise<any>) => {
-  const output = await input;
-  if (output) {
-    return JSON.stringify(output);
-  }
-
-  return null;
-};
 
 /**
  * The main function that handles the request and performs the database operations.
@@ -73,13 +59,15 @@ const main = async (request: AllowedRequest) => {
    */
   switch (request.type) {
     case RequestType.GetUser:
-      return prepareOutput(User.findOne({ where: { id: (request as GetUserRequest).id } }));
-    case RequestType.ListUsers:
-      return prepareOutput(User.findAll());
+      return User.findOne({ where: { id: (request as GetUserRequest).payload } });
     case RequestType.GetUserByEmail:
-      return prepareOutput(User.findOne({ where: { email: (request as GetUserByEmailRequest).email } }));
+      return User.findOne({ where: { email: (request as GetUserRequest).payload } });
+    case RequestType.GetUserBySub:
+      return User.findOne({ where: { sub: (request as GetUserRequest).payload } });
+    case RequestType.ListUsers:
+      return User.findAll();
     case RequestType.CreateUser:
-      return prepareOutput(User.create({ ...request }));
+      return User.create({ ...request });
     default:
       throw new Error('Invalid request type');
   }

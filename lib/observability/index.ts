@@ -66,7 +66,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * API
    */
-  const { api } = createApi(stack, userPool);
+  const { api } = createApi(stack, userPool, { kickoffLambda });
 
   /**
    * Frontend AutoBuild Project

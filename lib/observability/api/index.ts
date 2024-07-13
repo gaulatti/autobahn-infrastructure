@@ -1,7 +1,10 @@
 import { Stack } from 'aws-cdk-lib';
 import { AuthorizationType, FieldLogLevel, GraphqlApi, SchemaFile } from 'aws-cdk-lib/aws-appsync';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { camelToKebab } from '../../common/utils';
+import { createResolvers } from './resolvers';
+import { createDataSources } from './sources';
 
 /**
  * Builds a GraphQL API using the provided stack and user pool.
@@ -9,7 +12,7 @@ import { camelToKebab } from '../../common/utils';
  * @param userPool - The AWS Cognito user pool.
  * @returns The constructed GraphQL API.
  */
-const createApi = (stack: Stack, userPool: UserPool) => {
+const createApi = (stack: Stack, userPool: UserPool, lambdas: Record<string, IFunction>) => {
   /**
    * GraphQL API
    */
@@ -30,6 +33,15 @@ const createApi = (stack: Stack, userPool: UserPool) => {
     xrayEnabled: true,
   });
 
+  /**
+   * Creates data sources for the GraphQL API.
+   */
+  const dataSources = createDataSources(stack, api, lambdas);
+
+  /**
+   * Creates resolvers for the GraphQL API.
+   */
+  createResolvers(stack, dataSources);
   return { api };
 };
 

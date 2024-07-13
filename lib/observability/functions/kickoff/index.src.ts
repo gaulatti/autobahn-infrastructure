@@ -1,15 +1,23 @@
 import { DalClient } from '../dal/client';
 
-const main = async (event: any) => {
-  // TODO: Create type for this. It should come from GraphQL/Appsync with some user metadata.
-  console.log({ event });
+/**
+ * The main function for the kickoff event.
+ *
+ * @param event - The event object containing the field, sub, and arguments.
+ * @returns An object with the kickoff information.
+ */
+const main = async (event: { field: string; sub: string; arguments: Record<string, string> }) => {
+  const { sub } = event;
 
-  try {
-    const response = await DalClient.getUser(1);
-    console.log(response);
-  } catch (error) {
-    console.error(error);
-  }
+  /**
+   * Get the user by their sub.
+   */
+  const me = await DalClient.getUserBySub(sub);
+
+  /**
+   * Return the kickoff information.
+   */
+  return { kickoff: { me } };
 };
 
 export { main };
