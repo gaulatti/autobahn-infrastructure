@@ -7,9 +7,9 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
  * user pool client, and user pool resource server.
  *
  * @param stack - The AWS CloudFormation stack.
- * @param oktaMetadataSecret - The Okta metadata secret.
+ * @param preTokenGenerationLambda - The pre-token generation lambda function.
  */
-const createCognitoAuth = (stack: Stack, preSignUpLambda: NodejsFunction, postConfirmationLambda: NodejsFunction) => {
+const createCognitoAuth = (stack: Stack, preTokenGenerationLambda: NodejsFunction) => {
   /**
    * Create User Pool
    */
@@ -17,8 +17,7 @@ const createCognitoAuth = (stack: Stack, preSignUpLambda: NodejsFunction, postCo
     userPoolName: `${stack.stackName}UserPool`,
     selfSignUpEnabled: true,
     lambdaTriggers: {
-      preSignUp: preSignUpLambda,
-      postConfirmation: postConfirmationLambda,
+      preTokenGeneration: preTokenGenerationLambda
     },
   });
 

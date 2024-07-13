@@ -1,5 +1,5 @@
 import { InvokeCommand, InvokeCommandOutput, LambdaClient } from '@aws-sdk/client-lambda';
-import { AllowedRequest, GetUserRequest, RequestType } from './types';
+import { AllowedRequest, GetUserByEmailRequest, GetUserRequest, RequestType } from './types';
 
 /**
  * Represents a client for interacting with the Lambda service.
@@ -58,6 +58,15 @@ class DalClient {
     const request: GetUserRequest = {
       type: RequestType.GetUser,
       id,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async getUserByEmail(email: string) {
+    const request: GetUserByEmailRequest = {
+      type: RequestType.GetUserByEmail,
+      email,
     };
 
     return await DalClient.parsedInvoke(request);

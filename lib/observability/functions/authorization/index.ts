@@ -3,42 +3,19 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 /**
- * Builds a pre-authentication trigger for the given stack.
- *
- * @param stack - The stack to associate the trigger with.
- * @param dataAccessLambda - The data access lambda function.
- * @returns The pre-authentication trigger handler.
- */
-const createPreSignUpTrigger = (stack: Stack, dataAccessLambda: NodejsFunction) => {
-  /**
-   * Creates a new pre-authentication trigger handler.
-   */
-  const preSignUpLambda = new NodejsFunction(stack, `${stack.stackName}PreAuthenticationTrigger`, {
-    handler: 'preSignUp',
-    entry: './lib/observability/functions/authorization/index.src.ts',
-    runtime: Runtime.NODEJS_20_X,
-    allowPublicSubnet: true,
-    environment: {
-      DATA_ACCESS_ARN: dataAccessLambda.functionArn,
-    },
-  });
-
-  return { preSignUpLambda };
-};
-
-/**
- * Builds and returns a post-authentication trigger handler.
+ * Builds and returns a pre-authentication trigger handler.
  *
  * @param stack - The AWS CloudFormation stack.
  * @param dataAccessLambda - The data access lambda function.
- * @returns The post-authentication trigger handler.
+ * @returns The pre-authentication trigger handler.
  */
-const createPostConfirmationTrigger = (stack: Stack, dataAccessLambda: NodejsFunction) => {
+const createPreTokenGenerationTrigger = (stack: Stack, dataAccessLambda: NodejsFunction) => {
   /**
-   * Creates a new post-authentication trigger handler.
+   * Creates a new pre-authentication trigger handler.
    */
-  const postConfirmationLambda = new NodejsFunction(stack, `${stack.stackName}PostAuthenticationTrigger`, {
-    handler: 'postConfirmation',
+  const preTokenGenerationLambda = new NodejsFunction(stack, `${stack.stackName}PreTokenGeneration`, {
+    handler: 'preTokenGeneration',
+    functionName: `${stack.stackName}PreTokenGeneration`,
     entry: './lib/observability/functions/authorization/index.src.ts',
     runtime: Runtime.NODEJS_20_X,
     allowPublicSubnet: true,
@@ -47,7 +24,10 @@ const createPostConfirmationTrigger = (stack: Stack, dataAccessLambda: NodejsFun
     },
   });
 
-  return { postConfirmationLambda };
+  dataAccessLambda.grantInvoke(preTokenGenerationLambda);
+
+  return { preTokenGenerationLambda };
 };
 
-export { createPreSignUpTrigger, createPostConfirmationTrigger };
+
+export { createPreTokenGenerationTrigger };

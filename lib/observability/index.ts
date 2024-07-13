@@ -5,7 +5,7 @@ import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
 import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
-import { createPostConfirmationTrigger, createPreSignUpTrigger } from './functions/authorization';
+import { createPreTokenGenerationTrigger } from './functions/authorization';
 import { createDistribution } from './network';
 import { createBuckets } from './storage';
 import { createKickoffLambda } from './functions/kickoff';
@@ -21,8 +21,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
    */
   const { dataAccessLambda } = createDataAccessLambda(stack);
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
-  const { preSignUpLambda } = createPreSignUpTrigger(stack, dataAccessLambda);
-  const { postConfirmationLambda } = createPostConfirmationTrigger(stack, dataAccessLambda);
+  const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, dataAccessLambda);
   const { kickoffLambda } = createKickoffLambda(stack, dataAccessLambda);
 
   /**
@@ -56,7 +55,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * Auth
    */
-  const { userPool, userPoolDomain, userPoolClient } = createCognitoAuth(stack, preSignUpLambda, postConfirmationLambda);
+  const { userPool, userPoolDomain, userPoolClient } = createCognitoAuth(stack, preTokenGenerationLambda);
 
   /**
    * Frontend

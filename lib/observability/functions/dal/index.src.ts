@@ -1,5 +1,5 @@
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
-import { AllowedRequest, CreateUserRequest, GetUserRequest, RequestType } from './types';
+import { AllowedRequest, CreateUserRequest, GetUserByEmailRequest, GetUserRequest, RequestType } from './types';
 import { Sequelize } from 'sequelize';
 import { defineModels } from './entity';
 
@@ -53,8 +53,9 @@ const main = async (request: AllowedRequest) => {
    */
   switch (request.type) {
     case RequestType.GetUser:
-      const user = await User.findOne({ where: { id: (request as GetUserRequest).id } });
-      return JSON.stringify(user);
+      return JSON.stringify(await User.findOne({ where: { id: (request as GetUserRequest).id } }));
+    case RequestType.GetUserByEmail:
+      return JSON.stringify(await User.findOne({ where: { email: (request as GetUserByEmailRequest).email } }));
     case RequestType.CreateUser:
       console.log(request as CreateUserRequest);
       return JSON.stringify({ userId: 123, name: 'Alice' });

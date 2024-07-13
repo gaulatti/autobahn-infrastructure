@@ -1,3 +1,5 @@
+import { DalClient } from '../dal/client';
+
 interface CognitoTriggerEvent {
   version: string;
   region: string;
@@ -29,7 +31,7 @@ interface CognitoTriggerEvent {
   };
 }
 
-const preSignUp = async (event: CognitoTriggerEvent, context: any, callback: any) => {
+const preTokenGeneration = async (event: CognitoTriggerEvent, context: any, callback: any) => {
   const {
     userName,
     request: {
@@ -37,14 +39,10 @@ const preSignUp = async (event: CognitoTriggerEvent, context: any, callback: any
     },
   } = event;
 
-  const { DATA_ACCESS_ARN } = process.env;
-  console.log({ userName, sub, given_name, family_name, email, DATA_ACCESS_ARN });
+  const response = await DalClient.getUserByEmail(email);
+  console.log({ response });
+
   callback(null, event);
 };
 
-const postConfirmation = async (event: CognitoTriggerEvent, context: any, callback: any) => {
-  console.log(event);
-  callback(null, event);
-};
-
-export { postConfirmation, preSignUp };
+export { preTokenGeneration };
