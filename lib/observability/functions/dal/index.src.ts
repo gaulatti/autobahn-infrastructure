@@ -45,7 +45,8 @@ const main = async (request: AllowedRequest) => {
   /**
    * Define the models for the database.
    */
-  const { User } = defineModels(sequelize);
+  const { User, Team, Project, Target, PerformanceExecution, Schedule, PerformanceStatistic, BounceStatistic, Assignment, Beacon, Engagement } =
+    defineModels(sequelize);
 
   /**
    * Perform the operation based on the request type.
