@@ -84,7 +84,7 @@ const createBuildProject = (
     environment: {
       buildImage: LinuxBuildImage.STANDARD_5_0,
       environmentVariables: {
-        API_FQDN: {
+        VITE_API_FQDN: {
           type: BuildEnvironmentVariableType.PLAINTEXT,
           value: api.graphqlUrl
         },
