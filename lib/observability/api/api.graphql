@@ -1,19 +1,173 @@
 scalar AWSDateTime
 
-type User {
+enum BeaconProvider {
+  PAGE_SPEED_INSIGHTS
+  ECS_LIGHTHOUSE
+}
+
+enum TeamRole {
+  ADMIN
+  MAINTAINER
+  MEMBER
+  VIEWER
+}
+
+enum ViewportMode {
+  MOBILE
+  DESKTOP
+}
+
+enum BeaconStatus {
+  PENDING
+  RUNNING
+  LIGHTHOUSE_FINISHED
+  PLEASANTNESS_FINISHED
+  DONE
+  FAILED
+}
+
+enum StatisticPeriod {
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum StatisticMetric {
+  P90
+  P95
+  P99
+  AVG
+  MEDIAN
+  MIN
+  MAX
+}
+
+type Team {
   id: ID!
   name: String!
+  memberships: [Membership]
+  assignments: [Assignment]
+  beacons: [Beacon]
+  projects: [Project]
+  created_at: AWSDateTime!
+  updated_at: AWSDateTime!
+  deleted_at: AWSDateTime
+}
+
+type Project {
+  name: String!
+  team: Team!
+  targets: [Target]
+  assignments: [Assignment]
+}
+
+type Membership {
+  id: ID!
+  team: Team!
+  user: User!
+  role: TeamRole
+  beacons: [Beacon]
+}
+
+type Assignment {
+  id: ID!
+  membership: Membership!
+  project: Project!
+  role: TeamRole!
+}
+
+type User {
+  id: ID!
+  sub: String!
+  name: String!
+  last_name: String!
+  memberships: [Membership]
+  assignments: [Assignment]
   email: String!
   created_at: AWSDateTime!
   updated_at: AWSDateTime!
   deleted_at: AWSDateTime
 }
 
-
-# Teams
-type Team {
+type Schedule {
   id: ID!
+  provider: BeaconProvider!
+  target: Target!
+  cron: String!
+  next_execution: AWSDateTime!
+  created_at: AWSDateTime!
+  updated_at: AWSDateTime!
+  deleted_at: AWSDateTime
+}
+
+type Target {
+  id: ID!
+  project: Project!
+  schedules: [Schedule]
+  beacons: [Beacon]
+  engagements: [Engagement]
+  statistics: [Statistic]
   name: String!
+  url: String
+  lambda_arn: String
+  created_at: AWSDateTime!
+  updated_at: AWSDateTime!
+  deleted_at: AWSDateTime
+}
+
+type Engagement {
+  id: ID!
+  target: Target!
+  bounce_rate: Int!
+  mode: ViewportMode!
+  date_from: AWSDateTime!
+  date_to: AWSDateTime!
+  created_at: AWSDateTime!
+  updated_at: AWSDateTime!
+  deleted_at: AWSDateTime
+}
+
+type Beacon {
+  id: ID!
+  team: Team!
+  target: Target
+  triggered_by: Assignment
+  uuid: ID!
+  url: String!
+  provider: BeaconProvider!
+  mode: ViewportMode!
+  fcp: Float!
+  lcp: Float!
+  tti: Float!
+  si: Float!
+  cls: Float!
+  performance_score: Int!
+  pleasantness_score: Int
+  status: BeaconStatus!
+  created_at: AWSDateTime!
+  updated_at: AWSDateTime!
+  ended_at: AWSDateTime
+  deleted_at: AWSDateTime
+}
+
+type Statistic {
+  id: ID!
+  target: Target!
+  period: StatisticPeriod!
+  statistic: StatisticMetric!
+  count: Int!
+  provider: BeaconProvider!
+  mode: ViewportMode!
+  fcp: Float!
+  lcp: Float!
+  tti: Float!
+  si: Float!
+  cls: Float!
+  performance_score: Int!
+  pleasantness_score: Int
+  date_from: AWSDateTime!
+  date_to: AWSDateTime!
   created_at: AWSDateTime!
   updated_at: AWSDateTime!
   deleted_at: AWSDateTime
@@ -36,4 +190,12 @@ type Query {
 
   # Get Current User Data
   me: User
+
+  # Get Team Data
+  projects: [Project]
+  beacons: [Beacon]
+  schedules: [Schedule]
+
+  # Get Admin Data
+  users: [User]
 }
