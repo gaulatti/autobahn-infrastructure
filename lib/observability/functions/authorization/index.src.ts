@@ -39,8 +39,17 @@ const preTokenGeneration = async (event: CognitoTriggerEvent, context: any, call
     },
   } = event;
 
+  /**
+   * Get the user by email. Create if it does not exist.
+   */
   const response = await DalClient.getUserByEmail(email);
-  console.log({ response });
+
+  if(!response) {
+    console.error(`User not found: ${email}. Creating.`);
+    const createUser = await DalClient.createUser(sub!, email, given_name, family_name);
+    console.log(`User created: ${JSON.stringify(createUser)}`);
+  }
+
 
   callback(null, event);
 };

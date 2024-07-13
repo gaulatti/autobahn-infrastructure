@@ -1,5 +1,5 @@
 import { InvokeCommand, InvokeCommandOutput, LambdaClient } from '@aws-sdk/client-lambda';
-import { AllowedRequest, GetUserByEmailRequest, GetUserRequest, RequestType } from './types';
+import { AllowedRequest, CreateUserRequest, GetUserByEmailRequest, GetUserRequest, RequestType } from './types';
 
 /**
  * Represents a client for interacting with the Lambda service.
@@ -63,10 +63,35 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  /**
+   * Retrieves a user by their email address.
+   * @param email - The email address of the user.
+   * @returns A promise that resolves to the user object.
+   */
   public static async getUserByEmail(email: string) {
     const request: GetUserByEmailRequest = {
       type: RequestType.GetUserByEmail,
       email,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  /**
+   * Creates a new user with the provided information.
+   * @param sub - The user's sub.
+   * @param email - The user's email.
+   * @param name - The user's name.
+   * @param last_name - The user's last name.
+   * @returns A promise that resolves to the result of the create user operation.
+   */
+  public static async createUser(sub: string, email: string, name: string, last_name: string) {
+    const request: CreateUserRequest = {
+      type: RequestType.CreateUser,
+      sub,
+      email,
+      name,
+      last_name,
     };
 
     return await DalClient.parsedInvoke(request);

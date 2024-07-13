@@ -10,6 +10,27 @@ const client = new SecretsManagerClient({});
 let databaseCredentials: Record<string, string>;
 let sequelize: Sequelize;
 
+/**
+ * Prepares the output by converting it to a JSON string if it exists.
+ * @param input - The input promise.
+ * @returns A JSON string representation of the output if it exists, otherwise null.
+ */
+const prepareOutput = async (input: Promise<any>) => {
+  const output = await input;
+  if (output) {
+    return JSON.stringify(output);
+  }
+
+  return null;
+};
+
+/**
+ * The main function that handles the request and performs the database operations.
+ *
+ * @param request - The request object containing the type and necessary parameters.
+ * @returns A promise that resolves to the result of the database operation.
+ * @throws An error if the request type is invalid or if there is an error retrieving the secret.
+ */
 const main = async (request: AllowedRequest) => {
   try {
     /**
@@ -53,12 +74,13 @@ const main = async (request: AllowedRequest) => {
    */
   switch (request.type) {
     case RequestType.GetUser:
-      return JSON.stringify(await User.findOne({ where: { id: (request as GetUserRequest).id } }));
+      return prepareOutput(User.findOne({ where: { id: (request as GetUserRequest).id } }));
+    case RequestType.ListUsers:
+      return prepareOutput(User.findAll());
     case RequestType.GetUserByEmail:
-      return JSON.stringify(await User.findOne({ where: { email: (request as GetUserByEmailRequest).email } }));
+      return prepareOutput(User.findOne({ where: { email: (request as GetUserByEmailRequest).email } }));
     case RequestType.CreateUser:
-      console.log(request as CreateUserRequest);
-      return JSON.stringify({ userId: 123, name: 'Alice' });
+      return prepareOutput(User.create({ ...request, created_at: new Date(), updated_at: new Date() }));
     default:
       throw new Error('Invalid request type');
   }
