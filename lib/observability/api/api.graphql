@@ -180,16 +180,12 @@ type Feature {
 }
 
 type Kickoff {
-  teams: [Team]
   features: [Feature]
   me: User
 }
 
 type Query {
   kickoff: Kickoff
-
-  # Get Current User Data
-  me: User
 
   # Get Team Data
   projects: [Project]

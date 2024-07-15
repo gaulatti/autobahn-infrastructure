@@ -52,7 +52,7 @@ const main = async (request: AllowedRequest) => {
   /**
    * Define the models for the database.
    */
-  const { User, Team, Project, Target, Schedule, Assignment, Beacon, Engagement } = defineModels(sequelize);
+  const { User, Team, Project, Membership, Target, Assignment, Beacon, Engagement, Schedule, Statistic } = defineModels(sequelize);
 
   /**
    * Perform the operation based on the request type.
@@ -64,6 +64,8 @@ const main = async (request: AllowedRequest) => {
       return User.findOne({ where: { email: (request as GetUserRequest).payload } });
     case RequestType.GetUserBySub:
       return User.findOne({ where: { sub: (request as GetUserRequest).payload } });
+    case RequestType.ListTeamsBySub:
+      return Team.findAll();
     case RequestType.ListUsers:
       return User.findAll();
     case RequestType.CreateUser:

@@ -1,5 +1,5 @@
 import { InvokeCommand, InvokeCommandOutput, LambdaClient } from '@aws-sdk/client-lambda';
-import { AllowedRequest, CreateUserRequest, GetUserRequest, RequestType } from './types';
+import { AllowedRequest, CreateUserRequest, GetUserRequest, ListFeaturesRequest, ListTeamsRequest, RequestType } from './types';
 
 /**
  * Represents a client for interacting with the Lambda service.
@@ -85,6 +85,34 @@ class DalClient {
   public static async getUserByEmail(payload: string) {
     const request: GetUserRequest = {
       type: RequestType.GetUserByEmail,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  /**
+   * Gets the teams for a user.
+   * @param sub The sub of the user.
+   * @returns The teams for the user.
+   */
+  public static async listTeamsBySub(payload: string) {
+    const request: ListTeamsRequest = {
+      type: RequestType.ListTeamsBySub,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  /**
+   * Gets the teams for a user.
+   * @param sub The sub of the user.
+   * @returns The teams for the user.
+   */
+  public static async listFeaturesBySub(payload: string) {
+    const request: ListFeaturesRequest = {
+      type: RequestType.ListFeaturesBySub,
       payload,
     };
 

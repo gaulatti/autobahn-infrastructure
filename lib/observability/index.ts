@@ -8,7 +8,7 @@ import { createProcessingLambda } from './functions/processing';
 import { createPreTokenGenerationTrigger } from './functions/authorization';
 import { createDistribution } from './network';
 import { createBuckets } from './storage';
-import { createKickoffLambda } from './functions/kickoff';
+import { createApiLambdas } from './functions/api';
 import { createApi } from './api';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
@@ -23,7 +23,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   const { dataAccessLambda } = createDataAccessLambda(stack);
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
   const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, dataAccessLambda);
-  const { kickoffLambda } = createKickoffLambda(stack, dataAccessLambda);
+  const apiLambdas = createApiLambdas(stack, dataAccessLambda);
 
   /**
    * Dashboard
@@ -66,7 +66,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * API
    */
-  const { api } = createApi(stack, userPool, { kickoffLambda });
+  const { api } = createApi(stack, userPool, apiLambdas);
 
   /**
    * Frontend AutoBuild Project

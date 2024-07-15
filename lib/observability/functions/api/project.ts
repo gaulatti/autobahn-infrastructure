@@ -3,20 +3,20 @@ import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 /**
- * Creates a kickoff lambda function.
+ * Creates a project lambda function.
  *
  * @param stack - The AWS CloudFormation stack.
  * @param observabilityBucket - The S3 bucket for observability.
  * @param dataAccessLambda - The data access lambda function.
- * @returns An object containing the kickoff lambda function.
+ * @returns An object containing the project lambda function.
  */
-const createKickoffLambda = (stack: Stack, dataAccessLambda: NodejsFunction) => {
+const createProjectLambda = (stack: Stack, dataAccessLambda: NodejsFunction) => {
   /**
    * Create Processing Lambda
    */
-  const kickoffLambda = new NodejsFunction(stack, `${stack.stackName}KickoffLambda`, {
-    functionName: `${stack.stackName}Kickoff`,
-    entry: './lib/observability/functions/kickoff/index.src.ts',
+  const projectLambda = new NodejsFunction(stack, `${stack.stackName}ProjectLambda`, {
+    functionName: `${stack.stackName}Project`,
+    entry: './lib/observability/functions/api/project.src.ts',
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
@@ -30,9 +30,9 @@ const createKickoffLambda = (stack: Stack, dataAccessLambda: NodejsFunction) => 
   /**
    * Allow this lambda to save the metrics in the Database.
    */
-  dataAccessLambda.grantInvoke(kickoffLambda);
+  dataAccessLambda.grantInvoke(projectLambda);
 
-  return { kickoffLambda };
+  return { projectLambda };
 };
 
-export { createKickoffLambda };
+export { createProjectLambda };
