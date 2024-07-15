@@ -5,6 +5,13 @@ enum BeaconProvider {
   ECS_LIGHTHOUSE
 }
 
+enum Stage {
+  ALPHA
+  BETA
+  STAGING
+  PRODUCTION
+}
+
 enum TeamRole {
   ADMIN
   MAINTAINER
@@ -108,6 +115,8 @@ type Target {
   beacons: [Beacon]
   engagements: [Engagement]
   statistics: [Statistic]
+  stage: Stage!
+  provider: BeaconProvider!
   name: String!
   url: String
   lambda_arn: String
@@ -133,6 +142,7 @@ type Beacon {
   team: Team!
   target: Target
   triggered_by: Assignment
+  stage: Stage!
   uuid: ID!
   url: String!
   provider: BeaconProvider!

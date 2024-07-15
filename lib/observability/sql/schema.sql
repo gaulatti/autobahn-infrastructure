@@ -7,10 +7,6 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema madonna
 -- -----------------------------------------------------
-
--- -----------------------------------------------------
--- Schema madonna
--- -----------------------------------------------------
 CREATE SCHEMA IF NOT EXISTS `madonna` DEFAULT CHARACTER SET utf8mb3 ;
 USE `madonna` ;
 
@@ -50,12 +46,12 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `madonna`.`memberships` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `teams_id` INT NOT NULL,
   `users_id` INT NOT NULL,
+  `teams_id` INT NOT NULL,
   `role` INT NOT NULL,
-  PRIMARY KEY (`id`, `teams_id`, `users_id`),
-  INDEX `fk_memberships_teams1_idx` (`teams_id` ASC),
-  INDEX `fk_memberships_users1_idx` (`users_id` ASC),
+  PRIMARY KEY (`id`, `users_id`, `teams_id`),
+  INDEX `fk_memberships_teams1_idx` (`teams_id` ASC) VISIBLE,
+  INDEX `fk_memberships_users1_idx` (`users_id` ASC) VISIBLE,
   CONSTRAINT `fk_memberships_teams1`
     FOREIGN KEY (`teams_id`)
     REFERENCES `madonna`.`teams` (`id`),
@@ -74,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `madonna`.`projects` (
   `teams_id` INT NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`, `teams_id`),
-  INDEX `fk_projects_teams2_idx` (`teams_id` ASC),
+  INDEX `fk_projects_teams2_idx` (`teams_id` ASC) VISIBLE,
   CONSTRAINT `fk_projects_teams2`
     FOREIGN KEY (`teams_id`)
     REFERENCES `madonna`.`teams` (`id`))
@@ -91,8 +87,8 @@ CREATE TABLE IF NOT EXISTS `madonna`.`assignments` (
   `memberships_id` INT NOT NULL,
   `role` INT NOT NULL,
   PRIMARY KEY (`id`, `projects_id`, `memberships_id`),
-  INDEX `fk_assignments_projects1_idx` (`projects_id` ASC),
-  INDEX `fk_assignments_memberships1_idx` (`memberships_id` ASC),
+  INDEX `fk_assignments_projects1_idx` (`projects_id` ASC) VISIBLE,
+  INDEX `fk_assignments_memberships1_idx` (`memberships_id` ASC) VISIBLE,
   CONSTRAINT `fk_assignments_memberships1`
     FOREIGN KEY (`memberships_id`)
     REFERENCES `madonna`.`memberships` (`id`),
@@ -109,6 +105,8 @@ DEFAULT CHARACTER SET = utf8mb3;
 CREATE TABLE IF NOT EXISTS `madonna`.`targets` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `projects_id` INT NOT NULL,
+  `stage` INT NOT NULL,
+  `provider` INT NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `url` TEXT NULL DEFAULT NULL,
   `lambda_arn` VARCHAR(110) NULL DEFAULT NULL,
@@ -116,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `madonna`.`targets` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`, `projects_id`),
-  INDEX `fk_targets_projects2_idx` (`projects_id` ASC),
+  INDEX `fk_targets_projects2_idx` (`projects_id` ASC) VISIBLE,
   CONSTRAINT `fk_targets_projects2`
     FOREIGN KEY (`projects_id`)
     REFERENCES `madonna`.`projects` (`id`))
@@ -132,6 +130,7 @@ CREATE TABLE IF NOT EXISTS `madonna`.`beacons` (
   `teams_id` INT NOT NULL,
   `targets_id` INT NULL DEFAULT NULL,
   `triggered_by` INT NULL DEFAULT NULL,
+  `stage` INT NOT NULL,
   `uuid` VARCHAR(45) NOT NULL,
   `url` TEXT NOT NULL,
   `provider` INT NOT NULL,
@@ -150,9 +149,9 @@ CREATE TABLE IF NOT EXISTS `madonna`.`beacons` (
   `ended_at` DATETIME NOT NULL,
   `deleted_at` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`, `teams_id`),
-  INDEX `fk_performance_executions_targets1_idx` (`targets_id` ASC),
-  INDEX `fk_performance_executions_teams1_idx` (`teams_id` ASC),
-  INDEX `fk_performance_executions_assignments1_idx` (`triggered_by` ASC),
+  INDEX `fk_performance_executions_targets1_idx` (`targets_id` ASC) VISIBLE,
+  INDEX `fk_performance_executions_teams1_idx` (`teams_id` ASC) VISIBLE,
+  INDEX `fk_performance_executions_assignments1_idx` (`triggered_by` ASC) VISIBLE,
   CONSTRAINT `fk_performance_executions_assignments1`
     FOREIGN KEY (`triggered_by`)
     REFERENCES `madonna`.`assignments` (`id`),
@@ -180,7 +179,7 @@ CREATE TABLE IF NOT EXISTS `madonna`.`engagement` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`, `targets_id`),
-  INDEX `fk_bounce_statistics_targets1_idx` (`targets_id` ASC),
+  INDEX `fk_bounce_statistics_targets1_idx` (`targets_id` ASC) VISIBLE,
   CONSTRAINT `fk_bounce_statistics_targets1`
     FOREIGN KEY (`targets_id`)
     REFERENCES `madonna`.`targets` (`id`))
@@ -201,7 +200,7 @@ CREATE TABLE IF NOT EXISTS `madonna`.`schedules` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`, `targets_id`),
-  INDEX `fk_schedules_targets2_idx` (`targets_id` ASC),
+  INDEX `fk_schedules_targets2_idx` (`targets_id` ASC) VISIBLE,
   CONSTRAINT `fk_schedules_targets2`
     FOREIGN KEY (`targets_id`)
     REFERENCES `madonna`.`targets` (`id`))
@@ -233,7 +232,7 @@ CREATE TABLE IF NOT EXISTS `madonna`.`statistics` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`id`, `targets_id`),
-  INDEX `fk_performance_statistics_targets1_idx` (`targets_id` ASC),
+  INDEX `fk_performance_statistics_targets1_idx` (`targets_id` ASC) VISIBLE,
   CONSTRAINT `fk_performance_statistics_targets1`
     FOREIGN KEY (`targets_id`)
     REFERENCES `madonna`.`targets` (`id`))
