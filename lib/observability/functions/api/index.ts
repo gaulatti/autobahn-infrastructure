@@ -10,10 +10,12 @@ import { createTargetLambda } from './target';
 import { createTeamLambda } from './team';
 import { createUserLambda } from './user';
 import { createAssignmentLambda } from './assignment';
+import { createMembershipLambda } from './membership';
 
 const createApiLambdas = (stack: Stack, dataAccessLambda: NodejsFunction) => {
   const { assignmentLambda } = createAssignmentLambda(stack, dataAccessLambda);
   const { kickoffLambda } = createKickoffLambda(stack, dataAccessLambda);
+  const { membershipLambda } = createMembershipLambda(stack, dataAccessLambda);
   const { userLambda } = createUserLambda(stack, dataAccessLambda);
   const { projectLambda } = createProjectLambda(stack, dataAccessLambda);
   const { beaconLambda } = createBeaconLambda(stack, dataAccessLambda);
@@ -23,7 +25,7 @@ const createApiLambdas = (stack: Stack, dataAccessLambda: NodejsFunction) => {
   const { engagementLambda } = createEngagementLambda(stack, dataAccessLambda);
   const { statisticLambda } = createStatisticLambda(stack, dataAccessLambda);
 
-  return { assignmentLambda, kickoffLambda, userLambda, projectLambda, beaconLambda, scheduleLambda, teamLambda, targetLambda, engagementLambda, statisticLambda };
+  return { assignmentLambda, kickoffLambda, membershipLambda, userLambda, projectLambda, beaconLambda, scheduleLambda, teamLambda, targetLambda, engagementLambda, statisticLambda };
 };
 
 export { createApiLambdas };

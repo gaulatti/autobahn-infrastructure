@@ -1,7 +1,7 @@
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 import { Sequelize } from 'sequelize';
 import { defineModels } from './entity';
-import { AllowedRequest, GetUserRequest, RequestType } from './types';
+import { AllowedRequest, GetTeamRequest, GetUserRequest, RequestType } from './types';
 
 /**
  * This function retrieves the secret value from the Database secret.
@@ -75,6 +75,8 @@ const main = async (request: AllowedRequest) => {
      */
     case RequestType.ListTeamsBySub:
       return Team.findAll();
+    case RequestType.GetTeam:
+      return Team.findOne({ where: { id: (request as GetTeamRequest).payload } });
 
     /**
      * Features

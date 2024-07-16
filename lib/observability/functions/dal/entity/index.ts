@@ -127,6 +127,7 @@ const defineProject = (sequelize: Sequelize): ModelStatic<Model> => {
     {
       tableName: 'projects',
       underscored: true,
+      timestamps: false,
     }
   );
 };
@@ -170,6 +171,7 @@ const defineMembership = (sequelize: Sequelize): ModelStatic<Model> => {
     {
       tableName: 'memberships',
       underscored: true,
+      timestamps: false,
     }
   );
 };
@@ -273,6 +275,7 @@ const defineAssignment = (sequelize: Sequelize): ModelStatic<Model> => {
     {
       tableName: 'assignments',
       underscored: true,
+      timestamps: false,
     }
   );
 };

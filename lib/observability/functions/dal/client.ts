@@ -18,6 +18,7 @@ import {
   GetScheduleRequest,
   GetStatisticRequest,
   GetTargetRequest,
+  GetTeamRequest,
   GetUserRequest,
   ListAssignmentsRequest,
   ListBeaconsRequest,
@@ -129,6 +130,15 @@ class DalClient {
   public static async listTeamsBySub(payload: string) {
     const request: ListTeamsRequest = {
       request_type: RequestType.ListTeamsBySub,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async getTeam(payload: number) {
+    const request: GetTeamRequest = {
+      request_type: RequestType.GetTeam,
       payload,
     };
 

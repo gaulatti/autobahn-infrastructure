@@ -1,4 +1,5 @@
 export enum RequestType {
+  GetTeam = 'GetTeam',
   ListTeams = 'ListTeams',
   ListTeamsBySub = 'ListTeamsBySub',
   ListFeatures = 'ListFeatures',
@@ -46,7 +47,7 @@ export enum RequestType {
 }
 
 export interface BaseRequest {
-  request_type: string;
+  request_type: RequestType;
 }
 
 /**
@@ -63,6 +64,11 @@ export interface GetUserRequest extends BaseRequest {
 export interface ListTeamsRequest extends BaseRequest {
   request_type: RequestType.ListTeamsBySub;
   payload?: number | string;
+}
+
+export interface GetTeamRequest extends BaseRequest {
+  request_type: RequestType.GetTeam;
+  payload: number;
 }
 
 /**
@@ -333,7 +339,7 @@ export interface CreateStatisticRequest extends BaseRequest {
 }
 
 export type AllowedFeaturesRequests = ListFeaturesRequest;
-export type AllowedTeamsRequests = ListTeamsRequest;
+export type AllowedTeamsRequests = ListTeamsRequest | GetTeamRequest;
 export type AllowedUsersRequests = ListUsersRequest | GetUserRequest | CreateUserRequest;
 export type AllowedProjectsRequests = ListProjectsRequest | GetProjectRequest | CreateProjectRequest;
 export type AllowedMembershipsRequests = ListMembershipsRequest | GetMembershipRequest | CreateMembershipRequest;

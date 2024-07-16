@@ -1,60 +1,9 @@
 scalar AWSDateTime
 
-enum BeaconProvider {
-  PAGE_SPEED_INSIGHTS
-  ECS_LIGHTHOUSE
-}
-
-enum Stage {
-  ALPHA
-  BETA
-  STAGING
-  PRODUCTION
-}
-
-enum TeamRole {
-  ADMIN
-  MAINTAINER
-  MEMBER
-  VIEWER
-}
-
-enum ViewportMode {
-  MOBILE
-  DESKTOP
-}
-
-enum BeaconStatus {
-  PENDING
-  RUNNING
-  LIGHTHOUSE_FINISHED
-  PLEASANTNESS_FINISHED
-  DONE
-  FAILED
-}
-
-enum StatisticPeriod {
-  HOURLY
-  DAILY
-  WEEKLY
-  MONTHLY
-}
-
-enum StatisticMetric {
-  P90
-  P95
-  P99
-  AVG
-  MEDIAN
-  MIN
-  MAX
-}
-
 type Team {
   id: ID!
   name: String!
   memberships: [Membership]
-  assignments: [Assignment]
   beacons: [Beacon]
   projects: [Project]
   created_at: AWSDateTime!
@@ -73,15 +22,16 @@ type Membership {
   id: ID!
   team: Team!
   user: User!
-  role: TeamRole
+  role: Int!
   beacons: [Beacon]
+  assignments: [Assignment]
 }
 
 type Assignment {
   id: ID!
   membership: Membership!
   project: Project!
-  role: TeamRole!
+  role: Int!
 }
 
 type User {
@@ -90,7 +40,6 @@ type User {
   name: String!
   last_name: String!
   memberships: [Membership]
-  assignments: [Assignment]
   email: String!
   created_at: AWSDateTime!
   updated_at: AWSDateTime!
@@ -99,7 +48,7 @@ type User {
 
 type Schedule {
   id: ID!
-  provider: BeaconProvider!
+  provider: Int!
   target: Target!
   cron: String!
   next_execution: AWSDateTime!
@@ -115,8 +64,8 @@ type Target {
   beacons: [Beacon]
   engagements: [Engagement]
   statistics: [Statistic]
-  stage: Stage!
-  provider: BeaconProvider!
+  stage: Int!
+  provider: Int!
   name: String!
   url: String
   lambda_arn: String
@@ -129,7 +78,7 @@ type Engagement {
   id: ID!
   target: Target!
   bounce_rate: Int!
-  mode: ViewportMode!
+  mode: Int!
   date_from: AWSDateTime!
   date_to: AWSDateTime!
   created_at: AWSDateTime!
@@ -142,11 +91,11 @@ type Beacon {
   team: Team!
   target: Target
   triggered_by: Assignment
-  stage: Stage!
+  stage: Int!
   uuid: ID!
   url: String!
-  provider: BeaconProvider!
-  mode: ViewportMode!
+  provider: Int!
+  mode: Int!
   fcp: Float!
   lcp: Float!
   tti: Float!
@@ -154,7 +103,7 @@ type Beacon {
   cls: Float!
   performance_score: Int!
   pleasantness_score: Int
-  status: BeaconStatus!
+  status: Int!
   created_at: AWSDateTime!
   updated_at: AWSDateTime!
   ended_at: AWSDateTime
@@ -164,11 +113,11 @@ type Beacon {
 type Statistic {
   id: ID!
   target: Target!
-  period: StatisticPeriod!
-  statistic: StatisticMetric!
+  period: Int!
+  statistic: Int!
   count: Int!
-  provider: BeaconProvider!
-  mode: ViewportMode!
+  provider: Int!
+  mode: Int!
   fcp: Float!
   lcp: Float!
   tti: Float!

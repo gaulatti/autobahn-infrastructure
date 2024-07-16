@@ -7,7 +7,7 @@ import { Code, FunctionRuntime, LambdaDataSource } from 'aws-cdk-lib/aws-appsync
  * @param fieldName - The name of the field.
  * @returns The resolver code as a string.
  */
-const createResolverCode = (fieldName: string) => `
+const createResolverCode = (typeName: string, fieldName: string) => `
   export function request(ctx) {
     const { source, args } = ctx;
 
@@ -17,6 +17,7 @@ const createResolverCode = (fieldName: string) => `
         field: ctx.info.fieldName,
         sub: ctx.identity.claims.sub,
         arguments: args,
+        parentType: '${typeName}',
         source
       },
     };
@@ -37,9 +38,8 @@ const createResolverProps = (typeName: string, fieldName: string) => ({
   typeName,
   fieldName,
   runtime: FunctionRuntime.JS_1_0_0,
-  code: Code.fromInline(createResolverCode(fieldName)),
+  code: Code.fromInline(createResolverCode(typeName, fieldName)),
 });
-
 
 /**
  * Creates resolvers for the given stack and data sources.
@@ -47,7 +47,6 @@ const createResolverProps = (typeName: string, fieldName: string) => ({
  * @param dataSources - The data sources object.
  */
 const createResolvers = (stack: Stack, dataSources: Record<string, LambdaDataSource>) => {
-
   /**
    * Query Resolvers
    */
@@ -70,10 +69,15 @@ const createResolvers = (stack: Stack, dataSources: Record<string, LambdaDataSou
   dataSources.userDataSource.createResolver(`${stack.stackName}UserAssignmentsResolver`, createResolverProps('User', 'assignments'));
 
   /**
+   * Membership Entity Resolvers
+   */
+  dataSources.membershipDataSource.createResolver(`${stack.stackName}MembershipTeamResolver`, createResolverProps('Membership', 'team'));
+  dataSources.membershipDataSource.createResolver(`${stack.stackName}MembershipAssignmentsResolver`, createResolverProps('Membership', 'assignments'));
+
+  /**
    * Team Entity Resolvers
    */
   dataSources.teamDataSource.createResolver(`${stack.stackName}TeamMembershipsResolver`, createResolverProps('Team', 'memberships'));
-  dataSources.teamDataSource.createResolver(`${stack.stackName}TeamAssignmentsResolver`, createResolverProps('Team', 'assignments'));
   dataSources.teamDataSource.createResolver(`${stack.stackName}TeamBeaconsResolver`, createResolverProps('Team', 'beacons'));
   dataSources.teamDataSource.createResolver(`${stack.stackName}TeamProjectsResolver`, createResolverProps('Team', 'projects'));
 
@@ -102,7 +106,7 @@ const createResolvers = (stack: Stack, dataSources: Record<string, LambdaDataSou
    * Assignment Entity Resolvers
    */
   dataSources.engagementDataSource.createResolver(`${stack.stackName}EngagementTargetResolver`, createResolverProps('Engagement', 'target'));
-  dataSources.assignmentDataSource.createResolver(`${stack.stackName}AssignmentMembershipResolver`, createResolverProps('Assignment', 'membership'));
+  dataSources.assignmentDataSource.createResolver(`${stack.stackName}AssignmentProjectResolver`, createResolverProps('Assignment', 'project'));
 
   /**
    * Beacon Entity Resolvers
