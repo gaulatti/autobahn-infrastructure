@@ -1,4 +1,5 @@
 scalar AWSDateTime
+scalar AWSJSON
 
 type Team {
   id: ID!
@@ -141,6 +142,7 @@ type Feature {
 type Kickoff {
   features: [Feature]
   me: User
+  enums: AWSJSON
 }
 
 type Query {
