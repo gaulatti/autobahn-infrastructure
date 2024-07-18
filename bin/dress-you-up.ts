@@ -10,7 +10,11 @@ import { DressYouUpStack } from '../lib';
 config();
 
 const app = new cdk.App();
-new DressYouUpStack(app, 'DressYouUp', {
+
+if(!process.env.STACK_NAME) {
+  throw new Error('STACK_NAME is required');
+}
+new DressYouUpStack(app, process.env.STACK_NAME, {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
