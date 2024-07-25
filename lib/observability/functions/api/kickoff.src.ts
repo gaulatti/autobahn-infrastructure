@@ -8,8 +8,6 @@ import { DalClient } from '../dal/client';
  * @returns An object with the kickoff information.
  */
 const main = async (event: AWSLambda.APIGatewayEvent) => {
-
-  // Get the user ID from the JWT token.
   // TODO: Move this to a common util function.
   const token = event.headers.Authorization!.split(' ')[1];
   const {
@@ -19,10 +17,12 @@ const main = async (event: AWSLambda.APIGatewayEvent) => {
   // TODO: Move this to a common util function.
   const allowedOrigins = ['http://localhost:5173', `https://${process.env.FRONTEND_FQDN}`];
   const origin = event.headers.origin || '';
+  const me = await DalClient.getUserBySubWithMembershipAndTeam(sub!.toString());
 
   const output = {
     enums: ENUMS,
-    me: await DalClient.getUserBySub(sub!.toString())
+    me,
+    features: []
   };
 
   return {

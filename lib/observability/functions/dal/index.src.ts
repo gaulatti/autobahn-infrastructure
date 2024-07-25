@@ -65,6 +65,24 @@ const main = async (request: AllowedRequest) => {
       return User.findOne({ where: { id: (request as GetUserRequest).payload } });
     case RequestType.GetUserByEmail:
       return User.findOne({ where: { email: (request as GetUserRequest).payload } });
+    case RequestType.GetUserBySubWithMembershipAndTeam:
+      return User.findOne({
+        where: { sub: (request as GetUserRequest).payload },
+        include: [
+          {
+            model: Membership,
+            as: 'memberships',
+            include: [
+              {
+                model: Team,
+                as: 'team',
+              },
+            ],
+          },
+        ],
+      });
+    case RequestType.GetUserBySub:
+      return User.findOne({ where: { sub: (request as GetUserRequest).payload } });
     case RequestType.GetUserBySub:
       return User.findOne({ where: { sub: (request as GetUserRequest).payload } });
     case RequestType.CreateUser:
@@ -104,6 +122,8 @@ const main = async (request: AllowedRequest) => {
       return Membership.findAll();
     case RequestType.ListMembershipsByUser:
       return Membership.findAll({ where: { users_id: request.payload } });
+    case RequestType.ListMembershipsByUserWithTeam:
+      return Membership.findAll({ where: { users_id: request.payload }, include: [Team] });
     case RequestType.ListMembershipsByTeam:
       return Membership.findAll({ where: { teams_id: request.payload } });
     case RequestType.GetMembership:
@@ -186,7 +206,7 @@ const main = async (request: AllowedRequest) => {
       return Statistic.create({ ...request });
 
     default:
-      throw new Error('Invalid request type');
+      throw new Error(`Invalid request type: ${request.request_type}`);
   }
 };
 

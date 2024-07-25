@@ -660,6 +660,14 @@ const defineModels = (sequelize: Sequelize) => {
   Schedule.belongsTo(Target, { foreignKey: 'targets_id' });
   Statistic.belongsTo(Target, { foreignKey: 'targets_id' });
 
+  /**
+   * User Associations
+   */
+  Membership.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
+  Membership.belongsTo(User, { foreignKey: 'users_id', as: 'user' });
+  Team.hasMany(Membership, { foreignKey: 'teams_id', as: 'memberships' });
+  User.hasMany(Membership, { foreignKey: 'users_id', as: 'memberships' });
+
   return {
     User,
     Team,

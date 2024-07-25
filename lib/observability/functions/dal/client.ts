@@ -94,6 +94,15 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  public static async getUserBySubWithMembershipAndTeam(payload: string) {
+    const request: GetUserRequest = {
+      request_type: RequestType.GetUserBySubWithMembershipAndTeam,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
   public static async getUserBySub(payload: string) {
     const request: GetUserRequest = {
       request_type: RequestType.GetUserBySub,
@@ -212,6 +221,15 @@ class DalClient {
   public static async listMembershipsByUser(payload: number) {
     const request: ListMembershipsRequest = {
       request_type: RequestType.ListMembershipsByUser,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async listMembershipsWithTeamByUser(payload: number) {
+    const request: ListMembershipsRequest = {
+      request_type: RequestType.ListMembershipsByUserWithTeam,
       payload,
     };
 

@@ -6,6 +6,7 @@ export enum RequestType {
   ListFeaturesBySub = 'ListFeaturesBySub',
   GetUser = 'GetUser',
   GetUserBySub = 'GetUserBySub',
+  GetUserBySubWithMembershipAndTeam = 'GetUserBySubWithMembershipAndTeam',
   GetUserByEmail = 'GetUserByEmail',
   ListUsers = 'ListUsers',
   ListUsersByTeam = 'ListUsersByTeam',
@@ -16,6 +17,7 @@ export enum RequestType {
   CreateProject = 'CreateProject',
   ListMemberships = 'ListMemberships',
   ListMembershipsByUser = 'ListMembershipsByUser',
+  ListMembershipsByUserWithTeam = 'ListMembershipsByUserWithTeam',
   ListMembershipsByTeam = 'ListMembershipsByTeam',
   GetMembership = 'GetMembership',
   CreateMembership = 'CreateMembership',
@@ -54,7 +56,7 @@ export interface BaseRequest {
  * The request object for getting a user.
  */
 export interface GetUserRequest extends BaseRequest {
-  request_type: RequestType.GetUser | RequestType.GetUserBySub | RequestType.GetUserByEmail;
+  request_type: RequestType.GetUser | RequestType.GetUserBySub | RequestType.GetUserBySubWithMembershipAndTeam | RequestType.GetUserByEmail;
   payload: number | string;
 }
 
@@ -127,7 +129,7 @@ export interface CreateProjectRequest extends BaseRequest {
  * The request object for getting memberships.
  */
 export interface ListMembershipsRequest extends BaseRequest {
-  request_type: RequestType.ListMemberships | RequestType.ListMembershipsByUser | RequestType.ListMembershipsByTeam;
+  request_type: RequestType.ListMemberships | RequestType.ListMembershipsByUser | RequestType.ListMembershipsByUserWithTeam | RequestType.ListMembershipsByTeam;
   payload?: number;
 }
 
@@ -349,4 +351,15 @@ export type AllowedBeaconsRequests = ListBeaconsRequest | GetBeaconRequest | Cre
 export type AllowedEngagementsRequests = ListEngagementsRequest | GetEngagementRequest | CreateEngagementRequest;
 export type AllowedSchedulesRequests = ListSchedulesRequest | GetScheduleRequest | CreateScheduleRequest;
 export type AllowedStatisticsRequests = ListStatisticsRequest | GetStatisticRequest | CreateStatisticRequest;
-export type AllowedRequest = AllowedUsersRequests | AllowedTeamsRequests | AllowedFeaturesRequests | AllowedProjectsRequests | AllowedMembershipsRequests | AllowedAssignmentsRequests | AllowedTargetsRequests | AllowedBeaconsRequests | AllowedEngagementsRequests | AllowedSchedulesRequests | AllowedStatisticsRequests;
+export type AllowedRequest =
+  | AllowedUsersRequests
+  | AllowedTeamsRequests
+  | AllowedFeaturesRequests
+  | AllowedProjectsRequests
+  | AllowedMembershipsRequests
+  | AllowedAssignmentsRequests
+  | AllowedTargetsRequests
+  | AllowedBeaconsRequests
+  | AllowedEngagementsRequests
+  | AllowedSchedulesRequests
+  | AllowedStatisticsRequests;
