@@ -54,6 +54,16 @@ const MEDIAN = 'MEDIAN';
 const MIN = 'MIN';
 const MAX = 'MAX';
 
+const ENUMS = {
+  BeaconProvider: [PAGE_SPEED_INSIGHTS, ECS_LIGHTHOUSE],
+  Stage: [ALPHA, BETA, STAGING, PRODUCTION],
+  TeamRole: [ADMIN, MAINTAINER, MEMBER, VIEWER],
+  ViewportMode: [MOBILE, DESKTOP],
+  BeaconStatus: [PENDING, RUNNING, LIGHTHOUSE_FINISHED, PLEASANTNESS_FINISHED, DONE, FAILED],
+  StatisticPeriod: [HOURLY, DAILY, WEEKLY, MONTHLY],
+  StatisticMetric: [P90, P95, P99, AVG, MEDIAN, MIN, MAX],
+}
+
 export {
   PAGE_SPEED_INSIGHTS,
   ECS_LIGHTHOUSE,
@@ -84,4 +94,5 @@ export {
   MEDIAN,
   MIN,
   MAX,
+  ENUMS,
 };

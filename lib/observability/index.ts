@@ -1,15 +1,15 @@
 import { Stack } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { createApi } from './api';
 import { createCognitoAuth } from './authorization';
 import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
+import { createApiLambdas } from './functions/api';
+import { createPreTokenGenerationTrigger } from './functions/authorization';
 import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
-import { createPreTokenGenerationTrigger } from './functions/authorization';
 import { createDistribution } from './network';
 import { createBuckets } from './storage';
-import { createApiLambdas } from './functions/api';
-import { createApi } from './api';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**
@@ -66,12 +66,12 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   /**
    * API
    */
-  const { api } = createApi(stack, userPool, apiLambdas);
+  const { apiGateway } = createApi(stack, userPool, apiLambdas);
 
   /**
    * Frontend AutoBuild Project
    */
-  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution, userPool, userPoolDomain, userPoolClient, api);
+  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution, userPool, userPoolDomain, userPoolClient, apiGateway);
 
   /**
    * Return the bucket for the ECS Task to upload the files

@@ -1,4 +1,5 @@
 import { SecretValue, Stack } from 'aws-cdk-lib';
+import { IRestApi, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { GraphqlApi } from 'aws-cdk-lib/aws-appsync';
 import { CloudFrontWebDistribution } from 'aws-cdk-lib/aws-cloudfront';
 import {
@@ -29,7 +30,7 @@ const createBuildProject = (
   userPool: UserPool,
   userPoolDomain: UserPoolDomain,
   userPoolClient: UserPoolClient,
-  api: GraphqlApi
+  apiGateway: RestApi
 ) => {
   /**
    * Represents the build specification to build the React Assets.
@@ -86,7 +87,7 @@ const createBuildProject = (
       environmentVariables: {
         VITE_API_FQDN: {
           type: BuildEnvironmentVariableType.PLAINTEXT,
-          value: api.graphqlUrl
+          value: apiGateway.url!
         },
         VITE_PROD_FQDN: {
           type: BuildEnvironmentVariableType.PLAINTEXT,

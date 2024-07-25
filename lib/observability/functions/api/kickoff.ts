@@ -23,6 +23,7 @@ const createKickoffLambda = (stack: Stack, dataAccessLambda: NodejsFunction) => 
     tracing: Tracing.ACTIVE,
     environment: {
       DATA_ACCESS_ARN: dataAccessLambda.functionArn,
+      FRONTEND_FQDN: process.env.FRONTEND_FQDN!,
     },
     memorySize: 1024,
   });

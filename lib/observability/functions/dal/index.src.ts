@@ -74,6 +74,7 @@ const main = async (request: AllowedRequest) => {
      * Teams
      */
     case RequestType.ListTeamsBySub:
+      // TODO: Filter by current sub
       return Team.findAll();
     case RequestType.GetTeam:
       return Team.findOne({ where: { id: (request as GetTeamRequest).payload } });

@@ -1,48 +1,34 @@
 import { Stack } from 'aws-cdk-lib';
-import { AuthorizationType, FieldLogLevel, GraphqlApi, SchemaFile } from 'aws-cdk-lib/aws-appsync';
+import { CognitoUserPoolsAuthorizer, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { camelToKebab } from '../../common/utils';
-import { createResolvers } from './resolvers';
-import { createDataSources } from './sources';
 
 /**
- * Builds a GraphQL API using the provided stack and user pool.
+ * Creates a gateway for the API.
+ *
  * @param stack - The AWS CloudFormation stack.
- * @param userPool - The AWS Cognito user pool.
- * @returns The constructed GraphQL API.
+ * @param userPool - The Cognito user pool.
+ * @param lambdas - The lambdas used in the API.
+ * @returns An object containing the created API gateway.
  */
 const createApi = (stack: Stack, userPool: UserPool, lambdas: Record<string, IFunction>) => {
-  /**
-   * GraphQL API
-   */
-  const api = new GraphqlApi(stack, `${stack.stackName}Api`, {
-    name: camelToKebab(stack.stackName),
-    schema: SchemaFile.fromAsset('./lib/observability/api/api.graphql'),
-    logConfig: {
-      fieldLogLevel: FieldLogLevel.ALL,
-    },
-    authorizationConfig: {
-      defaultAuthorization: {
-        authorizationType: AuthorizationType.USER_POOL,
-        userPoolConfig: {
-          userPool,
-        },
-      },
-    },
-    xrayEnabled: true,
+  const authorizer = new CognitoUserPoolsAuthorizer(stack, `${stack.stackName}Authorizer`, {
+    cognitoUserPools: [userPool],
   });
 
-  /**
-   * Creates data sources for the GraphQL API.
-   */
-  const dataSources = createDataSources(stack, api, lambdas);
+  const apiGateway = new RestApi(stack, `${stack.stackName}RestApi`, {
+    restApiName: camelToKebab(stack.stackName),
+    defaultMethodOptions: {
+      authorizer,
+    },
+  });
 
-  /**
-   * Creates resolvers for the GraphQL API.
-   */
-  createResolvers(stack, dataSources);
-  return { api };
+  const root = apiGateway.root;
+  const kickoffIntegration = new LambdaIntegration(lambdas.kickoffLambda);
+  root.addMethod('GET', kickoffIntegration);
+
+  return { apiGateway };
 };
 
 export { createApi };
