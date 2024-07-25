@@ -11,6 +11,7 @@ import { createProcessingLambda } from './functions/processing';
 import { createDistribution } from './network';
 import { createBuckets } from './storage';
 import { createKickoffTable } from './persistence';
+import { createKickoffCacheLambda } from './functions/cache';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**

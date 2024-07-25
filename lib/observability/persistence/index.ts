@@ -8,7 +8,8 @@ import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
  * @returns An object containing the created kickoff table.
  */
 const createKickoffTable = (stack: Stack) => {
-  const kickoffTable = new Table(stack, 'KickoffTable', {
+  const kickoffTable = new Table(stack, `${stack.stackName}KickoffTable`, {
+    tableName: `${stack.stackName}KickoffTable`,
     partitionKey: { name: 'sub', type: AttributeType.STRING },
     billingMode: BillingMode.PAY_PER_REQUEST,
   });

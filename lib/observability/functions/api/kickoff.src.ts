@@ -1,6 +1,14 @@
 import { ENUMS } from '../../../common/utils/consts';
 import jwt from 'jsonwebtoken';
 import { DalClient } from '../dal/client';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import { request } from 'http';
+
+/**
+ * Represents a client for interacting with the Lambda service.
+ */
+const lambdaClient = new LambdaClient();
+
 /**
  * The main function for the kickoff event.
  *
@@ -17,7 +25,13 @@ const main = async (event: AWSLambda.APIGatewayEvent) => {
   // TODO: Move this to a common util function.
   const allowedOrigins = ['http://localhost:5173', `https://${process.env.FRONTEND_FQDN}`];
   const origin = event.headers.origin || '';
-  const me = await DalClient.getUserBySubWithMembershipAndTeam(sub!.toString());
+
+  const invokeCommand = new InvokeCommand({
+    FunctionName: process.env.KICKOFF_CACHE_ARN,
+    Payload: JSON.stringify({ sub }),
+  });
+
+  const me = await lambdaClient.send(invokeCommand);
 
   const output = {
     enums: ENUMS,
