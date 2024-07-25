@@ -1,5 +1,6 @@
 import { ENUMS } from '../../../common/utils/consts';
-
+import jwt from 'jsonwebtoken';
+import { DalClient } from '../dal/client';
 /**
  * The main function for the kickoff event.
  *
@@ -7,12 +8,22 @@ import { ENUMS } from '../../../common/utils/consts';
  * @returns An object with the kickoff information.
  */
 const main = async (event: AWSLambda.APIGatewayEvent) => {
+
+  // Get the user ID from the JWT token.
+  // TODO: Move this to a common util function.
+  const token = event.headers.Authorization!.split(' ')[1];
+  const {
+    payload: { sub },
+  } = jwt.decode(token, { complete: true })!;
+
+  // TODO: Move this to a common util function.
+  const allowedOrigins = ['http://localhost:5173', `https://${process.env.FRONTEND_FQDN}`];
+  const origin = event.headers.origin || '';
+
   const output = {
     enums: ENUMS,
+    me: await DalClient.getUserBySub(sub!.toString())
   };
-
-  const allowedOrigins = ['http://localhost:5173', 'https://madonna.gaulatti.com'];
-  const origin = event.headers.origin || '';
 
   return {
     statusCode: 200,
