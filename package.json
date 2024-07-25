@@ -10,7 +10,10 @@
     "watch": "tsc -w",
     "test": "jest --config jest.config.ts",
     "cdk": "cdk",
+    "cdk:synth": "cdk synth",
     "cdk:diff": "cdk diff",
+    "sam:run": "sam local start-api -t cdk.out/DressYouUp.template.json",
+    "start": "npm run build && npm run cdk:synth && npm run sam:run",
     "view:schema": "graphqlviz ./lib/observability/api/api.graphql | dot -Tpdf | open -f -a Preview"
   },
   "devDependencies": {
