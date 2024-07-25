@@ -10,7 +10,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
  * @param dataAccessLambda - The data access lambda function.
  * @returns An object containing the kickoff lambda function.
  */
-const createKickoffLambda = (stack: Stack, dataAccessLambda: NodejsFunction) => {
+const createKickoffLambda = (stack: Stack, dataAccessLambda: NodejsFunction, kickoffCacheLambda: NodejsFunction) => {
   /**
    * Create Processing Lambda
    */
@@ -20,9 +20,9 @@ const createKickoffLambda = (stack: Stack, dataAccessLambda: NodejsFunction) => 
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
-    tracing: Tracing.ACTIVE,
     environment: {
       DATA_ACCESS_ARN: dataAccessLambda.functionArn,
+      KICKOFF_CACHE_ARN: kickoffCacheLambda.functionArn,
       FRONTEND_FQDN: process.env.FRONTEND_FQDN!,
     },
     memorySize: 1024,
@@ -32,6 +32,7 @@ const createKickoffLambda = (stack: Stack, dataAccessLambda: NodejsFunction) => 
    * Allow this lambda to save the metrics in the Database.
    */
   dataAccessLambda.grantInvoke(kickoffLambda);
+  kickoffCacheLambda.grantInvoke(kickoffLambda);
 
   return { kickoffLambda };
 };

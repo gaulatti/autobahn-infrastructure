@@ -10,6 +10,7 @@ import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
 import { createDistribution } from './network';
 import { createBuckets } from './storage';
+import { createKickoffTable } from './persistence';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**
@@ -18,12 +19,18 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   const { observabilityBucket, frontendBucket } = createBuckets(stack);
 
   /**
+   * Persistence (DynamoDB)
+   */
+  const { kickoffTable } = createKickoffTable(stack);
+
+  /**
    * Lambdas
    */
   const { dataAccessLambda } = createDataAccessLambda(stack);
+  const { kickoffCacheLambda } = createKickoffCacheLambda(stack, dataAccessLambda, kickoffTable);
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
   const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, dataAccessLambda);
-  const apiLambdas = createApiLambdas(stack, dataAccessLambda);
+  const apiLambdas = createApiLambdas(stack, dataAccessLambda, kickoffCacheLambda);
 
   /**
    * Dashboard
