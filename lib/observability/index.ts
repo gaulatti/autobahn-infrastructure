@@ -30,7 +30,7 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   const { dataAccessLambda } = createDataAccessLambda(stack);
   const { kickoffCacheLambda } = createKickoffCacheLambda(stack, dataAccessLambda, kickoffTable);
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
-  const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, dataAccessLambda);
+  const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, dataAccessLambda, kickoffCacheLambda);
   const apiLambdas = createApiLambdas(stack, dataAccessLambda, kickoffCacheLambda);
 
   /**

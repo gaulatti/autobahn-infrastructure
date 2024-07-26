@@ -1,3 +1,4 @@
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DalClient } from '../dal/client';
 
 interface CognitoTriggerEvent {
@@ -31,9 +32,25 @@ interface CognitoTriggerEvent {
   };
 }
 
+/**
+ * Represents a decoder for decoding binary data.
+ */
+const decoder = new TextDecoder('utf-8');
+
+/**
+ * Represents a client for interacting with the Lambda service.
+ */
+const lambdaClient = new LambdaClient();
+
+/**
+ * Handles the pre-token generation Cognito trigger event.
+ *
+ * @param event - The Cognito trigger event.
+ * @param context - The execution context.
+ * @param callback - The callback function to be called when the operation is complete.
+ */
 const preTokenGeneration = async (event: CognitoTriggerEvent, context: any, callback: any) => {
   const {
-    userName,
     request: {
       userAttributes: { sub, given_name, family_name, email },
     },
@@ -42,14 +59,19 @@ const preTokenGeneration = async (event: CognitoTriggerEvent, context: any, call
   /**
    * Get the user by email. Create if it does not exist.
    */
-  const response = await DalClient.getUserByEmail(email);
+  const invokeCommand = new InvokeCommand({
+    FunctionName: process.env.KICKOFF_CACHE_ARN,
+    Payload: JSON.stringify({ sub }),
+  });
 
-  if(!response) {
+  const { Payload } = await lambdaClient.send(invokeCommand);
+  const me = JSON.parse(decoder.decode(Payload));
+
+  if (!me) {
     console.error(`User not found: ${email}. Creating.`);
     const createUser = await DalClient.createUser(sub!, email, given_name, family_name);
     console.log(`User created: ${JSON.stringify(createUser)}`);
   }
-
 
   callback(null, event);
 };

@@ -1,7 +1,6 @@
-import { marshall } from '@aws-sdk/util-dynamodb';
-import { ENUMS } from '../../../common/utils/consts';
-import { DalClient } from '../dal/client';
 import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { DalClient } from '../dal/client';
 const client = new DynamoDBClient();
 
 /**
@@ -14,14 +13,13 @@ const main = async (event: { sub: string }) => {
   const { sub } = event;
 
   const params = {
-    TableName: process.env.KICKOFF_TABLE_ARN,
+    TableName: process.env.KICKOFF_TABLE_NAME,
     Key: {
       sub: { S: sub },
     },
   };
 
   const command = new GetItemCommand(params);
-
   const response = await client.send(command);
   const item = response.Item;
 
@@ -29,7 +27,7 @@ const main = async (event: { sub: string }) => {
     const me = await DalClient.getUserBySubWithMembershipAndTeam(sub!.toString());
 
     const putParams = {
-      TableName: process.env.KICKOFF_TABLE_ARN,
+      TableName: process.env.KICKOFF_TABLE_NAME,
       Item: marshall(me),
     };
 
@@ -37,7 +35,7 @@ const main = async (event: { sub: string }) => {
     return me;
   }
 
-  return item;
+  return unmarshall(item);
 };
 
 export { main };

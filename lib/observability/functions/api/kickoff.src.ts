@@ -1,8 +1,11 @@
-import { ENUMS } from '../../../common/utils/consts';
-import jwt from 'jsonwebtoken';
-import { DalClient } from '../dal/client';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
-import { request } from 'http';
+import jwt from 'jsonwebtoken';
+import { ENUMS } from '../../../common/utils/consts';
+
+/**
+ * Represents a decoder for decoding binary data.
+ */
+const decoder = new TextDecoder('utf-8');
 
 /**
  * Represents a client for interacting with the Lambda service.
@@ -31,12 +34,13 @@ const main = async (event: AWSLambda.APIGatewayEvent) => {
     Payload: JSON.stringify({ sub }),
   });
 
-  const me = await lambdaClient.send(invokeCommand);
+  const { Payload }  = await lambdaClient.send(invokeCommand);
+  const me = JSON.parse(decoder.decode(Payload));
 
   const output = {
     enums: ENUMS,
     me,
-    features: []
+    features: [],
   };
 
   return {

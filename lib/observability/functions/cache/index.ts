@@ -15,11 +15,12 @@ const createKickoffCacheLambda = (stack: Stack, dataAccessLambda: NodejsFunction
     timeout: Duration.minutes(1),
     environment: {
       DATA_ACCESS_ARN: dataAccessLambda.functionArn,
-      KICKOFF_TABLE_ARN: kickoffTable.tableArn,
+      KICKOFF_TABLE_NAME: kickoffTable.tableName,
     },
     memorySize: 1024,
   });
 
+  dataAccessLambda.grantInvoke(kickoffCacheLambda);
   kickoffTable.grantReadWriteData(kickoffCacheLambda);
 
   return { kickoffCacheLambda };
