@@ -1,6 +1,5 @@
 import { SecretValue, Stack } from 'aws-cdk-lib';
-import { IRestApi, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { GraphqlApi } from 'aws-cdk-lib/aws-appsync';
+import { RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { CloudFrontWebDistribution } from 'aws-cdk-lib/aws-cloudfront';
 import {
   Artifacts,
@@ -87,7 +86,7 @@ const createBuildProject = (
       environmentVariables: {
         VITE_API_FQDN: {
           type: BuildEnvironmentVariableType.PLAINTEXT,
-          value: apiGateway.url!
+          value: apiGateway.url!,
         },
         VITE_PROD_FQDN: {
           type: BuildEnvironmentVariableType.PLAINTEXT,

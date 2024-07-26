@@ -1,5 +1,6 @@
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DalClient } from '../dal/client';
+import { getCurrentUserBySub } from '../../../common/utils/api';
 
 interface CognitoTriggerEvent {
   version: string;
@@ -33,16 +34,6 @@ interface CognitoTriggerEvent {
 }
 
 /**
- * Represents a decoder for decoding binary data.
- */
-const decoder = new TextDecoder('utf-8');
-
-/**
- * Represents a client for interacting with the Lambda service.
- */
-const lambdaClient = new LambdaClient();
-
-/**
  * Handles the pre-token generation Cognito trigger event.
  *
  * @param event - The Cognito trigger event.
@@ -57,16 +48,13 @@ const preTokenGeneration = async (event: CognitoTriggerEvent, context: any, call
   } = event;
 
   /**
-   * Get the user by email. Create if it does not exist.
+   * Retrieves the current user by the sub.
    */
-  const invokeCommand = new InvokeCommand({
-    FunctionName: process.env.KICKOFF_CACHE_ARN,
-    Payload: JSON.stringify({ sub }),
-  });
+  const me = await getCurrentUserBySub(sub!);
 
-  const { Payload } = await lambdaClient.send(invokeCommand);
-  const me = JSON.parse(decoder.decode(Payload));
-
+  /**
+   * If the user is not found, create the user.
+   */
   if (!me) {
     console.error(`User not found: ${email}. Creating.`);
     const createUser = await DalClient.createUser(sub!, email, given_name, family_name);
