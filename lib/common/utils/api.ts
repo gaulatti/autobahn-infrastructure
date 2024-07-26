@@ -56,14 +56,16 @@ const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, o
   const allowedOrigins = ['http://localhost:5173', `https://${process.env.FRONTEND_FQDN}`];
   const origin = event.headers.origin || '';
 
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : '',
+    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+  }
+
   return {
     statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : '',
-      'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-    },
+    headers,
     body: JSON.stringify(output),
   };
 };
