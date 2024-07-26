@@ -163,7 +163,9 @@ const main = async (request: AllowedRequest) => {
     case RequestType.ListBeacons:
       return Beacon.findAll();
     case RequestType.ListBeaconsByTeam:
-      return Beacon.findAll({ where: { teams_id: request.payload } });
+      return Beacon.findAll({ where: { teams_id: { in: request.payload } } });
+    case RequestType.ListBeaconsByUser:
+      return Beacon.findAll({ where: { triggered_by: request.payload } });
     case RequestType.GetBeacon:
       return Beacon.findOne({ where: { id: request.payload } });
     case RequestType.CreateBeacon:

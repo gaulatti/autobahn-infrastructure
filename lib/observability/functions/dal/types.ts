@@ -32,6 +32,7 @@ export enum RequestType {
   CreateTarget = 'CreateTarget',
   ListBeacons = 'ListBeacons',
   ListBeaconsByTeam = 'ListBeaconsByTeam',
+  ListBeaconsByUser = 'ListBeaconsByUser',
   GetBeacon = 'GetBeacon',
   CreateBeacon = 'CreateBeacon',
   ListEngagements = 'ListEngagements',
@@ -210,8 +211,8 @@ export interface CreateTargetRequest extends BaseRequest {
  * The request object for getting beacons.
  */
 export interface ListBeaconsRequest extends BaseRequest {
-  request_type: RequestType.ListBeacons | RequestType.ListBeaconsByTeam;
-  payload?: number;
+  request_type: RequestType.ListBeacons | RequestType.ListBeaconsByUser | RequestType.ListBeaconsByTeam;
+  payload?: number | number[];
 }
 
 /**

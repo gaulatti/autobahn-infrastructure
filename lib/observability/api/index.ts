@@ -25,8 +25,18 @@ const createApi = (stack: Stack, userPool: UserPool, lambdas: Record<string, IFu
   });
 
   const root = apiGateway.root;
-  const kickoffIntegration = new LambdaIntegration(lambdas.kickoffLambda);
-  root.addMethod('GET', kickoffIntegration);
+  root.addMethod('GET', new LambdaIntegration(lambdas.kickoffLambda));
+
+  const executions = root.addResource('executions')
+  executions.addMethod('GET', new LambdaIntegration(lambdas.executionsLambda));
+  executions.addMethod('POST', new LambdaIntegration(lambdas.triggerExecutionLambda));
+
+  const executionById = executions.addResource('{uuid}');
+  executionById.addMethod('GET', new LambdaIntegration(lambdas.executionResultLambda));
+
+  const executionResults = executionById.addResource('details');
+  executionResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
+
 
   return { apiGateway };
 };

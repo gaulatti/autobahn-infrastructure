@@ -362,18 +362,26 @@ class DalClient {
   /**
    * Beacons
    */
-  public static async listBeacons(payload?: number) {
+  public static async listBeacons() {
     const request: ListBeaconsRequest = {
       request_type: RequestType.ListBeacons,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async listBeaconsByTeam(payload: number[]) {
+    const request: ListBeaconsRequest = {
+      request_type: RequestType.ListBeaconsByTeam,
       payload,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listBeaconsByTeam(payload: number) {
+  public static async listBeaconsByUser(payload: number) {
     const request: ListBeaconsRequest = {
-      request_type: RequestType.ListBeaconsByTeam,
+      request_type: RequestType.ListBeaconsByUser,
       payload,
     };
 
@@ -407,7 +415,7 @@ class DalClient {
     status: number,
     targets_id?: number,
     triggered_by?: number,
-    pleasantness_score?: number,
+    pleasantness_score?: number
   ) {
     const request: CreateBeaconRequest = {
       request_type: RequestType.CreateBeacon,

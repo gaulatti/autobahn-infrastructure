@@ -9,7 +9,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
  * @param dataAccessLambda - The data access lambda function.
  * @returns The pre-authentication trigger handler.
  */
-const createPreTokenGenerationTrigger = (stack: Stack, dataAccessLambda: NodejsFunction, kickoffCacheLambda: NodejsFunction) => {
+const createPreTokenGenerationTrigger = (stack: Stack, defaultEnvironment: Record<string, string>) => {
   /**
    * Creates a new pre-authentication trigger handler.
    */
@@ -20,13 +20,9 @@ const createPreTokenGenerationTrigger = (stack: Stack, dataAccessLambda: NodejsF
     runtime: Runtime.NODEJS_20_X,
     allowPublicSubnet: true,
     environment: {
-      DATA_ACCESS_ARN: dataAccessLambda.functionArn,
-      KICKOFF_CACHE_ARN: kickoffCacheLambda.functionArn,
+      ...defaultEnvironment
     },
   });
-
-  dataAccessLambda.grantInvoke(preTokenGenerationLambda);
-  kickoffCacheLambda.grantInvoke(preTokenGenerationLambda);
 
   return { preTokenGenerationLambda };
 };

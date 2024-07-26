@@ -1,4 +1,6 @@
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import { Duration, Stack } from 'aws-cdk-lib';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import jwt from 'jsonwebtoken';
 
 /**
@@ -66,4 +68,24 @@ const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, o
   };
 };
 
-export { buildCorsOutput, getCurrentUser, getCurrentUserBySub };
+/**
+ * Builds the specifications for a Lambda function.
+ *
+ * @param stack - The stack object.
+ * @param name - The name of the Lambda function.
+ * @param entry - The entry point file for the Lambda function.
+ * @param environment - The environment variables for the Lambda function.
+ * @returns The specifications for the Lambda function.
+ */
+const buildLambdaSpecs = (stack: Stack, name: string, entry: string, environment: Record<string, string>) => ({
+  functionName: `${stack.stackName}${name}`,
+  entry,
+  handler: 'main',
+  runtime: Runtime.NODEJS_20_X,
+  timeout: Duration.minutes(1),
+  environment,
+  memorySize: 1024,
+});
+
+export { buildCorsOutput, buildLambdaSpecs, getCurrentUser, getCurrentUserBySub };
+

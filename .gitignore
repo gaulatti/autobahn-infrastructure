@@ -12,3 +12,4 @@ coverage
 /build
 .DS_Store
 !lhci.config.js
+.vscode

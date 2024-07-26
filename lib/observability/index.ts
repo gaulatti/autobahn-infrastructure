@@ -6,12 +6,12 @@ import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
 import { createApiLambdas } from './functions/api';
 import { createPreTokenGenerationTrigger } from './functions/authorization';
+import { createKickoffCacheLambda } from './functions/cache';
 import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
 import { createDistribution } from './network';
-import { createBuckets } from './storage';
 import { createKickoffTable } from './persistence';
-import { createKickoffCacheLambda } from './functions/cache';
+import { createBuckets } from './storage';
 
 const createObservabilityInfrastructure = (stack: Stack) => {
   /**
@@ -25,14 +25,30 @@ const createObservabilityInfrastructure = (stack: Stack) => {
   const { kickoffTable } = createKickoffTable(stack);
 
   /**
-   * Lambdas
+   * Persistence / Cache Lambdas
    */
   const { dataAccessLambda } = createDataAccessLambda(stack);
   const { kickoffCacheLambda } = createKickoffCacheLambda(stack, dataAccessLambda, kickoffTable);
-  const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
-  const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, dataAccessLambda, kickoffCacheLambda);
-  const apiLambdas = createApiLambdas(stack, dataAccessLambda, kickoffCacheLambda);
 
+  /**
+   * API Lambdas
+   */
+  const defaultApiEnvironment = {
+    DATA_ACCESS_ARN: dataAccessLambda.functionArn,
+    KICKOFF_CACHE_ARN: kickoffCacheLambda.functionArn,
+    FRONTEND_FQDN: process.env.FRONTEND_FQDN!,
+  };
+  const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, defaultApiEnvironment);
+  const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment) };
+  for(const lambdaFunction of Object.values(apiLambdas)) {
+    dataAccessLambda.grantInvoke(lambdaFunction);
+    kickoffCacheLambda.grantInvoke(lambdaFunction)
+  }
+
+  /**
+   * Worker Lambda
+   */
+  const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
   /**
    * Dashboard
    */
