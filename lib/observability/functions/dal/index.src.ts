@@ -172,6 +172,8 @@ const main = async (request: AllowedRequest) => {
       return Beacon.findAll({ where: { uuid: request.payload } });
     case RequestType.CreateBeacon:
       return Beacon.create({ ...request });
+    case RequestType.UpdateBeacon:
+      return await (await Beacon.findOne({ where: { id: request.id } }))!.update(({ ...request }))
 
     /**
      * Engagements
