@@ -34,6 +34,7 @@ export enum RequestType {
   ListBeaconsByTeam = 'ListBeaconsByTeam',
   ListBeaconsByUser = 'ListBeaconsByUser',
   GetBeacon = 'GetBeacon',
+  GetBeaconByUUID = 'GetBeaconByUUID',
   CreateBeacon = 'CreateBeacon',
   ListEngagements = 'ListEngagements',
   ListEngagementsByTarget = 'ListEngagementsByTarget',
@@ -219,8 +220,8 @@ export interface ListBeaconsRequest extends BaseRequest {
  * The request object for getting a single beacon.
  */
 export interface GetBeaconRequest extends BaseRequest {
-  request_type: RequestType.GetBeacon;
-  payload: number;
+  request_type: RequestType.GetBeacon | RequestType.GetBeaconByUUID;
+  payload: number | string;
 }
 
 /**
@@ -228,24 +229,24 @@ export interface GetBeaconRequest extends BaseRequest {
  */
 export interface CreateBeaconRequest extends BaseRequest {
   request_type: RequestType.CreateBeacon;
-  teams_id: number;
-  targets_id?: number;
-  triggered_by?: number;
-  stage: number;
-  uuid: string;
-  url: string;
-  provider: number;
-  type: number;
-  fcp: number;
-  lcp: number;
-  tti: number;
-  si: number;
-  cls: number;
-  mode: number;
-  performance_score: number;
-  pleasantness_score?: number;
-  status: number;
-  ended_at: Date;
+  teams_id: number,
+  stage: number,
+  uuid: string,
+  url: string,
+  provider: number,
+  type: number,
+  mode: number,
+  status: number,
+  fcp?: number,
+  lcp?: number,
+  tti?: number,
+  si?: number,
+  cls?: number,
+  performance_score?: number,
+  pleasantness_score?: number,
+  ended_at?: Date,
+  targets_id?: number,
+  triggered_by?: number,
 }
 
 /**

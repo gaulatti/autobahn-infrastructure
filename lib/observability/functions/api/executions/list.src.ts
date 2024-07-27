@@ -9,14 +9,11 @@ import { DalClient } from '../../dal/client';
  */
 const main = async (event: AWSLambda.APIGatewayEvent) => {
   const {
-    me: { id, memberships },
+    me: { memberships },
   } = await getCurrentUser(event);
-
   const teams = memberships.map(({ team: { id } }: { team: { id: number } }) => id);
-
   const teamBeacons = await DalClient.listBeaconsByTeam(teams);
-  const userBeacons = await DalClient.listBeaconsByUser(id);
-  const output = [...teamBeacons, ...userBeacons];
+  const output = [...teamBeacons];
 
   return buildCorsOutput(event, 200, output);
 };

@@ -333,10 +333,6 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      type: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
       fcp: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
@@ -392,7 +388,8 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
       },
       ended_at: {
         type: DataTypes.DATE,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: null,
       },
       deleted_at: {
         type: DataTypes.DATE,

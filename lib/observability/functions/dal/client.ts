@@ -397,6 +397,15 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  public static async getBeaconByUUID(payload: string) {
+    const request: GetBeaconRequest = {
+      request_type: RequestType.GetBeaconByUUID,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
   public static async createBeacon(
     teams_id: number,
     stage: number,
@@ -404,18 +413,18 @@ class DalClient {
     url: string,
     provider: number,
     type: number,
-    fcp: number,
-    lcp: number,
-    tti: number,
-    si: number,
-    cls: number,
     mode: number,
-    performance_score: number,
-    ended_at: Date,
     status: number,
+    fcp?: number,
+    lcp?: number,
+    tti?: number,
+    si?: number,
+    cls?: number,
+    performance_score?: number,
+    pleasantness_score?: number,
+    ended_at?: Date,
     targets_id?: number,
-    triggered_by?: number,
-    pleasantness_score?: number
+    triggered_by?: number
   ) {
     const request: CreateBeaconRequest = {
       request_type: RequestType.CreateBeacon,
