@@ -1,11 +1,12 @@
 import { Stack } from 'aws-cdk-lib';
 import { createExecutionResultLambda, createExecutionsLambda, createTriggerExecutionLambda, createExecutionDetailsLambda } from './executions';
 import { createKickoffLambda } from './kickoff';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 
-const createApiLambdas = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
+const createApiLambdas = (stack: Stack, defaultApiEnvironment: Record<string, string>, triggerTopic: Topic) => {
   const { kickoffLambda } = createKickoffLambda(stack, defaultApiEnvironment);
   const { executionsLambda } = createExecutionsLambda(stack, defaultApiEnvironment);
-  const { triggerExecutionLambda } = createTriggerExecutionLambda(stack, defaultApiEnvironment);
+  const { triggerExecutionLambda } = createTriggerExecutionLambda(stack, defaultApiEnvironment, triggerTopic);
   const { executionResultLambda } = createExecutionResultLambda(stack, defaultApiEnvironment);
   const { executionDetailsLambda } = createExecutionDetailsLambda(stack, defaultApiEnvironment);
 

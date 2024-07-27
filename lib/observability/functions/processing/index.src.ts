@@ -2,6 +2,7 @@ import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { CloudWatchClient, MetricDatum, PutMetricDataCommand, PutMetricDataCommandInput, StandardUnit } from '@aws-sdk/client-cloudwatch';
 import { SNSEventRecord } from 'aws-lambda';
 import { Readable } from 'stream';
+import { DalClient } from '../dal/client';
 
 /**
  * AWS does not maintain types, so we need to figure out on our own.
@@ -41,11 +42,6 @@ const streamToString = async (stream: Readable): Promise<string> => {
   });
 };
 
-const isMobileUserAgent = (userAgent: string) => {
-  const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-  return mobileRegex.test(userAgent);
-};
-
 interface ScoreObject {
   score: number;
   scoreDisplayMode: string;
@@ -79,8 +75,11 @@ const main = async (event: S3Event) => {
       const bodyContents = await streamToString(response.Body as Readable);
       const lighthouseReport = JSON.parse(bodyContents);
 
-      const { environment, audits } = lighthouseReport;
-      const isMobile = isMobileUserAgent(environment.networkUserAgent);
+      const { audits } = lighthouseReport;
+
+      const [uuid, mode] = objectKey.split('.');
+      const isMobile = mode === 'mobile';
+
       let totalScore = 0;
 
       /**
@@ -103,44 +102,22 @@ const main = async (event: S3Event) => {
         }
       }
 
-      /**
-       * Post metrics to CloudWatch
-       */
-      const MetricData: MetricDatum[] = monitoredMetrics.map((monitoredMetric) => {
-        const metric = metrics[monitoredMetric];
-
-        return {
-          MetricName: monitoredMetric,
-          Dimensions: [
-            {
-              Name: 'Stage',
-              Value: 'prod',
-            },
-            {
-                Name: 'Viewport',
-                Value: isMobile ? 'mobile' : 'desktop',
-            }
-          ],
-          Unit: metric.numericUnit === 'millisecond' ? StandardUnit.Milliseconds : StandardUnit.None,
-          Value: metric.numericValue,
-        };
-      });
+      const uuidRecords: any[] = await DalClient.getBeaconByUUID(uuid);
+      const currentRecord = uuidRecords.find((record: any) => record.mode === (isMobile ? 0 : 1));
 
       /**
-       * Add the total score as a metric.
+       * Update the record with the new metrics.
        */
-      const cloudWatchInput: PutMetricDataCommandInput = {
-        MetricData,
-        Namespace: 'DressYouUp',
-      };
-
-      try {
-        const command = new PutMetricDataCommand(cloudWatchInput);
-        const cloudWatchResponse = await cloudwatchClient.send(command);
-        console.log('Successfully sent metrics to CloudWatch:', cloudWatchResponse);
-      } catch (error) {
-        console.error('Error sending metrics to CloudWatch:', error);
-      }
+      await DalClient.updateBeacon(
+        currentRecord.id,
+        2,
+        metrics['first-contentful-paint'].numericValue,
+        metrics['largest-contentful-paint'].numericValue,
+        metrics['interactive'].numericValue,
+        metrics['speed-index'].numericValue,
+        metrics['cumulative-layout-shift'].numericValue,
+        totalScore
+      );
     } catch (error) {
       console.error('Error reading file from S3:', error);
     }

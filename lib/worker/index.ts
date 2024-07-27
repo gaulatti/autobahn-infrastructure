@@ -1,10 +1,10 @@
 import { Stack } from 'aws-cdk-lib';
-import { createFargateTask } from './fargate';
-import { createTriggerLambda } from './functions/trigger';
-import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Cluster } from 'aws-cdk-lib/aws-ecs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { createTopics } from './events';
+import { Topic } from 'aws-cdk-lib/aws-sns';
+import { createFargateTask } from './fargate';
+import { createTriggerLambda } from './functions/trigger';
 
 /**
  * Creates the worker infrastructure.
@@ -15,12 +15,7 @@ import { createTopics } from './events';
  * @param serverDnsName - The DNS name of the server.
  * @param observabilityBucket - The bucket for observability.
  */
-const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, cluster: Cluster, observabilityBucket: Bucket) => {
-  /**
-   * Create SNS Topics
-   */
-  const { triggerTopic } = createTopics(stack);
-
+const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, cluster: Cluster, observabilityBucket: Bucket, triggerTopic: Topic) => {
   /**
    * Create Fargate Service
    *

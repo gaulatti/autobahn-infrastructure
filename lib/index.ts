@@ -13,19 +13,19 @@ class DressYouUpStack extends Stack {
     super(scope, id, props);
 
     /**
-     * Create Observability Infrastructure
-     */
-    const { observabilityBucket } = createObservabilityInfrastructure(this);
-
-    /**
      * Create the common infrastructure. This is shared between server and worker.
      */
-    const { vpc, securityGroup, cluster, eip } = createCommonInfrastructure(this);
+    const { triggerTopic, vpc, securityGroup, cluster, eip } = createCommonInfrastructure(this);
+
+    /**
+     * Create Observability Infrastructure
+     */
+    const { observabilityBucket } = createObservabilityInfrastructure(this, triggerTopic);
 
     /**
      * Create the worker infrastructure
      */
-    createWorkerInfrastructure(this, securityGroup, cluster, observabilityBucket);
+    createWorkerInfrastructure(this, securityGroup, cluster, observabilityBucket, triggerTopic);
   }
 }
 

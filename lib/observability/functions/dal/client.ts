@@ -31,6 +31,7 @@ import {
   ListTargetsRequest,
   ListTeamsRequest,
   RequestType,
+  UpdateBeaconRequest,
 } from './types';
 
 /**
@@ -446,6 +447,35 @@ class DalClient {
       triggered_by,
       pleasantness_score,
       status,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async updateBeacon(
+    id: number,
+    status: number,
+    fcp: number,
+    lcp: number,
+    tti: number,
+    si: number,
+    cls: number,
+    performance_score: number,
+    pleasantness_score?: number,
+    ended_at?: Date
+  ) {
+    const request: UpdateBeaconRequest = {
+      request_type: RequestType.UpdateBeacon,
+      id,
+      performance_score,
+      pleasantness_score,
+      ended_at,
+      status,
+      fcp,
+      lcp,
+      tti,
+      si,
+      cls,
     };
 
     return await DalClient.parsedInvoke(request);

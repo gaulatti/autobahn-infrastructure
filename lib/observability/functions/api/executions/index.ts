@@ -1,6 +1,8 @@
 import { Stack } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { buildLambdaSpecs } from '../../../../common/utils/api';
+import { Topic } from 'aws-cdk-lib/aws-sns';
+import { env } from 'process';
 
 /**
  * Creates the Executions Lambda function.
@@ -22,12 +24,29 @@ const createExecutionsLambda = (stack: Stack, defaultApiEnvironment: Record<stri
  *
  * @param stack - The AWS CloudFormation stack.
  * @param defaultApiEnvironment - The default environment variables for the API.
+ * @param triggerTopic - The SNS topic used as a trigger.
  * @returns An object containing the trigger execution lambda function.
  */
-const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
+const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, triggerTopic: Topic) => {
+  /**
+   * The environment variables for the trigger execution lambda function.
+   */
+  const environment = {
+    ...defaultApiEnvironment,
+    TRIGGER_TOPIC_ARN: triggerTopic.topicArn,
+  };
+
+  /**
+   * Create the trigger execution lambda function.
+   */
   const triggerExecutionLambda = new NodejsFunction(stack, `${stack.stackName}TriggerExecutionLambda`, {
-    ...buildLambdaSpecs(stack, 'TriggerExecution', './lib/observability/functions/api/executions/trigger.src.ts', defaultApiEnvironment),
+    ...buildLambdaSpecs(stack, 'TriggerExecution', './lib/observability/functions/api/executions/trigger.src.ts', environment),
   });
+
+  /**
+   * Grant the trigger execution lambda the permission to publish to the trigger topic.
+   */
+  triggerTopic.grantPublish(triggerExecutionLambda);
 
   return { triggerExecutionLambda };
 };
@@ -56,4 +75,3 @@ const createExecutionDetailsLambda = (stack: Stack, defaultApiEnvironment: Recor
 };
 
 export { createExecutionResultLambda, createExecutionsLambda, createTriggerExecutionLambda, createExecutionDetailsLambda };
-

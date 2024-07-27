@@ -36,6 +36,7 @@ export enum RequestType {
   GetBeacon = 'GetBeacon',
   GetBeaconByUUID = 'GetBeaconByUUID',
   CreateBeacon = 'CreateBeacon',
+  UpdateBeacon = 'UpdateBeacon',
   ListEngagements = 'ListEngagements',
   ListEngagementsByTarget = 'ListEngagementsByTarget',
   GetEngagement = 'GetEngagement',
@@ -249,6 +250,20 @@ export interface CreateBeaconRequest extends BaseRequest {
   triggered_by?: number,
 }
 
+export interface UpdateBeaconRequest extends BaseRequest {
+  request_type: RequestType.UpdateBeacon;
+  id: number,
+  status: number,
+  fcp: number;
+  lcp: number;
+  tti: number;
+  si: number;
+  cls: number;
+  performance_score: number;
+  pleasantness_score?: number;
+  ended_at?: Date;
+}
+
 /**
  * The request object for getting engagements.
  */
@@ -349,7 +364,7 @@ export type AllowedProjectsRequests = ListProjectsRequest | GetProjectRequest | 
 export type AllowedMembershipsRequests = ListMembershipsRequest | GetMembershipRequest | CreateMembershipRequest;
 export type AllowedAssignmentsRequests = ListAssignmentsRequest | GetAssignmentRequest | CreateAssignmentRequest;
 export type AllowedTargetsRequests = ListTargetsRequest | GetTargetRequest | CreateTargetRequest;
-export type AllowedBeaconsRequests = ListBeaconsRequest | GetBeaconRequest | CreateBeaconRequest;
+export type AllowedBeaconsRequests = ListBeaconsRequest | GetBeaconRequest | CreateBeaconRequest | UpdateBeaconRequest;
 export type AllowedEngagementsRequests = ListEngagementsRequest | GetEngagementRequest | CreateEngagementRequest;
 export type AllowedSchedulesRequests = ListSchedulesRequest | GetScheduleRequest | CreateScheduleRequest;
 export type AllowedStatisticsRequests = ListStatisticsRequest | GetStatisticRequest | CreateStatisticRequest;

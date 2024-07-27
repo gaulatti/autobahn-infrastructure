@@ -1,8 +1,14 @@
 import { Stack } from 'aws-cdk-lib';
-import { createSecurityGroup, createVpc } from './network';
 import { createCluster } from './compute';
+import { createTopics } from './events';
+import { createSecurityGroup, createVpc } from './network';
 
 const createCommonInfrastructure = (stack: Stack) => {
+  /**
+   * Create SNS Topics
+   */
+  const { triggerTopic } = createTopics(stack);
+
   /**
    * Create VPC
    */
@@ -22,10 +28,11 @@ const createCommonInfrastructure = (stack: Stack) => {
    * Return the common artifacts
    */
   return {
+    triggerTopic,
     vpc,
     securityGroup,
     cluster,
-    eip
+    eip,
   };
 };
 

@@ -12,8 +12,9 @@ import { createProcessingLambda } from './functions/processing';
 import { createDistribution } from './network';
 import { createKickoffTable } from './persistence';
 import { createBuckets } from './storage';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 
-const createObservabilityInfrastructure = (stack: Stack) => {
+const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) => {
   /**
    * Storage (S3)
    */
@@ -39,10 +40,10 @@ const createObservabilityInfrastructure = (stack: Stack) => {
     FRONTEND_FQDN: process.env.FRONTEND_FQDN!,
   };
   const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, defaultApiEnvironment);
-  const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment) };
-  for(const lambdaFunction of Object.values(apiLambdas)) {
+  const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment, triggerTopic) };
+  for (const lambdaFunction of Object.values(apiLambdas)) {
     dataAccessLambda.grantInvoke(lambdaFunction);
-    kickoffCacheLambda.grantInvoke(lambdaFunction)
+    kickoffCacheLambda.grantInvoke(lambdaFunction);
   }
 
   /**
