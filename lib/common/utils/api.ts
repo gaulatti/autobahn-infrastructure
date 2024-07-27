@@ -52,7 +52,7 @@ const getCurrentUser = async (event: AWSLambda.APIGatewayEvent) => {
  * @param output - The output data to be returned.
  * @returns The CORS output object.
  */
-const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, output: unknown) => {
+const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, output: unknown, stringify = true) => {
   const allowedOrigins = ['http://localhost:5173', `https://${process.env.FRONTEND_FQDN}`];
   const origin = event.headers.origin || '';
 
@@ -61,12 +61,12 @@ const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, o
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : '',
     'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-  }
+  };
 
   return {
     statusCode,
     headers,
-    body: JSON.stringify(output),
+    body: stringify ? JSON.stringify(output) : output,
   };
 };
 

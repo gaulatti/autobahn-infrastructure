@@ -1,6 +1,7 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { SNSEventRecord } from 'aws-lambda';
 import { Readable } from 'stream';
+import { streamToString } from '../../../common/utils/s3';
 import { DalClient } from '../dal/client';
 
 /**
@@ -30,15 +31,6 @@ interface S3Event {
 }
 
 const s3Client = new S3Client();
-
-const streamToString = async (stream: Readable): Promise<string> => {
-  const chunks: Uint8Array[] = [];
-  return new Promise((resolve, reject) => {
-    stream.on('data', (chunk) => chunks.push(chunk));
-    stream.on('end', () => resolve(new TextDecoder('utf-8').decode(Buffer.concat(chunks))));
-    stream.on('error', reject);
-  });
-};
 
 /**
  * The main function that processes the event.

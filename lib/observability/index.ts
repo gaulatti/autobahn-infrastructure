@@ -1,5 +1,6 @@
 import { Stack } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 import { createApi } from './api';
 import { createCognitoAuth } from './authorization';
 import { createBuildProject } from './build';
@@ -12,7 +13,6 @@ import { createProcessingLambda } from './functions/processing';
 import { createDistribution } from './network';
 import { createKickoffTable } from './persistence';
 import { createBuckets } from './storage';
-import { Topic } from 'aws-cdk-lib/aws-sns';
 
 const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) => {
   /**
@@ -40,7 +40,7 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
     FRONTEND_FQDN: process.env.FRONTEND_FQDN!,
   };
   const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, defaultApiEnvironment);
-  const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment, triggerTopic) };
+  const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment, triggerTopic, observabilityBucket) };
   for (const lambdaFunction of Object.values(apiLambdas)) {
     dataAccessLambda.grantInvoke(lambdaFunction);
     kickoffCacheLambda.grantInvoke(lambdaFunction);
@@ -50,6 +50,7 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
    * Worker Lambda
    */
   const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
+
   /**
    * Dashboard
    */

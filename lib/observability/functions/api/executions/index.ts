@@ -1,8 +1,8 @@
 import { Stack } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { buildLambdaSpecs } from '../../../../common/utils/api';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
-import { env } from 'process';
+import { buildLambdaSpecs } from '../../../../common/utils/api';
 
 /**
  * Creates the Executions Lambda function.
@@ -66,12 +66,26 @@ const createExecutionResultLambda = (stack: Stack, defaultApiEnvironment: Record
   return { executionResultLambda };
 };
 
-const createExecutionDetailsLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
+/**
+ * Creates an execution details lambda function.
+ *
+ * @param stack - The AWS CloudFormation stack.
+ * @param defaultApiEnvironment - The default API environment.
+ * @returns An object containing the execution details lambda function.
+ */
+const createExecutionDetailsLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, observabilityBucket: Bucket) => {
+  const environment = {
+    ...defaultApiEnvironment,
+    BUCKET_NAME: observabilityBucket.bucketName,
+  };
   const executionDetailsLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionDetailsLambda`, {
-    ...buildLambdaSpecs(stack, 'ExecutionDetails', './lib/observability/functions/api/executions/details.src.ts', defaultApiEnvironment),
+    ...buildLambdaSpecs(stack, 'ExecutionDetails', './lib/observability/functions/api/executions/details.src.ts', environment),
   });
+
+  observabilityBucket.grantRead(executionDetailsLambda);
 
   return { executionDetailsLambda };
 };
 
-export { createExecutionResultLambda, createExecutionsLambda, createTriggerExecutionLambda, createExecutionDetailsLambda };
+export { createExecutionDetailsLambda, createExecutionResultLambda, createExecutionsLambda, createTriggerExecutionLambda };
+

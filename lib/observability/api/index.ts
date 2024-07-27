@@ -43,8 +43,10 @@ const createApi = (stack: Stack, userPool: UserPool, lambdas: Record<string, IFu
   const executionById = executions.addResource('{uuid}');
   executionById.addMethod('GET', new LambdaIntegration(lambdas.executionResultLambda));
 
-  const executionResults = executionById.addResource('details');
-  executionResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
+  const executionMobileResults = executionById.addResource('mobile');
+  const executionDesktopResults = executionById.addResource('desktop');
+  executionMobileResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
+  executionDesktopResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
 
   return { apiGateway };
 };
