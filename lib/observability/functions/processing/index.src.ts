@@ -1,5 +1,4 @@
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { CloudWatchClient, MetricDatum, PutMetricDataCommand, PutMetricDataCommandInput, StandardUnit } from '@aws-sdk/client-cloudwatch';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { SNSEventRecord } from 'aws-lambda';
 import { Readable } from 'stream';
 import { DalClient } from '../dal/client';
@@ -30,7 +29,6 @@ interface S3Event {
     }[];
 }
 
-const cloudwatchClient = new CloudWatchClient();
 const s3Client = new S3Client();
 
 const streamToString = async (stream: Readable): Promise<string> => {
@@ -41,15 +39,6 @@ const streamToString = async (stream: Readable): Promise<string> => {
     stream.on('error', reject);
   });
 };
-
-interface ScoreObject {
-  score: number;
-  scoreDisplayMode: string;
-  numericValue: number;
-  numericUnit: string;
-}
-
-const monitoredMetrics = ['first-contentful-paint', 'largest-contentful-paint', 'interactive', 'speed-index', 'total-blocking-time', 'cumulative-layout-shift'];
 
 /**
  * The main function that processes the event.
@@ -62,64 +51,92 @@ const main = async (event: S3Event) => {
     const bucketName = record.s3.bucket.name;
     const objectKey = record.s3.object.key;
 
-    /**
-     * Get the object from S3.
-     */
-    const command = new GetObjectCommand({
-      Bucket: bucketName,
-      Key: objectKey,
-    });
-
-    try {
-      const response = await s3Client.send(command);
-      const bodyContents = await streamToString(response.Body as Readable);
-      const lighthouseReport = JSON.parse(bodyContents);
-
-      const { audits } = lighthouseReport;
-
-      const [uuid, mode] = objectKey.split('.');
-      const isMobile = mode === 'mobile';
-
-      let totalScore = 0;
-
+    if (objectKey.includes('.json')) {
       /**
-       * Isolate the metrics we care about.
+       * Get the object from S3.
        */
-      const metrics: Record<string, ScoreObject> = {};
-      for (const audit in audits) {
-        const { score, scoreDisplayMode, numericValue, numericUnit } = audits[audit];
+      const command = new GetObjectCommand({
+        Bucket: bucketName,
+        Key: objectKey,
+      });
+
+      try {
+        const response = await s3Client.send(command);
+        const bodyContents = await streamToString(response.Body as Readable);
+        const lighthouseReport = JSON.parse(bodyContents);
+
+        const {
+          audits: {
+            metrics: {
+              details: { items: metrics },
+            },
+            'screenshot-thumbnails': {
+              details: { items: screenshots },
+            },
+            'final-screenshot': { details: finalScreenshot },
+          },
+          categories: {
+            performance: { score: performanceScore },
+            accessibility: { score: accessibilityScore },
+            'best-practices': { score: bestPracticesScore },
+            seo: { score: seoScore },
+          },
+        } = lighthouseReport;
+
+        const [uuid, mode] = objectKey.split('.');
+        const isMobile = mode === 'mobile';
+        const uuidRecords: any[] = await DalClient.getBeaconByUUID(uuid);
+        const currentRecord = uuidRecords.find((record: any) => record.mode === (isMobile ? 0 : 1));
+
+        const { firstContentfulPaint, largestContentfulPaint, interactive, speedIndex, cumulativeLayoutShift, timeToFirstByte, observedDomContentLoaded } =
+          metrics.find(() => true);
+
+        const thumbnails: { timestamp: number }[] = [];
+        screenshots.push(finalScreenshot)
+        for (const thumbnail in screenshots) {
+          try {
+            thumbnails.push({
+              timestamp: screenshots[thumbnail].timing,
+            });
+
+            const imageData = screenshots[thumbnail].data.replace(/^data:image\/\w+;base64,/, '');
+            const imageBuffer = Buffer.from(imageData, 'base64');
+            const uploadParams = {
+              Bucket: bucketName,
+              Key: `screenshots/${uuid}.${mode}.${thumbnail}.jpg`,
+              Body: imageBuffer,
+              ContentEncoding: 'base64',
+              ContentType: 'image/jpeg',
+            };
+
+            await s3Client.send(new PutObjectCommand(uploadParams));
+          } catch (e) {
+            throw new Error(`Error uploading screenshot: ${e}, ${JSON.stringify(screenshots[thumbnail])}`);
+          }
+        }
 
         /**
-         * We only care about the score, and we want to ignore the rest, unless it's a metric we want to monitor closely.
+         * Update the record with the new metrics.
          */
-        if (score || monitoredMetrics.includes(audit)) {
-          metrics[audit] = { score, scoreDisplayMode, numericValue, numericUnit };
-
-          /**
-           * This is unweighted score. By now.
-           */
-          totalScore += score;
-        }
+        await DalClient.updateBeacon(
+          currentRecord.id,
+          2,
+          timeToFirstByte,
+          firstContentfulPaint,
+          observedDomContentLoaded,
+          largestContentfulPaint,
+          interactive,
+          speedIndex,
+          cumulativeLayoutShift,
+          performanceScore * 100,
+          accessibilityScore * 100,
+          bestPracticesScore * 100,
+          seoScore * 100,
+          thumbnails
+        );
+      } catch (error) {
+        console.error('Error processing execution:', error);
       }
-
-      const uuidRecords: any[] = await DalClient.getBeaconByUUID(uuid);
-      const currentRecord = uuidRecords.find((record: any) => record.mode === (isMobile ? 0 : 1));
-
-      /**
-       * Update the record with the new metrics.
-       */
-      await DalClient.updateBeacon(
-        currentRecord.id,
-        2,
-        metrics['first-contentful-paint'].numericValue,
-        metrics['largest-contentful-paint'].numericValue,
-        metrics['interactive'].numericValue,
-        metrics['speed-index'].numericValue,
-        metrics['cumulative-layout-shift'].numericValue,
-        totalScore
-      );
-    } catch (error) {
-      console.error('Error reading file from S3:', error);
     }
   }
 };

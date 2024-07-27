@@ -333,36 +333,66 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      ttfb: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0.0,
+      },
       fcp: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: 0.00,
+        defaultValue: 0.0,
+      },
+      dcl: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0.0,
       },
       lcp: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: 0.00,
+        defaultValue: 0.0,
       },
       tti: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: 0.00,
+        defaultValue: 0.0,
       },
       si: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: 0.00,
+        defaultValue: 0.0,
       },
       cls: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: 0.00,
+        defaultValue: 0.0,
       },
       mode: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      screenshots: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: null,
+      },
       performance_score: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      accessibility_score: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      best_practices_score: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      seo_score: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,

@@ -455,12 +455,18 @@ class DalClient {
   public static async updateBeacon(
     id: number,
     status: number,
+    ttfb: number,
     fcp: number,
+    dcl: number,
     lcp: number,
     tti: number,
     si: number,
     cls: number,
     performance_score: number,
+    accessibility_score: number,
+    best_practices_score: number,
+    seo_score: number,
+    screenshots?: { timestamp: number }[],
     pleasantness_score?: number,
     ended_at?: Date
   ) {
@@ -468,14 +474,20 @@ class DalClient {
       request_type: RequestType.UpdateBeacon,
       id,
       performance_score,
+      accessibility_score,
+      best_practices_score,
+      seo_score,
       pleasantness_score,
       ended_at,
       status,
+      ttfb,
       fcp,
+      dcl,
       lcp,
       tti,
       si,
       cls,
+      screenshots,
     };
 
     return await DalClient.parsedInvoke(request);

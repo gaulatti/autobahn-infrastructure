@@ -230,36 +230,42 @@ export interface GetBeaconRequest extends BaseRequest {
  */
 export interface CreateBeaconRequest extends BaseRequest {
   request_type: RequestType.CreateBeacon;
-  teams_id: number,
-  stage: number,
-  uuid: string,
-  url: string,
-  provider: number,
-  type: number,
-  mode: number,
-  status: number,
-  fcp?: number,
-  lcp?: number,
-  tti?: number,
-  si?: number,
-  cls?: number,
-  performance_score?: number,
-  pleasantness_score?: number,
-  ended_at?: Date,
-  targets_id?: number,
-  triggered_by?: number,
+  teams_id: number;
+  stage: number;
+  uuid: string;
+  url: string;
+  provider: number;
+  type: number;
+  mode: number;
+  status: number;
+  fcp?: number;
+  lcp?: number;
+  tti?: number;
+  si?: number;
+  cls?: number;
+  performance_score?: number;
+  pleasantness_score?: number;
+  ended_at?: Date;
+  targets_id?: number;
+  triggered_by?: number;
 }
 
 export interface UpdateBeaconRequest extends BaseRequest {
   request_type: RequestType.UpdateBeacon;
-  id: number,
-  status: number,
+  id: number;
+  status: number;
+  ttfb: number;
   fcp: number;
+  dcl: number;
   lcp: number;
   tti: number;
   si: number;
   cls: number;
+  screenshots?: { timestamp: number }[];
   performance_score: number;
+  accessibility_score: number;
+  best_practices_score: number;
+  seo_score: number;
   pleasantness_score?: number;
   ended_at?: Date;
 }
