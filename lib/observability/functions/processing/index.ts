@@ -22,6 +22,7 @@ const createProcessingLambda = (stack: Stack, observabilityBucket: Bucket, dataA
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
+    tracing: Tracing.ACTIVE,
     environment: {
       BUCKET_NAME: observabilityBucket.bucketName,
       DATA_ACCESS_ARN: dataAccessLambda.functionArn,

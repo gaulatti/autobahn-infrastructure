@@ -32,7 +32,7 @@ const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, 
   /**
    * Create Trigger Lambda
    */
-  const triggerLambda = createTriggerLambda(stack, fargateTaskDefinition, cluster, securityGroup, triggerTopic);
+  const triggerLambda = createTriggerLambda(stack, fargateTaskDefinition, cluster, securityGroup, triggerTopic, observabilityBucket);
 };
 
 export { createWorkerInfrastructure };

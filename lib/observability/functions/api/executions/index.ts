@@ -3,6 +3,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { buildLambdaSpecs } from '../../../../common/utils/api';
+import { Tracing } from 'aws-cdk-lib/aws-lambda';
 
 /**
  * Creates the Executions Lambda function.
@@ -13,6 +14,7 @@ import { buildLambdaSpecs } from '../../../../common/utils/api';
  */
 const createExecutionsLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
   const executionsLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionsLambda`, {
+    tracing: Tracing.ACTIVE,
     ...buildLambdaSpecs(stack, 'Executions', './lib/observability/functions/api/executions/list.src.ts', defaultApiEnvironment),
   });
 
@@ -40,6 +42,7 @@ const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Recor
    * Create the trigger execution lambda function.
    */
   const triggerExecutionLambda = new NodejsFunction(stack, `${stack.stackName}TriggerExecutionLambda`, {
+    tracing: Tracing.ACTIVE,
     ...buildLambdaSpecs(stack, 'TriggerExecution', './lib/observability/functions/api/executions/trigger.src.ts', environment),
   });
 
@@ -60,6 +63,7 @@ const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Recor
  */
 const createExecutionResultLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
   const executionResultLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionResultLambda`, {
+    tracing: Tracing.ACTIVE,
     ...buildLambdaSpecs(stack, 'ExecutionResult', './lib/observability/functions/api/executions/result.src.ts', defaultApiEnvironment),
   });
 
@@ -79,6 +83,7 @@ const createExecutionDetailsLambda = (stack: Stack, defaultApiEnvironment: Recor
     BUCKET_NAME: observabilityBucket.bucketName,
   };
   const executionDetailsLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionDetailsLambda`, {
+    tracing: Tracing.ACTIVE,
     ...buildLambdaSpecs(stack, 'ExecutionDetails', './lib/observability/functions/api/executions/details.src.ts', environment),
   });
 

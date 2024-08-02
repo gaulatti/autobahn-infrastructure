@@ -1,6 +1,6 @@
 import { Duration, Stack } from 'aws-cdk-lib';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 /**
@@ -16,6 +16,7 @@ const createDataAccessLambda = (stack: Stack) => {
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
     memorySize: 1024,
+    tracing: Tracing.ACTIVE,
     environment: {
       DATABASE_SECRET: process.env.DATABASE_SECRET_ARN!,
       DATABASE_FQDN: process.env.DATABASE_FQDN!,

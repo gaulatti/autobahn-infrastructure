@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 /**
@@ -19,6 +19,7 @@ const createPreTokenGenerationTrigger = (stack: Stack, defaultEnvironment: Recor
     entry: './lib/observability/functions/authorization/index.src.ts',
     runtime: Runtime.NODEJS_20_X,
     allowPublicSubnet: true,
+    tracing: Tracing.ACTIVE,
     environment: {
       ...defaultEnvironment
     },

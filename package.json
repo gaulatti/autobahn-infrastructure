@@ -27,6 +27,7 @@
     "@types/aws-lambda": "^8.10.141",
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/lodash": "^4.17.7",
     "@types/node": "20.14.2",
     "aws-cdk": "2.146.0",
     "chokidar-cli": "^3.0.0",
@@ -39,10 +40,13 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.620.0",
     "@aws-sdk/client-sns": "^3.620.0",
+    "@aws-sdk/lib-storage": "^3.620.0",
     "@aws-sdk/util-dynamodb": "^3.620.0",
     "aws-cdk-lib": "2.146.0",
+    "axios": "^1.7.2",
     "constructs": "^10.3.0",
     "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
     "mysql2": "^3.10.2",
     "sequelize": "^6.37.3",
     "source-map-support": "^0.5.21"

@@ -1,8 +1,9 @@
 import { Duration, Stack } from 'aws-cdk-lib';
 import { SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Cluster, FargateTaskDefinition } from 'aws-cdk-lib/aws-ecs';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
@@ -21,7 +22,8 @@ const createTriggerLambda = (
   fargateTaskDefinition: FargateTaskDefinition,
   cluster: Cluster,
   securityGroup: SecurityGroup,
-  triggerTopic: Topic
+  triggerTopic: Topic,
+  observabilityBucket: Bucket
 ) => {
   /**
    * Represents the trigger Lambda function specification.
@@ -31,13 +33,15 @@ const createTriggerLambda = (
     entry: './lib/worker/functions/trigger.src.ts',
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
-    timeout: Duration.minutes(1),
+    timeout: Duration.minutes(10),
+    tracing: Tracing.ACTIVE,
     environment: {
       SUBNETS: cluster.vpc.privateSubnets.map((subnet) => subnet.subnetId).join(','),
       SECURITY_GROUP: securityGroup.securityGroupId,
       CLUSTER: cluster.clusterArn,
       TASK_DEFINITION: fargateTaskDefinition.taskDefinitionArn,
       CONTAINER_NAME: fargateTaskDefinition.defaultContainer!.containerName,
+      BUCKET_NAME: observabilityBucket.bucketName,
     },
   };
 
@@ -51,6 +55,11 @@ const createTriggerLambda = (
    * Adds the Lambda function as a target for the SNS topic.
    */
   triggerTopic.addSubscription(new LambdaSubscription(triggerLambda));
+
+  /**
+   * Grants the trigger Lambda function permission to write to the observability bucket.
+   */
+  observabilityBucket.grantWrite(triggerLambda);
 
   return { triggerLambda };
 };

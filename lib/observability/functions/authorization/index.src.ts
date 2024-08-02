@@ -50,12 +50,12 @@ const preTokenGeneration = async (event: CognitoTriggerEvent, context: any, call
   /**
    * Retrieves the current user by the sub.
    */
-  const me = await getCurrentUserBySub(sub!);
+  const { me }: { me: { sub: string } } = await getCurrentUserBySub(sub!);
 
   /**
    * If the user is not found, create the user.
    */
-  if (!me) {
+  if (!me.sub) {
     console.error(`User not found: ${email}. Creating.`);
     const createUser = await DalClient.createUser(sub!, email, given_name, family_name);
     console.log(`User created: ${JSON.stringify(createUser)}`);

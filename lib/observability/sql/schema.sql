@@ -84,7 +84,7 @@ CREATE TABLE `beacons` (
   CONSTRAINT `fk_performance_executions_assignments1` FOREIGN KEY (`triggered_by`) REFERENCES `assignments` (`id`),
   CONSTRAINT `fk_performance_executions_targets1` FOREIGN KEY (`targets_id`) REFERENCES `targets` (`id`),
   CONSTRAINT `fk_performance_executions_teams1` FOREIGN KEY (`teams_id`) REFERENCES `teams` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -127,7 +127,7 @@ CREATE TABLE `memberships` (
   KEY `fk_memberships_users1_idx` (`users_id`),
   CONSTRAINT `fk_memberships_teams1` FOREIGN KEY (`teams_id`) REFERENCES `teams` (`id`),
   CONSTRAINT `fk_memberships_users1` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -144,7 +144,7 @@ CREATE TABLE `projects` (
   PRIMARY KEY (`id`,`teams_id`),
   KEY `fk_projects_teams2_idx` (`teams_id`),
   CONSTRAINT `fk_projects_teams2` FOREIGN KEY (`teams_id`) REFERENCES `teams` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -181,16 +181,20 @@ CREATE TABLE `statistics` (
   `targets_id` int NOT NULL,
   `provider` int NOT NULL,
   `period` int NOT NULL,
-  `statistic` int NOT NULL,
-  `fcp` decimal(10,2) NOT NULL,
-  `lcp` decimal(10,2) NOT NULL,
-  `tti` decimal(10,2) NOT NULL,
-  `si` decimal(10,2) NOT NULL,
-  `cls` decimal(10,2) NOT NULL,
+  `ttfb` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `fcp` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `dcl` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `lcp` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `tti` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `si` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `cls` decimal(10,2) NOT NULL DEFAULT '0.00',
   `mode` int NOT NULL,
   `count` int NOT NULL,
   `performance_score` int NOT NULL,
-  `pleasantness_score` int DEFAULT NULL,
+  `accessibility_score` int NOT NULL DEFAULT '0',
+  `best_practices_score` int NOT NULL DEFAULT '0',
+  `seo_score` int NOT NULL DEFAULT '0',
+  `pleasantness_score` int NOT NULL DEFAULT '0',
   `date_from` datetime NOT NULL,
   `date_to` datetime NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -240,7 +244,7 @@ CREATE TABLE `teams` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -253,14 +257,11 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `sub` varchar(45) NOT NULL,
-  `email` varchar(45) NOT NULL,
-  `name` varchar(45) NOT NULL,
-  `last_name` varchar(45) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
