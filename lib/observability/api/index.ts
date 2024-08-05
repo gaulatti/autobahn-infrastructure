@@ -27,6 +27,8 @@ const createWebsocketApi = (stack: Stack, connectLambda: NodejsFunction, disconn
   webSocketApi.addRoute('$disconnect', { integration: disconnectIntegration });
   webSocketApi.addRoute('$default', { integration: logProcessorIntegration });
 
+  webSocketApi.grantManageConnections(logProcessorLambda);
+
   return { webSocketApi };
 };
 

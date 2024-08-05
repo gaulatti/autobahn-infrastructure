@@ -6,7 +6,7 @@ let apiGatewayManagementApiClient: ApiGatewayManagementApiClient;
 const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   if (!apiGatewayManagementApiClient) {
     apiGatewayManagementApiClient = new ApiGatewayManagementApiClient({
-      endpoint: event.requestContext.domainName!,
+      endpoint: `https://${event.requestContext.domainName!}/prod`,
     });
   }
 
