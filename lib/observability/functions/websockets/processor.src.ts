@@ -4,13 +4,14 @@ import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk
 let apiGatewayManagementApiClient: ApiGatewayManagementApiClient;
 
 const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
+  const { connectionId, domainName } = event.requestContext;
+
   if (!apiGatewayManagementApiClient) {
     apiGatewayManagementApiClient = new ApiGatewayManagementApiClient({
-      endpoint: `https://${event.requestContext.domainName!}/prod`,
+      endpoint: `https://${domainName}/prod`,
     });
   }
 
-  const { connectionId } = event.requestContext;
   const message = event.body ? JSON.parse(event.body).message : 'Hello from server!';
 
   const params = {
