@@ -1,5 +1,6 @@
 import { AssignPublicIp, ECSClient, LaunchType, RunTaskCommand, RunTaskCommandInput } from '@aws-sdk/client-ecs';
 import { SNSEvent } from 'aws-lambda';
+import { isWarmup } from '../../common/utils';
 
 /**
  * Represents the ECS client.
@@ -13,6 +14,13 @@ const ecsClient = new ECSClient();
  * @param event - The event object passed to the Lambda function.
  */
 const main = async (event: SNSEvent) => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
+
   const { CLUSTER, TASK_DEFINITION, CONTAINER_NAME, SUBNETS, SECURITY_GROUP } = process.env;
   const subnets = SUBNETS!.split(',');
 
@@ -29,7 +37,7 @@ const main = async (event: SNSEvent) => {
         /**
          * Represents the parameters used to run the Fargate task.
          */
-        const parameters:  RunTaskCommandInput = {
+        const parameters: RunTaskCommandInput = {
           cluster: CLUSTER,
           taskDefinition: TASK_DEFINITION,
           launchType: LaunchType.FARGATE,
@@ -65,8 +73,6 @@ const main = async (event: SNSEvent) => {
       }
     }
   }
-
-
 };
 
 export { main };

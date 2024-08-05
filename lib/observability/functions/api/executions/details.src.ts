@@ -1,10 +1,18 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
+import { isWarmup } from '../../../../common/utils';
 import { buildCorsOutput } from '../../../../common/utils/api';
 import { streamToString } from '../../../../common/utils/s3';
 const client = new S3Client();
 
 const main = async (event: AWSLambda.APIGatewayEvent) => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
+
   const { path, pathParameters } = event;
   const { uuid } = pathParameters!;
   const viewport = path.split('/').pop();

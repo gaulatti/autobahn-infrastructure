@@ -2,6 +2,7 @@ import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-sec
 import { Sequelize } from 'sequelize';
 import { defineModels } from './entity';
 import { AllowedRequest, GetTeamRequest, GetUserRequest, RequestType } from './types';
+import { isWarmup } from '../../../common/utils';
 
 /**
  * This function retrieves the secret value from the Database secret.
@@ -53,6 +54,13 @@ const main = async (request: AllowedRequest) => {
    * Define the models for the database.
    */
   const { User, Team, Project, Membership, Target, Assignment, Beacon, Engagement, Schedule, Statistic } = defineModels(sequelize);
+
+  if (isWarmup(request)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
 
   /**
    * Perform the operation based on the request type.
@@ -173,7 +181,7 @@ const main = async (request: AllowedRequest) => {
     case RequestType.CreateBeacon:
       return Beacon.create({ ...request });
     case RequestType.UpdateBeacon:
-      return await (await Beacon.findOne({ where: { id: request.id } }))!.update(({ ...request }))
+      return await (await Beacon.findOne({ where: { id: request.id } }))!.update({ ...request });
 
     /**
      * Engagements

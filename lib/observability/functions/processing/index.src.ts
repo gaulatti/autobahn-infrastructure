@@ -3,6 +3,7 @@ import { SNSEventRecord } from 'aws-lambda';
 import { Readable } from 'stream';
 import { streamToString } from '../../../common/utils/s3';
 import { DalClient } from '../dal/client';
+import { isWarmup } from '../../../common/utils';
 
 /**
  * AWS does not maintain types, so we need to figure out on our own.
@@ -38,6 +39,12 @@ const s3Client = new S3Client();
  * @param event - The event object.
  */
 const main = async (event: S3Event) => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
   const { Records } = event;
   for (const record of Records) {
     const bucketName = record.s3.bucket.name;
@@ -84,7 +91,7 @@ const main = async (event: S3Event) => {
           metrics.find(() => true);
 
         const thumbnails: { timestamp: number }[] = [];
-        screenshots.push(finalScreenshot)
+        screenshots.push(finalScreenshot);
         for (const thumbnail in screenshots) {
           try {
             thumbnails.push({

@@ -1,3 +1,4 @@
+import { isWarmup } from '../../../../common/utils';
 import { buildCorsOutput, getCurrentUser } from '../../../../common/utils/api';
 import { DalClient } from '../../dal/client';
 
@@ -8,6 +9,13 @@ import { DalClient } from '../../dal/client';
  * @returns A Promise that resolves to the API Gateway response.
  */
 const main = async (event: AWSLambda.APIGatewayEvent) => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
+
   const {
     me: { memberships },
   } = await getCurrentUser(event);

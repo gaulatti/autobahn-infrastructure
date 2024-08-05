@@ -1,6 +1,6 @@
-import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
-import { DalClient } from '../dal/client';
+import { isWarmup } from '../../../common/utils';
 import { getCurrentUserBySub } from '../../../common/utils/api';
+import { DalClient } from '../dal/client';
 
 interface CognitoTriggerEvent {
   version: string;
@@ -41,6 +41,13 @@ interface CognitoTriggerEvent {
  * @param callback - The callback function to be called when the operation is complete.
  */
 const preTokenGeneration = async (event: CognitoTriggerEvent, context: any, callback: any) => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
+
   const {
     request: {
       userAttributes: { sub, given_name, family_name, email },

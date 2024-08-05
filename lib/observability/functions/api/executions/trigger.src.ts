@@ -3,10 +3,18 @@ import { randomUUID } from 'crypto';
 import { DalClient } from '../../dal/client';
 import { SNSClient } from '@aws-sdk/client-sns';
 import { PublishCommand } from '@aws-sdk/client-sns';
-/** */
+import { isWarmup } from '../../../../common/utils';
+
 const snsClient = new SNSClient();
 
 const main = async (event: AWSLambda.APIGatewayEvent) => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
+
   const { url, team } = JSON.parse(event.body!);
   const { me } = await getCurrentUser(event);
 

@@ -1,6 +1,7 @@
 import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { DalClient } from '../dal/client';
+import { isWarmup } from '../../../common/utils';
 const client = new DynamoDBClient();
 
 /**
@@ -10,6 +11,13 @@ const client = new DynamoDBClient();
  * @returns An object with the kickoff information.
  */
 const main = async (event: { sub: string }) => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
+
   const { sub } = event;
 
   const params = {
