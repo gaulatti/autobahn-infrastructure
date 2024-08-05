@@ -1,5 +1,6 @@
 import { SecretValue, Stack } from 'aws-cdk-lib';
 import { RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
 import { CloudFrontWebDistribution } from 'aws-cdk-lib/aws-cloudfront';
 import {
   Artifacts,
@@ -29,7 +30,8 @@ const createBuildProject = (
   userPool: UserPool,
   userPoolDomain: UserPoolDomain,
   userPoolClient: UserPoolClient,
-  apiGateway: RestApi
+  apiGateway: RestApi,
+  webSocketApi: WebSocketApi
 ) => {
   /**
    * Represents the build specification to build the React Assets.
@@ -87,6 +89,10 @@ const createBuildProject = (
         VITE_API_FQDN: {
           type: BuildEnvironmentVariableType.PLAINTEXT,
           value: apiGateway.url!,
+        },
+        VITE_WEBSOCKET_API_FQDN: {
+          type: BuildEnvironmentVariableType.PLAINTEXT,
+          value: webSocketApi.apiEndpoint!,
         },
         VITE_PROD_FQDN: {
           type: BuildEnvironmentVariableType.PLAINTEXT,

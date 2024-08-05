@@ -3,7 +3,8 @@ import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Rule, RuleTargetInput, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { Topic } from 'aws-cdk-lib/aws-sns';
-import { createApi } from './api';
+import { capitalize } from '../common/utils';
+import { createRestApi, createWebsocketApi } from './api';
 import { createCognitoAuth } from './authorization';
 import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
@@ -12,11 +13,10 @@ import { createPreTokenGenerationTrigger } from './functions/authorization';
 import { createKickoffCacheLambda } from './functions/cache';
 import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
+import { createAuthorizerLambda, createConnectLambda, createDisconnectLambda, createLogProcessorLambda } from './functions/websockets';
 import { createDistribution } from './network';
 import { createKickoffTable } from './persistence';
 import { createBuckets } from './storage';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { capitalize } from '../common/utils';
 
 const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) => {
   /**
@@ -110,14 +110,23 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   const { distribution } = createDistribution(stack, frontendBucket, certificate);
 
   /**
-   * API
+   * Websocket API
    */
-  const { apiGateway } = createApi(stack, userPool, apiLambdas);
+  const { authorizerLambda } = createAuthorizerLambda(stack);
+  const { connectLambda } = createConnectLambda(stack);
+  const { disconnectLambda } = createDisconnectLambda(stack);
+  const { logProcessorLambda } = createLogProcessorLambda(stack);
+  const { webSocketApi } = createWebsocketApi(stack, connectLambda, disconnectLambda, authorizerLambda, logProcessorLambda);
+
+  /**
+   * REST API
+   */
+  const { restApi } = createRestApi(stack, userPool, apiLambdas);
 
   /**
    * Frontend AutoBuild Project
    */
-  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution, userPool, userPoolDomain, userPoolClient, apiGateway);
+  const { frontendBuildProject } = createBuildProject(stack, frontendBucket, distribution, userPool, userPoolDomain, userPoolClient, restApi, webSocketApi);
 
   /**
    * Return the bucket for the ECS Task to upload the files

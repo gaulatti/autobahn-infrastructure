@@ -3,6 +3,32 @@ import { CognitoUserPoolsAuthorizer, Cors, LambdaIntegration, RestApi } from 'aw
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { camelToKebab } from '../../common/utils';
+import { WebSocketApi, WebSocketAuthorizer, WebSocketAuthorizerType, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+
+const createWebsocketApi = (stack: Stack, connectLambda: NodejsFunction, disconnectLambda: NodejsFunction, authorizerLambda: NodejsFunction, logProcessorLambda: NodejsFunction) => {
+  const webSocketApi = new WebSocketApi(stack, `${stack.stackName}WebSocketApi`, {});
+
+  /**
+   * Create the WebSocket stage.
+   */
+  const webSocketStage = new WebSocketStage(stack, `${stack.stackName}WebSocketStage`, {
+    webSocketApi,
+    stageName: 'prod',
+    autoDeploy: true,
+  });
+
+  const connectIntegration = new WebSocketLambdaIntegration(`${stack.stackName}ConnectIntegration`, connectLambda);
+  const disconnectIntegration = new WebSocketLambdaIntegration(`${stack.stackName}DisconnectIntegration`, disconnectLambda);
+  const logProcessorIntegration = new WebSocketLambdaIntegration(`${stack.stackName}LogProcessorIntegration`, logProcessorLambda);
+
+  webSocketApi.addRoute('$connect', { integration: connectIntegration });
+  webSocketApi.addRoute('$disconnect', { integration: disconnectIntegration });
+  webSocketApi.addRoute('$default', { integration: logProcessorIntegration });
+
+  return { webSocketApi };
+};
 
 /**
  * Creates a gateway for the API.
@@ -12,12 +38,12 @@ import { camelToKebab } from '../../common/utils';
  * @param lambdas - The lambdas used in the API.
  * @returns An object containing the created API gateway.
  */
-const createApi = (stack: Stack, userPool: UserPool, lambdas: Record<string, IFunction>) => {
+const createRestApi = (stack: Stack, userPool: UserPool, lambdas: Record<string, IFunction>) => {
   const authorizer = new CognitoUserPoolsAuthorizer(stack, `${stack.stackName}Authorizer`, {
     cognitoUserPools: [userPool],
   });
 
-  const apiGateway = new RestApi(stack, `${stack.stackName}RestApi`, {
+  const restApi = new RestApi(stack, `${stack.stackName}RestApi`, {
     restApiName: camelToKebab(stack.stackName),
     defaultCorsPreflightOptions: {
       /**
@@ -33,7 +59,7 @@ const createApi = (stack: Stack, userPool: UserPool, lambdas: Record<string, IFu
     },
   });
 
-  const root = apiGateway.root;
+  const root = restApi.root;
   root.addMethod('GET', new LambdaIntegration(lambdas.kickoffLambda));
 
   const executions = root.addResource('executions');
@@ -48,7 +74,7 @@ const createApi = (stack: Stack, userPool: UserPool, lambdas: Record<string, IFu
   executionMobileResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
   executionDesktopResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
 
-  return { apiGateway };
+  return { restApi };
 };
 
-export { createApi };
+export { createRestApi, createWebsocketApi };
