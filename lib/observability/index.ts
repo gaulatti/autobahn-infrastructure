@@ -1,5 +1,7 @@
-import { Stack } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Rule, RuleTargetInput, Schedule } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { createApi } from './api';
 import { createCognitoAuth } from './authorization';
@@ -13,6 +15,8 @@ import { createProcessingLambda } from './functions/processing';
 import { createDistribution } from './network';
 import { createKickoffTable } from './persistence';
 import { createBuckets } from './storage';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { capitalize } from '../common/utils';
 
 const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) => {
   /**
@@ -41,10 +45,26 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   };
   const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, defaultApiEnvironment);
   const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment, triggerTopic, observabilityBucket) };
-  for (const lambdaFunction of Object.values(apiLambdas)) {
+  Object.entries(apiLambdas).forEach(([key, lambdaFunction]) => {
     dataAccessLambda.grantInvoke(lambdaFunction);
     kickoffCacheLambda.grantInvoke(lambdaFunction);
-  }
+
+    /**
+     * Keep Lambdas Warm
+     */
+    const rule = new Rule(stack, `${stack.stackName}${capitalize(key)}WarmupRule`, {
+      schedule: Schedule.rate(Duration.minutes(1)),
+    });
+
+    rule.addTarget(
+      new LambdaFunction(lambdaFunction, {
+        event: RuleTargetInput.fromObject({
+          source: 'cdk.schedule',
+          action: 'warmup',
+        }),
+      })
+    );
+  });
 
   /**
    * Worker Lambda
