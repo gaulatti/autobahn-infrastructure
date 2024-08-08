@@ -58,7 +58,17 @@ class DalClient {
       FunctionName: process.env.DATA_ACCESS_ARN,
       Payload: JSON.stringify(request),
     });
-    return await lambdaClient.send(invokeCommand);
+    const response = await lambdaClient.send(invokeCommand);
+
+    /**
+     * If the DAL Lambda crashes, we all go down.
+     */
+    if (response.FunctionError) {
+      const errorPayload = JSON.parse(Buffer.from(response.Payload!).toString());
+      throw new Error(`Database Lambda Error: ${errorPayload.errorMessage}`);
+    }
+
+    return response;
   }
 
   /**
