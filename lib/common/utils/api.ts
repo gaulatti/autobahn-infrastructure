@@ -2,6 +2,7 @@ import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import jwt from 'jsonwebtoken';
+import { isWarmup } from '.';
 
 /**
  * Represents a decoder for decoding binary data.
@@ -52,7 +53,7 @@ const getCurrentUser = async (event: AWSLambda.APIGatewayEvent) => {
  * @param output - The output data to be returned.
  * @returns The CORS output object.
  */
-const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, output: any) => {
+const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, output?: any) => {
   const allowedOrigins = ['http://localhost:5173', `https://${process.env.FRONTEND_FQDN}`];
   const origin = event.headers.origin || '';
 
@@ -69,8 +70,8 @@ const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, o
   const traceId = event.headers['X-Amzn-Trace-Id'];
   output = {
     traceId,
-    ...output
-  }
+    ...output,
+  };
 
   return {
     statusCode,
@@ -98,5 +99,81 @@ const buildLambdaSpecs = (stack: Stack, name: string, entry: string, environment
   memorySize: 1024,
 });
 
-export { buildCorsOutput, buildLambdaSpecs, getCurrentUser, getCurrentUserBySub };
+/**
+ * Wraps a function with CORS handling logic.
+ *
+ * @template T - The type of the wrapped function.
+ * @param {T} fn - The function to be wrapped.
+ * @returns {T} - The wrapped function.
+ */
+const HandleCorsOutput = <T extends (event: AWSLambda.APIGatewayEvent) => Promise<any>>(fn: T): T => {
+  return async function (event: AWSLambda.APIGatewayEvent): Promise<ReturnType<T>> {
+    try {
+      const output = await fn(event);
+      return buildCorsOutput(event, 200, output) as ReturnType<T>;
+    } catch (error: any) {
+      console.error('Error occurred:', error);
+      return buildCorsOutput(event, 500) as ReturnType<T>;
+    }
+  } as T;
+};
 
+/**
+ * Decorator that logs the execution time of a function.
+ *
+ * @template T - The type of the decorated function.
+ * @param {T} fn - The function to be decorated.
+ * @returns {T} - The decorated function.
+ */
+const LogExecutionTime = <T extends (event: AWSLambda.APIGatewayEvent) => Promise<any>>(fn: T): T => {
+  return async function (event: AWSLambda.APIGatewayEvent): Promise<ReturnType<T>> {
+    const start = performance.now();
+    const result = await fn(event);
+    const end = performance.now();
+    console.log(`Execution time: ${end - start}ms`);
+    return result;
+  } as T;
+};
+
+/**
+ * Decorator function that logs the details of an APIGatewayEvent before and after invoking the decorated function.
+ * @param fn - The function to be decorated.
+ * @returns A decorated function that logs the event details and invokes the original function.
+ * @template T - The type of the original function.
+ */
+const LogArguments = <T extends (event: AWSLambda.APIGatewayEvent) => Promise<any>>(fn: T): T => {
+  return async function (event: AWSLambda.APIGatewayEvent): Promise<ReturnType<T>> {
+    console.log('Event details:', event);
+    const result = await fn(event);
+    return result;
+  } as T;
+};
+
+/**
+ * Wraps a Lambda function to handle warmup events.
+ *
+ * @template T - The type of the wrapped Lambda function.
+ * @param {T} fn - The Lambda function to be wrapped.
+ * @returns {T} - The wrapped Lambda function.
+ */
+const HandleWarmup = <T extends (event: AWSLambda.APIGatewayEvent) => Promise<any>>(fn: T): T => {
+  return async function (event: AWSLambda.APIGatewayEvent): Promise<ReturnType<T>> {
+    if (isWarmup(event)) {
+      return {} as ReturnType<T>;
+    }
+    return fn(event);
+  } as T;
+};
+
+/**
+ * Wraps the provided function with middleware for handling delivery of API Gateway events.
+ *
+ * @template T - The type of the provided function.
+ * @param {T} fn - The function to be wrapped.
+ * @returns {T} - The wrapped function.
+ */
+const HandleDelivery = <T extends (event: AWSLambda.APIGatewayEvent) => Promise<any>>(fn: T): T => {
+  return HandleWarmup(LogArguments(LogExecutionTime(HandleCorsOutput(fn))));
+};
+
+export { buildLambdaSpecs, getCurrentUser, getCurrentUserBySub, HandleDelivery };

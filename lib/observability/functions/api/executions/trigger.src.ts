@@ -1,20 +1,11 @@
-import { buildCorsOutput, getCurrentUser } from '../../../../common/utils/api';
+import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { randomUUID } from 'crypto';
+import { getCurrentUser, HandleDelivery } from '../../../../common/utils/api';
 import { DalClient } from '../../dal/client';
-import { SNSClient } from '@aws-sdk/client-sns';
-import { PublishCommand } from '@aws-sdk/client-sns';
-import { isWarmup } from '../../../../common/utils';
 
 const snsClient = new SNSClient();
 
-const main = async (event: AWSLambda.APIGatewayEvent) => {
-  if (isWarmup(event)) {
-    /**
-     * This is a warmup event, so we don't need to do anything.
-     */
-    return;
-  }
-
+const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const { url, team } = JSON.parse(event.body!);
   const { me } = await getCurrentUser(event);
 
@@ -46,7 +37,7 @@ const main = async (event: AWSLambda.APIGatewayEvent) => {
   /**
    * Return the response.
    */
-  return buildCorsOutput(event, 200, { mobile, desktop });
-};
+  return { mobile, desktop };
+});
 
 export { main };

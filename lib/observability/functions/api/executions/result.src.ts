@@ -1,5 +1,4 @@
-import { isWarmup } from '../../../../common/utils';
-import { buildCorsOutput } from '../../../../common/utils/api';
+import { HandleDelivery } from '../../../../common/utils/api';
 import { DalClient } from '../../dal/client';
 
 /**
@@ -7,14 +6,7 @@ import { DalClient } from '../../dal/client';
  * @param event - The AWS API Gateway event object.
  * @returns A Promise that resolves to the API Gateway response.
  */
-const main = async (event: AWSLambda.APIGatewayEvent) => {
-  if (isWarmup(event)) {
-    /**
-     * This is a warmup event, so we don't need to do anything.
-     */
-    return;
-  }
-
+const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const { pathParameters } = event;
 
   /**
@@ -26,7 +18,7 @@ const main = async (event: AWSLambda.APIGatewayEvent) => {
    * Retrieve the beacon details from the database.
    */
   const output = await DalClient.getBeaconByUUID(executionId!);
-  return buildCorsOutput(event, 200, output);
-};
+  return output;
+});
 
 export { main };
