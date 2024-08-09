@@ -1,5 +1,5 @@
+import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi';
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
 
 let apiGatewayManagementApiClient: ApiGatewayManagementApiClient;
 
@@ -12,15 +12,21 @@ const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
     });
   }
 
-  const message = event.body ? JSON.parse(event.body).message : 'Hello from server!';
-
-  const params = {
-    ConnectionId: connectionId,
-    Data: Buffer.from(message),
-  };
-
   try {
-    await apiGatewayManagementApiClient.send(new PostToConnectionCommand(params));
+    /**
+     * Do any operation with the message coming from the wire.
+     *
+     * If we need to post a message, we can do:
+     * const params = {
+     *  ConnectionId: connectionId,
+     *  Data: Buffer.from(message),
+     * }
+     *
+     * await apiGatewayManagementApiClient.send(new PostToConnectionCommand(params));
+     *
+     * { message } must be a valid serializable object.
+     */
+
     return {
       statusCode: 200,
       body: 'Message sent',
