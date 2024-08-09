@@ -52,7 +52,7 @@ const getCurrentUser = async (event: AWSLambda.APIGatewayEvent) => {
  * @param output - The output data to be returned.
  * @returns The CORS output object.
  */
-const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, output: unknown, stringify = true) => {
+const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, output: any) => {
   const allowedOrigins = ['http://localhost:5173', `https://${process.env.FRONTEND_FQDN}`];
   const origin = event.headers.origin || '';
 
@@ -63,10 +63,19 @@ const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, o
     'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
   };
 
+  /**
+   * Hydrate the Trace ID
+   */
+  const traceId = event.headers['X-Amzn-Trace-Id'];
+  output = {
+    traceId,
+    ...output
+  }
+
   return {
     statusCode,
     headers,
-    body: stringify ? JSON.stringify(output) : output,
+    body: JSON.stringify(output),
   };
 };
 

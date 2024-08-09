@@ -28,10 +28,10 @@ const main = async (event: AWSLambda.APIGatewayEvent) => {
   try {
     const response = await client.send(command);
     const output = await streamToString(response.Body as Readable);
-    return buildCorsOutput(event, 200, output, false);
+    return buildCorsOutput(event, 200, { report: output });
   } catch (error) {
     console.error('Error:', error);
-    return buildCorsOutput(event, 500, { error: 'Internal Server Error' });
+    return buildCorsOutput(event, 500, { error });
   }
 };
 
