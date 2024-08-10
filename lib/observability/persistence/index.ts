@@ -9,7 +9,7 @@ import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
  */
 const createCacheTable = (stack: Stack) => {
   const cacheTable = new Table(stack, `${stack.stackName}CacheTable`, {
-    tableName: `${stack.stackName}CacheTable`,
+    tableName: `${stack.stackName}Cache`,
     partitionKey: { name: 'sub', type: AttributeType.STRING },
     sortKey: { name: 'type', type: AttributeType.STRING },
     billingMode: BillingMode.PAY_PER_REQUEST,
