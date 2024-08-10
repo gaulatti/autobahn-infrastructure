@@ -4,6 +4,7 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { buildLambdaSpecs } from '../../../../common/utils/api';
 import { Tracing } from 'aws-cdk-lib/aws-lambda';
+import { WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
 
 /**
  * Creates the Executions Lambda function.
@@ -29,13 +30,14 @@ const createExecutionsLambda = (stack: Stack, defaultApiEnvironment: Record<stri
  * @param triggerTopic - The SNS topic used as a trigger.
  * @returns An object containing the trigger execution lambda function.
  */
-const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, triggerTopic: Topic) => {
+const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, triggerTopic: Topic, webSocketApi: WebSocketApi) => {
   /**
    * The environment variables for the trigger execution lambda function.
    */
   const environment = {
     ...defaultApiEnvironment,
     TRIGGER_TOPIC_ARN: triggerTopic.topicArn,
+    WEBSOCKET_API_FQDN: `${webSocketApi.apiId}.execute-api.${stack.region}.amazonaws.com`,
   };
 
   /**
@@ -45,6 +47,11 @@ const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Recor
     tracing: Tracing.ACTIVE,
     ...buildLambdaSpecs(stack, 'TriggerExecution', './lib/observability/functions/api/executions/trigger.src.ts', environment),
   });
+
+  /**
+   * Grant Permissions for managing connections in the WebSocket API
+   */
+  webSocketApi.grantManageConnections(triggerExecutionLambda);
 
   /**
    * Grant the trigger execution lambda the permission to publish to the trigger topic.
@@ -93,4 +100,3 @@ const createExecutionDetailsLambda = (stack: Stack, defaultApiEnvironment: Recor
 };
 
 export { createExecutionDetailsLambda, createExecutionResultLambda, createExecutionsLambda, createTriggerExecutionLambda };
-

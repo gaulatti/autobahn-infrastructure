@@ -4,7 +4,9 @@ import { Readable } from 'stream';
 import { streamToString } from '../../../common/utils/s3';
 import { DalClient } from '../dal/client';
 import { isWarmup } from '../../../common/utils';
-
+import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 /**
  * AWS does not maintain types, so we need to figure out on our own.
  */
@@ -31,7 +33,20 @@ interface S3Event {
     }[];
 }
 
+/**
+ * The S3 client.
+ */
 const s3Client = new S3Client();
+
+/**
+ * The DynamoDB client.
+ */
+const client = new DynamoDBClient();
+
+/**
+ * The API Gateway Management API client.
+ */
+let apiGatewayManagementApiClient: ApiGatewayManagementApiClient;
 
 /**
  * The main function that processes the event.
@@ -45,6 +60,16 @@ const main = async (event: S3Event) => {
      */
     return;
   }
+
+  /**
+   * Create a new API Gateway Management API client.
+   */
+  if (!apiGatewayManagementApiClient) {
+    apiGatewayManagementApiClient = new ApiGatewayManagementApiClient({
+      endpoint: `https://${process.env.WEBSOCKET_API_FQDN}/prod`,
+    });
+  }
+
   const { Records } = event;
   for (const record of Records) {
     const bucketName = record.s3.bucket.name;
@@ -133,6 +158,30 @@ const main = async (event: S3Event) => {
           seoScore * 100,
           thumbnails
         );
+
+        /**
+         * Broadcast the new metrics to all connections.
+         */
+        const teamParams = {
+          TableName: process.env.CACHE_TABLE_NAME,
+          Key: marshall({
+            sub: currentRecord.teams_id.toString(),
+            type: 'teamConnections',
+          }),
+        };
+
+        const getTeamCommand = new GetItemCommand(teamParams);
+        const getTeamResponse = await client.send(getTeamCommand);
+        const teamRecord = unmarshall(getTeamResponse.Item!);
+
+        const connections = teamRecord.connections || [];
+        for(const connection of connections) {
+          const params = {
+              ConnectionId: connection,
+              Data: Buffer.from(JSON.stringify({ action: "REFRESH_EXECUTIONS_TABLE"})),
+            };
+            await apiGatewayManagementApiClient.send(new PostToConnectionCommand(params));
+        }
       } catch (error) {
         console.error('Error processing execution:', error);
       }

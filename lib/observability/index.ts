@@ -42,12 +42,51 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
     DATA_ACCESS_ARN: dataAccessLambda.functionArn,
     KICKOFF_CACHE_ARN: kickoffCacheLambda.functionArn,
     FRONTEND_FQDN: process.env.FRONTEND_FQDN!,
+    CACHE_TABLE_NAME: cacheTable.tableName,
   };
+
+  /**
+   * Pre Token Generation Lambda
+   */
   const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, defaultApiEnvironment);
-  const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment, triggerTopic, observabilityBucket) };
+
+  /**
+   * Auth
+   */
+  const { userPool, userPoolDomain, userPoolClient } = createCognitoAuth(stack, preTokenGenerationLambda);
+
+  /**
+   * Websocket API
+   */
+  const webSocketLambdas = createWebSocketLambdas(stack, defaultApiEnvironment, userPool, cacheTable);
+  const { webSocketApi } = createWebsocketApi(stack, webSocketLambdas);
+  Object.entries(webSocketLambdas).forEach(([key, lambdaFunction]) => {
+    dataAccessLambda.grantInvoke(lambdaFunction);
+    kickoffCacheLambda.grantInvoke(lambdaFunction);
+    cacheTable.grantReadWriteData(lambdaFunction);
+
+    /**
+     * Keep Lambdas Warm
+     */
+    const rule = new Rule(stack, `${stack.stackName}${capitalize(key)}WarmupRule`, {
+      schedule: Schedule.rate(Duration.minutes(1)),
+    });
+
+    rule.addTarget(
+      new LambdaFunction(lambdaFunction, {
+        event: RuleTargetInput.fromObject({
+          source: 'cdk.schedule',
+          action: 'warmup',
+        }),
+      })
+    );
+  });
+
+  const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment, triggerTopic, observabilityBucket, webSocketApi) };
   Object.entries(apiLambdas).forEach(([key, lambdaFunction]) => {
     dataAccessLambda.grantInvoke(lambdaFunction);
     kickoffCacheLambda.grantInvoke(lambdaFunction);
+    cacheTable.grantReadWriteData(lambdaFunction);
 
     /**
      * Keep Lambdas Warm
@@ -69,7 +108,8 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   /**
    * Worker Lambda
    */
-  const { processingLambda } = createProcessingLambda(stack, observabilityBucket, dataAccessLambda);
+  const { processingLambda } = createProcessingLambda(stack, defaultApiEnvironment, observabilityBucket, dataAccessLambda, webSocketApi);
+  cacheTable.grantReadWriteData(processingLambda);
 
   /**
    * Dashboard
@@ -100,41 +140,9 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   const certificate = Certificate.fromCertificateArn(stack, `${stack.stackName}Certificate`, process.env.CERTIFICATE_ARN!);
 
   /**
-   * Auth
-   */
-  const { userPool, userPoolDomain, userPoolClient } = createCognitoAuth(stack, preTokenGenerationLambda);
-
-  /**
    * Frontend
    */
   const { distribution } = createDistribution(stack, frontendBucket, certificate);
-
-  /**
-   * Websocket API
-   */
-  const webSocketLambdas = createWebSocketLambdas(stack, defaultApiEnvironment, userPool, cacheTable)
-  const { webSocketApi } = createWebsocketApi(stack, webSocketLambdas);
-  Object.entries(webSocketLambdas).forEach(([key, lambdaFunction]) => {
-    dataAccessLambda.grantInvoke(lambdaFunction);
-    kickoffCacheLambda.grantInvoke(lambdaFunction);
-    cacheTable.grantReadWriteData(lambdaFunction);
-
-    /**
-     * Keep Lambdas Warm
-     */
-    const rule = new Rule(stack, `${stack.stackName}${capitalize(key)}WarmupRule`, {
-      schedule: Schedule.rate(Duration.minutes(1)),
-    });
-
-    rule.addTarget(
-      new LambdaFunction(lambdaFunction, {
-        event: RuleTargetInput.fromObject({
-          source: 'cdk.schedule',
-          action: 'warmup',
-        }),
-      })
-    );
-  });
 
   /**
    * REST API

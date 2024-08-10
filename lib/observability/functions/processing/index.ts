@@ -1,4 +1,5 @@
 import { Duration, Stack } from 'aws-cdk-lib';
+import { WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -12,7 +13,7 @@ import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
  * @param dataAccessLambda - The data access Lambda function.
  * @returns An object containing the processing Lambda function.
  */
-const createProcessingLambda = (stack: Stack, observabilityBucket: Bucket, dataAccessLambda: NodejsFunction) => {
+const createProcessingLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, observabilityBucket: Bucket, dataAccessLambda: NodejsFunction, webSocketApi: WebSocketApi) => {
   /**
    * Create Processing Lambda
    */
@@ -24,11 +25,18 @@ const createProcessingLambda = (stack: Stack, observabilityBucket: Bucket, dataA
     timeout: Duration.minutes(1),
     tracing: Tracing.ACTIVE,
     environment: {
+      ...defaultApiEnvironment,
       BUCKET_NAME: observabilityBucket.bucketName,
       DATA_ACCESS_ARN: dataAccessLambda.functionArn,
+      WEBSOCKET_API_FQDN: `${webSocketApi.apiId}.execute-api.${stack.region}.amazonaws.com`,
     },
     memorySize: 1024,
   });
+
+  /**
+   * Grant Permissions for managing connections in the WebSocket API
+   */
+  webSocketApi.grantManageConnections(processingLambda);
 
   /**
    * Grant Permissions for reading from the bucket and posting to CloudWatch
