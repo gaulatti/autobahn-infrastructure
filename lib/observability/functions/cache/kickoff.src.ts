@@ -21,9 +21,10 @@ const main = async (event: { sub: string }) => {
   const { sub } = event;
 
   const params = {
-    TableName: process.env.KICKOFF_TABLE_NAME,
+    TableName: process.env.CACHE_TABLE_NAME,
     Key: {
       sub: { S: sub },
+      type: { S: 'kickoff' },
     },
   };
 
@@ -35,8 +36,12 @@ const main = async (event: { sub: string }) => {
     const me = await DalClient.getUserBySubWithMembershipAndTeam(sub!.toString());
 
     const putParams = {
-      TableName: process.env.KICKOFF_TABLE_NAME,
-      Item: marshall(me),
+      TableName: process.env.CACHE_TABLE_NAME,
+      Item: marshall({
+        type: 'kickoff',
+        ttl: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
+        ...me,
+      }),
     };
 
     await client.send(new PutItemCommand(putParams));

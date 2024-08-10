@@ -2,19 +2,21 @@ import { Stack } from 'aws-cdk-lib';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 
 /**
- * Creates a kickoff table in the specified stack.
+ * Creates a cache table in the specified stack.
  *
  * @param stack - The stack in which to create the table.
- * @returns An object containing the created kickoff table.
+ * @returns An object containing the created cache table.
  */
-const createKickoffTable = (stack: Stack) => {
-  const kickoffTable = new Table(stack, `${stack.stackName}KickoffTable`, {
-    tableName: `${stack.stackName}KickoffTable`,
+const createCacheTable = (stack: Stack) => {
+  const cacheTable = new Table(stack, `${stack.stackName}CacheTable`, {
+    tableName: `${stack.stackName}CacheTable`,
     partitionKey: { name: 'sub', type: AttributeType.STRING },
+    sortKey: { name: 'type', type: AttributeType.STRING },
     billingMode: BillingMode.PAY_PER_REQUEST,
+    timeToLiveAttribute: 'ttl',
   });
 
-  return { kickoffTable };
+  return { cacheTable };
 };
 
-export { createKickoffTable };
+export { createCacheTable };

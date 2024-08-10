@@ -15,7 +15,7 @@ import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
 import { createAuthorizerLambda, createConnectLambda, createDisconnectLambda, createLogProcessorLambda } from './functions/websockets';
 import { createDistribution } from './network';
-import { createKickoffTable } from './persistence';
+import { createCacheTable } from './persistence';
 import { createBuckets } from './storage';
 
 const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) => {
@@ -27,13 +27,13 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   /**
    * Persistence (DynamoDB)
    */
-  const { kickoffTable } = createKickoffTable(stack);
+  const { cacheTable } = createCacheTable(stack);
 
   /**
    * Persistence / Cache Lambdas
    */
   const { dataAccessLambda } = createDataAccessLambda(stack);
-  const { kickoffCacheLambda } = createKickoffCacheLambda(stack, dataAccessLambda, kickoffTable);
+  const { kickoffCacheLambda } = createKickoffCacheLambda(stack, dataAccessLambda, cacheTable);
 
   /**
    * API Lambdas

@@ -6,7 +6,7 @@ import { Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { buildLambdaSpecs } from '../../../common/utils/api';
 
-const createKickoffCacheLambda = (stack: Stack, dataAccessLambda: NodejsFunction, kickoffTable: Table) => {
+const createKickoffCacheLambda = (stack: Stack, dataAccessLambda: NodejsFunction, cacheTable: Table) => {
   /**
    * Create Processing Lambda
    */
@@ -14,12 +14,12 @@ const createKickoffCacheLambda = (stack: Stack, dataAccessLambda: NodejsFunction
     tracing: Tracing.ACTIVE,
     ...buildLambdaSpecs(stack, 'KickoffCache', './lib/observability/functions/cache/kickoff.src.ts', {
       DATA_ACCESS_ARN: dataAccessLambda.functionArn,
-      KICKOFF_TABLE_NAME: kickoffTable.tableName,
+      CACHE_TABLE_NAME: cacheTable.tableName,
     }),
   });
 
   dataAccessLambda.grantInvoke(kickoffCacheLambda);
-  kickoffTable.grantReadWriteData(kickoffCacheLambda);
+  cacheTable.grantReadWriteData(kickoffCacheLambda);
 
   /**
    * Keep Lambdas Warm
