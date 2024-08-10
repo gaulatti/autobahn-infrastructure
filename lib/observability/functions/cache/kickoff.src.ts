@@ -2,6 +2,10 @@ import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { DalClient } from '../dal/client';
 import { isWarmup } from '../../../common/utils';
+
+/**
+ * The DynamoDB client.
+ */
 const client = new DynamoDBClient();
 
 /**

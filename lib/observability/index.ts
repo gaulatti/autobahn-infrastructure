@@ -13,7 +13,7 @@ import { createPreTokenGenerationTrigger } from './functions/authorization';
 import { createKickoffCacheLambda } from './functions/cache';
 import { createDataAccessLambda } from './functions/dal';
 import { createProcessingLambda } from './functions/processing';
-import { createAuthorizerLambda, createConnectLambda, createDisconnectLambda, createLogProcessorLambda } from './functions/websockets';
+import { createWebSocketLambdas } from './functions/websockets';
 import { createDistribution } from './network';
 import { createCacheTable } from './persistence';
 import { createBuckets } from './storage';
@@ -112,11 +112,29 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   /**
    * Websocket API
    */
-  const { authorizerLambda } = createAuthorizerLambda(stack, userPool);
-  const { connectLambda } = createConnectLambda(stack);
-  const { disconnectLambda } = createDisconnectLambda(stack);
-  const { logProcessorLambda } = createLogProcessorLambda(stack);
-  const { webSocketApi } = createWebsocketApi(stack, connectLambda, disconnectLambda, authorizerLambda, logProcessorLambda);
+  const webSocketLambdas = createWebSocketLambdas(stack, defaultApiEnvironment, userPool, cacheTable)
+  const { webSocketApi } = createWebsocketApi(stack, webSocketLambdas);
+  Object.entries(webSocketLambdas).forEach(([key, lambdaFunction]) => {
+    dataAccessLambda.grantInvoke(lambdaFunction);
+    kickoffCacheLambda.grantInvoke(lambdaFunction);
+    cacheTable.grantReadWriteData(lambdaFunction);
+
+    /**
+     * Keep Lambdas Warm
+     */
+    const rule = new Rule(stack, `${stack.stackName}${capitalize(key)}WarmupRule`, {
+      schedule: Schedule.rate(Duration.minutes(1)),
+    });
+
+    rule.addTarget(
+      new LambdaFunction(lambdaFunction, {
+        event: RuleTargetInput.fromObject({
+          source: 'cdk.schedule',
+          action: 'warmup',
+        }),
+      })
+    );
+  });
 
   /**
    * REST API

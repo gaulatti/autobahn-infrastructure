@@ -1,9 +1,16 @@
 import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi';
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { isWarmup } from '../../../common/utils';
 
 let apiGatewayManagementApiClient: ApiGatewayManagementApiClient;
 
 const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return { statusCode: 200, body: 'warmup' };
+  }
   const { connectionId, domainName } = event.requestContext;
 
   if (!apiGatewayManagementApiClient) {

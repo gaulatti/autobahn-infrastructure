@@ -1,12 +1,7 @@
-import {
-  APIGatewayAuthorizerResult,
-  APIGatewayRequestAuthorizerEvent,
-  Callback,
-  Context
-} from 'aws-lambda';
+import { APIGatewayAuthorizerResult, APIGatewayRequestAuthorizerEvent, Callback, Context } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
-
+import { isWarmup } from '../../../common/utils';
 
 /**
  * Initializes a JWKS client for retrieving JSON Web Key Sets.
@@ -17,7 +12,6 @@ import jwksClient from 'jwks-rsa';
 const client = jwksClient({
   jwksUri: `https://cognito-idp.${process.env.COGNITO_USER_POOL_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
 });
-
 
 /**
  * Generates an API Gateway authorizer policy.
@@ -58,7 +52,6 @@ const getKey = (header: any, callback: any) => {
   });
 };
 
-
 /**
  * Entry point for the authorizer function.
  *
@@ -67,6 +60,13 @@ const getKey = (header: any, callback: any) => {
  * @param callback - The callback function to be called with the authorization result.
  */
 const main = (event: APIGatewayRequestAuthorizerEvent, _context: Context, callback: Callback<APIGatewayAuthorizerResult>): void => {
+  if (isWarmup(event)) {
+    /**
+     * This is a warmup event, so we don't need to do anything.
+     */
+    return;
+  }
+
   const { queryStringParameters } = event;
   const token = queryStringParameters!.Authorization;
 

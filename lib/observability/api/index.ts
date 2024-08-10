@@ -12,10 +12,7 @@ import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
 const createWebsocketApi = (
   stack: Stack,
-  connectLambda: NodejsFunction,
-  disconnectLambda: NodejsFunction,
-  authorizerLambda: NodejsFunction,
-  logProcessorLambda: NodejsFunction
+  lambdas: Record<string, NodejsFunction>,
 ) => {
   const webSocketApi = new WebSocketApi(stack, `${stack.stackName}WebSocketApi`, {});
 
@@ -46,7 +43,7 @@ const createWebsocketApi = (
   /**
    * Create the WebSocket authorizer.
    */
-  const webSocketAuthorizer = new WebSocketLambdaAuthorizer(`${stack.stackName}WebSocketAuthorizer`, authorizerLambda, {
+  const webSocketAuthorizer = new WebSocketLambdaAuthorizer(`${stack.stackName}WebSocketAuthorizer`, lambdas.authorizerLambda, {
     authorizerName: `${stack.stackName}WebSocketAuthorizer`,
     identitySource: ['route.request.querystring.Authorization'],
   });
@@ -54,9 +51,9 @@ const createWebsocketApi = (
   /**
    * Create the WebSocket integrations.
    */
-  const connectIntegration = new WebSocketLambdaIntegration(`${stack.stackName}ConnectIntegration`, connectLambda);
-  const disconnectIntegration = new WebSocketLambdaIntegration(`${stack.stackName}DisconnectIntegration`, disconnectLambda);
-  const logProcessorIntegration = new WebSocketLambdaIntegration(`${stack.stackName}LogProcessorIntegration`, logProcessorLambda);
+  const connectIntegration = new WebSocketLambdaIntegration(`${stack.stackName}ConnectIntegration`, lambdas.connectLambda);
+  const disconnectIntegration = new WebSocketLambdaIntegration(`${stack.stackName}DisconnectIntegration`, lambdas.disconnectLambda);
+  const logProcessorIntegration = new WebSocketLambdaIntegration(`${stack.stackName}LogProcessorIntegration`, lambdas.logProcessorLambda);
 
   /**
    * Add the routes to the WebSocket API.
@@ -68,9 +65,9 @@ const createWebsocketApi = (
   /**
    * Grant the necessary permissions to the lambdas.
    */
-  webSocketApi.grantManageConnections(connectLambda);
-  webSocketApi.grantManageConnections(disconnectLambda);
-  webSocketApi.grantManageConnections(logProcessorLambda);
+  webSocketApi.grantManageConnections(lambdas.connectLambda);
+  webSocketApi.grantManageConnections(lambdas.disconnectLambda);
+  webSocketApi.grantManageConnections(lambdas.logProcessorLambda);
 
   return { webSocketApi };
 };
