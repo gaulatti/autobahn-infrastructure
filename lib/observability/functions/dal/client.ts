@@ -1,38 +1,6 @@
 import { InvokeCommand, InvokeCommandOutput, LambdaClient } from '@aws-sdk/client-lambda';
-import {
-  AllowedRequest,
-  CreateAssignmentRequest,
-  CreateBeaconRequest,
-  CreateEngagementRequest,
-  CreateMembershipRequest,
-  CreateProjectRequest,
-  CreateScheduleRequest,
-  CreateStatisticRequest,
-  CreateTargetRequest,
-  CreateUserRequest,
-  GetAssignmentRequest,
-  GetBeaconRequest,
-  GetEngagementRequest,
-  GetMembershipRequest,
-  GetProjectRequest,
-  GetScheduleRequest,
-  GetStatisticRequest,
-  GetTargetRequest,
-  GetTeamRequest,
-  GetUserRequest,
-  ListAssignmentsRequest,
-  ListBeaconsRequest,
-  ListEngagementsRequest,
-  ListFeaturesRequest,
-  ListMembershipsRequest,
-  ListProjectsRequest,
-  ListSchedulesRequest,
-  ListStatisticsRequest,
-  ListTargetsRequest,
-  ListTeamsRequest,
-  RequestType,
-  UpdateBeaconRequest,
-} from './types';
+import { AllowedRequest, CreateAssignmentRequest, CreateBeaconRequest, CreateEngagementRequest, CreateMembershipRequest, CreateProjectRequest, CreateScheduleRequest, CreateStatisticRequest, CreateTargetRequest, CreateUserRequest, GetRequest, ListRenderingParams, ListRequest, RequestType, UpdateBeaconRequest } from './types';
+
 
 /**
  * Represents a client for interacting with the Lambda service.
@@ -97,7 +65,7 @@ class DalClient {
    */
 
   public static async getUser(payload: number) {
-    const request: GetUserRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetUser,
       payload,
     };
@@ -106,7 +74,7 @@ class DalClient {
   }
 
   public static async getUserBySubWithMembershipAndTeam(payload: string) {
-    const request: GetUserRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetUserBySubWithMembershipAndTeam,
       payload,
     };
@@ -115,7 +83,7 @@ class DalClient {
   }
 
   public static async getUserBySub(payload: string) {
-    const request: GetUserRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetUserBySub,
       payload,
     };
@@ -124,7 +92,7 @@ class DalClient {
   }
 
   public static async getUserByEmail(payload: string) {
-    const request: GetUserRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetUserByEmail,
       payload,
     };
@@ -147,17 +115,18 @@ class DalClient {
   /**
    * Teams
    */
-  public static async listTeamsBySub(payload: string) {
-    const request: ListTeamsRequest = {
+  public static async listTeamsBySub(payload: string, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListTeamsBySub,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getTeam(payload: number) {
-    const request: GetTeamRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetTeam,
       payload,
     };
@@ -168,10 +137,11 @@ class DalClient {
   /**
    * Features
    */
-  public static async listFeaturesBySub(payload: string) {
-    const request: ListFeaturesRequest = {
+  public static async listFeaturesBySub(payload: string, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListFeaturesBySub,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
@@ -180,26 +150,27 @@ class DalClient {
   /**
    * Projects
    */
-  public static async listProjects(payload?: number) {
-    const request: ListProjectsRequest = {
+  public static async listProjects(params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListProjects,
-      payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listProjectsByTeam(payload: number) {
-    const request: ListProjectsRequest = {
+  public static async listProjectsByTeam(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListProjectsByTeam,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getProject(payload: number) {
-    const request: GetProjectRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetProject,
       payload,
     };
@@ -220,44 +191,47 @@ class DalClient {
   /**
    * Memberships
    */
-  public static async listMemberships(payload?: number) {
-    const request: ListMembershipsRequest = {
+  public static async listMemberships(params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListMemberships,
-      payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listMembershipsByUser(payload: number) {
-    const request: ListMembershipsRequest = {
+  public static async listMembershipsByUser(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListMembershipsByUser,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listMembershipsWithTeamByUser(payload: number) {
-    const request: ListMembershipsRequest = {
+  public static async listMembershipsWithTeamByUser(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListMembershipsByUserWithTeam,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listMembershipsByTeam(payload: number) {
-    const request: ListMembershipsRequest = {
+  public static async listMembershipsByTeam(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListMembershipsByTeam,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getMembership(payload: number) {
-    const request: GetMembershipRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetMembership,
       payload,
     };
@@ -279,35 +253,37 @@ class DalClient {
   /**
    * Assignments
    */
-  public static async listAssignments(payload?: number) {
-    const request: ListAssignmentsRequest = {
+  public static async listAssignments(params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListAssignments,
-      payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listAssignmentsByProject(payload: number) {
-    const request: ListAssignmentsRequest = {
+  public static async listAssignmentsByProject(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListAssignmentsByProject,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listAssignmentsByMembership(payload: number) {
-    const request: ListAssignmentsRequest = {
+  public static async listAssignmentsByMembership(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListAssignmentsByMembership,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getAssignment(payload: number) {
-    const request: GetAssignmentRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetAssignment,
       payload,
     };
@@ -329,26 +305,27 @@ class DalClient {
   /**
    * Targets
    */
-  public static async listTargets(payload?: number) {
-    const request: ListTargetsRequest = {
+  public static async listTargets(params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListTargets,
-      payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listTargetsByProject(payload: number) {
-    const request: ListTargetsRequest = {
+  public static async listTargetsByProject(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListTargetsByProject,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getTarget(payload: number) {
-    const request: GetTargetRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetTarget,
       payload,
     };
@@ -373,34 +350,37 @@ class DalClient {
   /**
    * Beacons
    */
-  public static async listBeacons() {
-    const request: ListBeaconsRequest = {
+  public static async listBeacons(params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListBeacons,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listBeaconsByTeam(payload: number[]) {
-    const request: ListBeaconsRequest = {
+  public static async listBeaconsByTeam(payload: number[], params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListBeaconsByTeam,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listBeaconsByUser(payload: number) {
-    const request: ListBeaconsRequest = {
+  public static async listBeaconsByUser(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListBeaconsByUser,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getBeacon(payload: number) {
-    const request: GetBeaconRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetBeacon,
       payload,
     };
@@ -409,7 +389,7 @@ class DalClient {
   }
 
   public static async getBeaconByUUID(payload: string) {
-    const request: GetBeaconRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetBeaconByUUID,
       payload,
     };
@@ -507,26 +487,27 @@ class DalClient {
    * Engagements
    */
 
-  public static async listEngagements(payload?: number) {
-    const request: ListEngagementsRequest = {
+  public static async listEngagements(params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListEngagements,
-      payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listEngagementsByTarget(payload: number) {
-    const request: ListEngagementsRequest = {
+  public static async listEngagementsByTarget(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListEngagementsByTarget,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getEngagement(payload: number) {
-    const request: GetEngagementRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetEngagement,
       payload,
     };
@@ -551,26 +532,27 @@ class DalClient {
    * Schedules
    */
 
-  public static async listSchedules(payload?: number) {
-    const request: ListSchedulesRequest = {
+  public static async listSchedules(params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListSchedules,
-      payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listSchedulesByTarget(payload: number) {
-    const request: ListSchedulesRequest = {
+  public static async listSchedulesByTarget(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListSchedulesByTarget,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getSchedule(payload: number) {
-    const request: GetScheduleRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetSchedule,
       payload,
     };
@@ -593,26 +575,27 @@ class DalClient {
   /**
    * Statistics
    */
-  public static async listStatistics(payload?: number) {
-    const request: ListStatisticsRequest = {
+  public static async listStatistics(params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListStatistics,
-      payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listStatisticsByTarget(payload: number) {
-    const request: ListStatisticsRequest = {
+  public static async listStatisticsByTarget(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
       request_type: RequestType.ListStatisticsByTarget,
       payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
   public static async getStatistic(payload: number) {
-    const request: GetStatisticRequest = {
+    const request: GetRequest = {
       request_type: RequestType.GetStatistic,
       payload,
     };

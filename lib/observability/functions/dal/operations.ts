@@ -1,174 +1,269 @@
-import { Statistic } from 'aws-cdk-lib/aws-cloudwatch';
-import { Project } from 'aws-cdk-lib/aws-codebuild';
-import { Schedule } from 'aws-cdk-lib/aws-events';
-import { AllowedRequest, GetTeamRequest, GetUserRequest, RequestType } from './types';
-import { Model, ModelStatic, Transaction } from 'sequelize';
+import { Model, ModelStatic, Op, Transaction } from 'sequelize';
+
+import { AllowedRequest, GetRequest, GetRequestType, RequestType, UpdateBeaconRequest } from './types';
+import { ListRequest, ListRequestType } from './types/lists';
+
 
 /**
- * Executes the operation based on the request type.
- * @param models - The models object containing the Sequelize models.
- * @param request - The request object specifying the request type.
- * @param params - Additional parameters for the operation.
- * @returns A promise that resolves to the result of the operation.
- * @throws An error if the request type is invalid.
+ * Executes an operation based on the provided request.
+ *
+ * @param {Transaction} transaction - The database transaction.
+ * @param {Record<string, ModelStatic<Model>>} models - The models used for querying the database.
+ * @param {AllowedRequest} request - The request object containing the operation details.
+ * @returns {Promise<any>} - A promise that resolves to the result of the operation.
  */
-const executeOperation = async (transaction: Transaction, models: Record<string, ModelStatic<Model>>, request: AllowedRequest) => {
+const executeOperation = async (transaction: Transaction, models: Record<string, ModelStatic<Model>>, request: AllowedRequest): Promise<any> => {
   const { User, Team, Project, Membership, Target, Assignment, Beacon, Engagement, Schedule, Statistic } = models;
+
+  if (request.request_type.startsWith('List')) {
+    const where: Record<string, any> = {};
+    let paginationParams = {};
+
+    const listRequest = request as ListRequest;
+    if (listRequest.params) {
+      const { startRow, endRow, sort, filters } = listRequest.params;
+
+      const offset = parseInt(startRow!, 10);
+      const limit = parseInt(endRow!, 10) - offset;
+      const order: [string, string][] = [];
+
+      if (sort.length) {
+        sort.split(';').forEach((s) => {
+          const splittedSort = s.split(',');
+          order.push([splittedSort[0], splittedSort[1].toUpperCase()]);
+        });
+      }
+
+      const filterCriteria = JSON.parse(filters);
+      Object.keys(filterCriteria).forEach((field) => {
+        const filter = filterCriteria[field];
+
+        switch (filter.filterType) {
+          case 'text':
+            switch (filter.type) {
+              case 'equals':
+                where[field] = { [Op.eq]: filter.filter };
+                break;
+              case 'notEqual':
+                where[field] = { [Op.ne]: filter.filter };
+                break;
+              case 'contains':
+                where[field] = { [Op.like]: `%${filter.filter}%` };
+                break;
+              case 'notContains':
+                where[field] = { [Op.notLike]: `%${filter.filter}%` };
+                break;
+              case 'startsWith':
+                where[field] = { [Op.like]: `${filter.filter}%` };
+                break;
+              case 'endsWith':
+                where[field] = { [Op.like]: `%${filter.filter}` };
+                break;
+              default:
+                break;
+            }
+            break;
+
+          case 'number':
+            switch (filter.type) {
+              case 'equals':
+                where[field] = { [Op.eq]: filter.filter };
+                break;
+              case 'notEqual':
+                where[field] = { [Op.ne]: filter.filter };
+                break;
+              case 'lessThan':
+                where[field] = { [Op.lt]: filter.filter };
+                break;
+              case 'lessThanOrEqual':
+                where[field] = { [Op.lte]: filter.filter };
+                break;
+              case 'greaterThan':
+                where[field] = { [Op.gt]: filter.filter };
+                break;
+              case 'greaterThanOrEqual':
+                where[field] = { [Op.gte]: filter.filter };
+                break;
+              case 'inRange':
+                where[field] = { [Op.between]: [filter.filter, filter.filterTo] };
+                break;
+              default:
+                break;
+            }
+            break;
+
+          case 'date':
+            switch (filter.type) {
+              case 'equals':
+                where[field] = { [Op.eq]: new Date(filter.dateFrom) };
+                break;
+              case 'notEqual':
+                where[field] = { [Op.ne]: new Date(filter.dateFrom) };
+                break;
+              case 'lessThan':
+                where[field] = { [Op.lt]: new Date(filter.dateFrom) };
+                break;
+              case 'lessThanOrEqual':
+                where[field] = { [Op.lte]: new Date(filter.dateFrom) };
+                break;
+              case 'greaterThan':
+                where[field] = { [Op.gt]: new Date(filter.dateFrom) };
+                break;
+              case 'greaterThanOrEqual':
+                where[field] = { [Op.gte]: new Date(filter.dateFrom) };
+                break;
+              case 'inRange':
+                where[field] = { [Op.between]: [new Date(filter.dateFrom), new Date(filter.dateTo)] };
+                break;
+              default:
+                break;
+            }
+            break;
+
+          case 'set':
+            where[field] = { [Op.in]: filter.values };
+            break;
+
+          default:
+            break;
+        }
+      });
+
+      paginationParams = { offset, limit, order };
+    }
+
+    console.log(listRequest.params);
+
+    switch (request.request_type) {
+      case RequestType.ListTeamsBySub:
+        return Team.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListFeaturesBySub:
+        return Team.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListProjects:
+        return Project.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListProjectsByTeam:
+        return Project.findAndCountAll({ ...paginationParams, transaction, where: { teams_id: listRequest.payload, ...where } });
+      case RequestType.ListMemberships:
+        return Membership.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListMembershipsByUser:
+        return Membership.findAndCountAll({ ...paginationParams, transaction, where: { users_id: listRequest.payload, ...where } });
+      case RequestType.ListMembershipsByUserWithTeam:
+        return Membership.findAndCountAll({ ...paginationParams, transaction, where: { users_id: listRequest.payload, ...where }, include: [Team] });
+      case RequestType.ListMembershipsByTeam:
+        return Membership.findAndCountAll({ ...paginationParams, transaction, where: { teams_id: listRequest.payload, ...where } });
+      case RequestType.ListAssignments:
+        return Assignment.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListAssignmentsByProject:
+        return Assignment.findAndCountAll({ ...paginationParams, transaction, where: { projects_id: listRequest.payload, ...where } });
+      case RequestType.ListAssignmentsByMembership:
+        return Assignment.findAndCountAll({ ...paginationParams, transaction, where: { memberships_id: listRequest.payload, ...where } });
+      case RequestType.ListTargets:
+        return Target.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListTargetsByProject:
+        return Target.findAndCountAll({ ...paginationParams, transaction, where: { projects_id: listRequest.payload, ...where } });
+      case RequestType.ListBeacons:
+        return Beacon.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListBeaconsByTeam:
+        return Beacon.findAndCountAll({ ...paginationParams, transaction, where: { teams_id: listRequest.payload, ...where } });
+      case RequestType.ListBeaconsByUser:
+        return Beacon.findAndCountAll({ ...paginationParams, transaction, where: { triggered_by: listRequest.payload, ...where } });
+      case RequestType.ListEngagements:
+        return Engagement.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListEngagementsByTarget:
+        return Engagement.findAndCountAll({ ...paginationParams, transaction, where: { targets_id: listRequest.payload, ...where } });
+      case RequestType.ListSchedules:
+        return Schedule.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListSchedulesByTarget:
+        return Schedule.findAndCountAll({ ...paginationParams, transaction, where: { targets_id: listRequest.payload, ...where } });
+      case RequestType.ListStatistics:
+        return Statistic.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListStatisticsByTarget:
+        return Statistic.findAndCountAll({ ...paginationParams, transaction, where: { targets_id: listRequest.payload, ...where } });
+      default:
+        throw new Error(`Invalid LIST request: ${listRequest.request_type}`);
+    }
+  }
+
+  if (request.request_type.startsWith('Get')) {
+    const getRequest = request as GetRequest;
+    switch (request.request_type) {
+      case RequestType.GetUser:
+        return User.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetUserByEmail:
+        return User.findOne({ transaction, where: { email: getRequest.payload } });
+      case RequestType.GetUserBySubWithMembershipAndTeam:
+        return User.findOne({
+          transaction,
+          where: { sub: getRequest.payload },
+          include: [
+            {
+              model: Membership,
+              as: 'memberships',
+              include: [
+                {
+                  model: Team,
+                  as: 'team',
+                },
+              ],
+            },
+          ],
+        });
+      case RequestType.GetUserBySub:
+        return User.findOne({ transaction, where: { sub: getRequest.payload } });
+      case RequestType.GetUserBySub:
+        return User.findOne({ transaction, where: { sub: getRequest.payload } });
+      case RequestType.GetTeam:
+        return Team.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetProject:
+        return Project.findOne({ transaction, where: { id: getRequest.payload } });
+
+      /**
+       * Memberships
+       */
+      case RequestType.GetMembership:
+        return Membership.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetAssignment:
+        return Assignment.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetTarget:
+        return Target.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetBeacon:
+        return Beacon.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetBeaconByUUID:
+        return Beacon.findAll({ transaction, where: { uuid: getRequest.payload } });
+      case RequestType.GetEngagement:
+        return Engagement.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetSchedule:
+        return Schedule.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetStatistic:
+        return Statistic.findOne({ transaction, where: { id: getRequest.payload } });
+      default:
+        throw new Error(`Invalid GET request: ${getRequest.request_type}`);
+    }
+  }
+
   /**
    * Perform the operation based on the request type.
    */
   switch (request.request_type) {
-    /**
-     * Users
-     */
-    case RequestType.GetUser:
-      return User.findOne({ transaction, where: { id: (request as GetUserRequest).payload } });
-    case RequestType.GetUserByEmail:
-      return User.findOne({ transaction, where: { email: (request as GetUserRequest).payload } });
-    case RequestType.GetUserBySubWithMembershipAndTeam:
-      return User.findOne({
-        transaction,
-        where: { sub: (request as GetUserRequest).payload },
-        include: [
-          {
-            model: Membership,
-            as: 'memberships',
-            include: [
-              {
-                model: Team,
-                as: 'team',
-              },
-            ],
-          },
-        ],
-      });
-    case RequestType.GetUserBySub:
-      return User.findOne({ transaction, where: { sub: (request as GetUserRequest).payload } });
-    case RequestType.GetUserBySub:
-      return User.findOne({ transaction, where: { sub: (request as GetUserRequest).payload } });
     case RequestType.CreateUser:
       return User.create({ transaction, ...request });
-
-    /**
-     * Teams
-     */
-    case RequestType.ListTeamsBySub:
-      // TODO: Filter by current sub
-      return Team.findAll({ transaction });
-    case RequestType.GetTeam:
-      return Team.findOne({ transaction, where: { id: (request as GetTeamRequest).payload } });
-
-    /**
-     * Features
-     */
-    case RequestType.ListFeaturesBySub:
-      return Team.findAll({ transaction });
-
-    /**
-     * Projects
-     */
-    case RequestType.ListProjects:
-      return Project.findAll({ transaction });
-    case RequestType.ListProjectsByTeam:
-      return Project.findAll({ transaction, where: { teams_id: request.payload } });
-    case RequestType.GetProject:
-      return Project.findOne({ transaction, where: { id: request.payload } });
     case RequestType.CreateProject:
       return Project.create({ transaction, ...request });
-
-    /**
-     * Memberships
-     */
-    case RequestType.ListMemberships:
-      return Membership.findAll({ transaction });
-    case RequestType.ListMembershipsByUser:
-      return Membership.findAll({ transaction, where: { users_id: request.payload } });
-    case RequestType.ListMembershipsByUserWithTeam:
-      return Membership.findAll({ transaction, where: { users_id: request.payload }, include: [Team] });
-    case RequestType.ListMembershipsByTeam:
-      return Membership.findAll({ transaction, where: { teams_id: request.payload } });
-    case RequestType.GetMembership:
-      return Membership.findOne({ transaction, where: { id: request.payload } });
     case RequestType.CreateMembership:
       return Membership.create({ transaction, ...request });
-
-    /**
-     * Assignments
-     */
-    case RequestType.ListAssignments:
-      return Assignment.findAll({ transaction });
-    case RequestType.ListAssignmentsByProject:
-      return Assignment.findAll({ transaction, where: { projects_id: request.payload } });
-    case RequestType.ListAssignmentsByMembership:
-      return Assignment.findAll({ transaction, where: { memberships_id: request.payload } });
-    case RequestType.GetAssignment:
-      return Assignment.findOne({ transaction, where: { id: request.payload } });
     case RequestType.CreateAssignment:
       return Assignment.create({ transaction, ...request });
-
-    /**
-     * Targets
-     */
-    case RequestType.ListTargets:
-      return Target.findAll({ transaction });
-    case RequestType.ListTargetsByProject:
-      return Target.findAll({ transaction, where: { projects_id: request.payload } });
-    case RequestType.GetTarget:
-      return Target.findOne({ transaction, where: { id: request.payload } });
     case RequestType.CreateTarget:
       return Target.create({ transaction, ...request });
-
-    /**
-     * Beacons
-     */
-    case RequestType.ListBeacons:
-      return Beacon.findAll({ transaction });
-    case RequestType.ListBeaconsByTeam:
-      return Beacon.findAll({ transaction, where: { teams_id: request.payload } });
-    case RequestType.ListBeaconsByUser:
-      return Beacon.findAll({ transaction, where: { triggered_by: request.payload } });
-    case RequestType.GetBeacon:
-      return Beacon.findOne({ transaction, where: { id: request.payload } });
-    case RequestType.GetBeaconByUUID:
-      return Beacon.findAll({ transaction, where: { uuid: request.payload } });
     case RequestType.CreateBeacon:
       return Beacon.create({ transaction, ...request });
     case RequestType.UpdateBeacon:
-      return await (await Beacon.findOne({ transaction, where: { id: request.id } }))!.update({ transaction, ...request });
-
-    /**
-     * Engagements
-     */
-    case RequestType.ListEngagements:
-      return Engagement.findAll({ transaction });
-    case RequestType.ListEngagementsByTarget:
-      return Engagement.findAll({ transaction, where: { targets_id: request.payload } });
-    case RequestType.GetEngagement:
-      return Engagement.findOne({ transaction, where: { id: request.payload } });
+      const updateBeaconRequest = request as UpdateBeaconRequest;
+      return await (await Beacon.findOne({ transaction, where: { id: updateBeaconRequest.id } }))!.update({ transaction, ...updateBeaconRequest });
     case RequestType.CreateEngagement:
       return Engagement.create({ transaction, ...request });
-
-    /**
-     * Schedules
-     */
-    case RequestType.ListSchedules:
-      return Schedule.findAll({ transaction });
-    case RequestType.ListSchedulesByTarget:
-      return Schedule.findAll({ transaction, where: { targets_id: request.payload } });
-    case RequestType.GetSchedule:
-      return Schedule.findOne({ transaction, where: { id: request.payload } });
     case RequestType.CreateSchedule:
       return Schedule.create({ transaction, ...request });
-
-    /**
-     * Statistics
-     */
-    case RequestType.ListStatistics:
-      return Statistic.findAll({ transaction });
-    case RequestType.ListStatisticsByTarget:
-      return Statistic.findAll({ transaction, where: { targets_id: request.payload } });
-    case RequestType.GetStatistic:
-      return Statistic.findOne({ transaction, where: { id: request.payload } });
     case RequestType.CreateStatistic:
       return Statistic.create({ transaction, ...request });
 
