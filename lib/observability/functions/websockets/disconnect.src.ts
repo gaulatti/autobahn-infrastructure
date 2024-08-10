@@ -1,7 +1,9 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
-  console.log('Disconnect Event:', event);
+  const { connectionId } = event.requestContext;
+
+  console.log(`Tschuss ${connectionId}`, event);
 
   return {
     statusCode: 200,

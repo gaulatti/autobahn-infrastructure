@@ -1,14 +1,38 @@
 import { Stack } from 'aws-cdk-lib';
-import { CognitoUserPoolsAuthorizer, Cors, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { camelToKebab } from '../../common/utils';
-import { WebSocketApi, WebSocketAuthorizer, WebSocketAuthorizerType, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { camelToKebab } from '../../common/utils';
+import { IWebSocketRouteAuthorizer, WebSocketApi, WebSocketAuthorizer, WebSocketAuthorizerType, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
+import { CfnAccount, CognitoUserPoolsAuthorizer, Cors, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
-const createWebsocketApi = (stack: Stack, connectLambda: NodejsFunction, disconnectLambda: NodejsFunction, authorizerLambda: NodejsFunction, logProcessorLambda: NodejsFunction) => {
+const createWebsocketApi = (
+  stack: Stack,
+  connectLambda: NodejsFunction,
+  disconnectLambda: NodejsFunction,
+  authorizerLambda: NodejsFunction,
+  logProcessorLambda: NodejsFunction
+) => {
   const webSocketApi = new WebSocketApi(stack, `${stack.stackName}WebSocketApi`, {});
+
+  /**
+   * Create the log group for the API Gateway.
+   */
+  const apiGatewayLoggingRole = new Role(stack, `${stack.stackName}ApiGatewayLoggingRole`, {
+    assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),
+    managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonAPIGatewayPushToCloudWatchLogs')],
+  });
+
+  /**
+   * Create the log group for the API Gateway.
+   */
+  new CfnAccount(stack, `${stack.stackName}ApiGatewayAccount`, {
+    cloudWatchRoleArn: apiGatewayLoggingRole.roleArn,
+  });
 
   /**
    * Create the WebSocket stage.
@@ -19,14 +43,33 @@ const createWebsocketApi = (stack: Stack, connectLambda: NodejsFunction, disconn
     autoDeploy: true,
   });
 
+  /**
+   * Create the WebSocket authorizer.
+   */
+  const webSocketAuthorizer = new WebSocketLambdaAuthorizer(`${stack.stackName}WebSocketAuthorizer`, authorizerLambda, {
+    authorizerName: `${stack.stackName}WebSocketAuthorizer`,
+    identitySource: ['route.request.querystring.Authorization'],
+  });
+
+  /**
+   * Create the WebSocket integrations.
+   */
   const connectIntegration = new WebSocketLambdaIntegration(`${stack.stackName}ConnectIntegration`, connectLambda);
   const disconnectIntegration = new WebSocketLambdaIntegration(`${stack.stackName}DisconnectIntegration`, disconnectLambda);
   const logProcessorIntegration = new WebSocketLambdaIntegration(`${stack.stackName}LogProcessorIntegration`, logProcessorLambda);
 
-  webSocketApi.addRoute('$connect', { integration: connectIntegration });
+  /**
+   * Add the routes to the WebSocket API.
+   */
+  webSocketApi.addRoute('$connect', { integration: connectIntegration, authorizer: webSocketAuthorizer });
   webSocketApi.addRoute('$disconnect', { integration: disconnectIntegration });
   webSocketApi.addRoute('$default', { integration: logProcessorIntegration });
 
+  /**
+   * Grant the necessary permissions to the lambdas.
+   */
+  webSocketApi.grantManageConnections(connectLambda);
+  webSocketApi.grantManageConnections(disconnectLambda);
   webSocketApi.grantManageConnections(logProcessorLambda);
 
   return { webSocketApi };

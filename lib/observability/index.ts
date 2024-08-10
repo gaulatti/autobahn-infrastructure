@@ -112,7 +112,7 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   /**
    * Websocket API
    */
-  const { authorizerLambda } = createAuthorizerLambda(stack);
+  const { authorizerLambda } = createAuthorizerLambda(stack, userPool);
   const { connectLambda } = createConnectLambda(stack);
   const { disconnectLambda } = createDisconnectLambda(stack);
   const { logProcessorLambda } = createLogProcessorLambda(stack);

@@ -1,4 +1,5 @@
 import { Duration, Stack } from 'aws-cdk-lib';
+import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
@@ -68,7 +69,7 @@ const createLogProcessorLambda = (stack: Stack) => {
  * @param stack - The AWS CloudFormation stack.
  * @returns An object containing the authorizer Lambda function.
  */
-const createAuthorizerLambda = (stack: Stack) => {
+const createAuthorizerLambda = (stack: Stack, userPool: UserPool) => {
   const authorizerLambda = new NodejsFunction(stack, `${stack.stackName}WebSocketsAuthorizerLambda`, {
     functionName: `${stack.stackName}WebSocketsAuthorizer`,
     entry: './lib/observability/functions/websockets/authorizer.src.ts',
@@ -77,6 +78,10 @@ const createAuthorizerLambda = (stack: Stack) => {
     timeout: Duration.minutes(1),
     tracing: Tracing.ACTIVE,
     memorySize: 1024,
+    environment: {
+      COGNITO_USER_POOL_ID: userPool.userPoolId,
+      COGNITO_USER_POOL_REGION: stack.region,
+    },
   });
 
   return { authorizerLambda };

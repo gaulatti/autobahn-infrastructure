@@ -1,7 +1,9 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
-  console.log('Connect Event:', event);
+  const { connectionId } = event.requestContext;
+
+  console.log(`Wilkommen ${connectionId}`, event);
 
   return {
     statusCode: 200,
