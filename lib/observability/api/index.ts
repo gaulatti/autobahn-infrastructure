@@ -1,14 +1,13 @@
 import { Stack } from 'aws-cdk-lib';
+import { CfnAccount, CognitoUserPoolsAuthorizer, Cors, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
+import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { camelToKebab } from '../../common/utils';
-import { IWebSocketRouteAuthorizer, WebSocketApi, WebSocketAuthorizer, WebSocketAuthorizerType, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
-import { CfnAccount, CognitoUserPoolsAuthorizer, Cors, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
-import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
 const createWebsocketApi = (
   stack: Stack,
