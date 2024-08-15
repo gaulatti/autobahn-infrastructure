@@ -1,7 +1,6 @@
 import { Model, ModelStatic, Op, Transaction } from 'sequelize';
-
-import { AllowedRequest, GetRequest, GetRequestType, RequestType, UpdateBeaconRequest } from './types';
-import { ListRequest, ListRequestType } from './types/lists';
+import { AllowedRequest, GetRequest, RequestType, UpdateBeaconRequest } from './types';
+import { ListRequest } from './types/lists';
 
 
 /**
@@ -131,8 +130,6 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
 
       paginationParams = { offset, limit, order };
     }
-
-    console.log(listRequest.params);
 
     switch (request.request_type) {
       case RequestType.ListTeamsBySub:
