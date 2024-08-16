@@ -503,6 +503,7 @@ class DalClient {
       request_type: RequestType.UpdateBeacon,
       id,
       retries,
+      status: 6
     };
 
     return await DalClient.parsedInvoke(request);

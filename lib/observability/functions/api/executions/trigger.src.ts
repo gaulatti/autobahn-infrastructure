@@ -76,11 +76,16 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
 
   const connections = teamRecord.connections || [];
   for (const connection of connections) {
-    const params = {
-      ConnectionId: connection,
-      Data: Buffer.from(JSON.stringify({ action: 'REFRESH_EXECUTIONS_TABLE' })),
-    };
-    await apiGatewayManagementApiClient.send(new PostToConnectionCommand(params));
+    try {
+      const params = {
+        ConnectionId: connection,
+        Data: Buffer.from(JSON.stringify({ action: 'REFRESH_EXECUTIONS_TABLE' })),
+      };
+      await apiGatewayManagementApiClient.send(new PostToConnectionCommand(params));
+      console.log(`Sent message to connection ${connection}`);
+    } catch (error) {
+      console.error(`Failed to send message to connection ${connection}`, error);
+    }
   }
 
   /**

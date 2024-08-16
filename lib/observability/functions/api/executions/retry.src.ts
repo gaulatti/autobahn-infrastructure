@@ -4,7 +4,6 @@ import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { HandleDelivery } from '../../../../common/utils/api';
 import { DalClient } from '../../dal/client';
-import { exec } from 'child_process';
 
 /**
  * The SNS client.
@@ -50,14 +49,11 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
     });
   }
 
-
   /**
    * As the path is in the format /executions/{uuid}/{viewport},
    * we can extract the viewport from the path.
    */
   const viewport = path.split('/').slice(-2).shift();
-
-  console.log({viewport})
 
   /**
    * Retrieve the viewport ID from the path parameters.
@@ -75,15 +71,15 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
    */
   await DalClient.updateBeaconRetries(id, retries + 1);
 
-  /**
-   * it's mobile or desktop
-   */
-  const command = new PublishCommand({
-    Message: JSON.stringify({ url, uuid, mode: viewport }),
-    TopicArn: process.env.TRIGGER_TOPIC_ARN,
-  });
+  // /**
+  //  * it's mobile or desktop
+  //  */
+  // const command = new PublishCommand({
+  //   Message: JSON.stringify({ url, uuid, mode: viewport }),
+  //   TopicArn: process.env.TRIGGER_TOPIC_ARN,
+  // });
 
-  const execution = await snsClient.send(command);
+  // const execution = await snsClient.send(command);
 
   /**
    * Broadcast the new metrics to all connections.
@@ -102,14 +98,19 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
 
   const connections = teamRecord.connections || [];
   for (const connection of connections) {
-    const params = {
-      ConnectionId: connection,
-      Data: Buffer.from(JSON.stringify({ action: 'REFRESH_EXECUTIONS_TABLE' })),
-    };
-    await apiGatewayManagementApiClient.send(new PostToConnectionCommand(params));
+    try {
+      const params = {
+        ConnectionId: connection,
+        Data: Buffer.from(JSON.stringify({ action: 'REFRESH_EXECUTIONS_TABLE' })),
+      };
+      await apiGatewayManagementApiClient.send(new PostToConnectionCommand(params));
+      console.log(`Sent message to connection ${connection}`);
+    } catch (error) {
+      console.error(`Failed to send message to connection ${connection}`, error);
+    }
   }
 
-  return { results: execution };
+  return { results: {} };
 });
 
 export { main };
