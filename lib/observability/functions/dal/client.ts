@@ -1,6 +1,21 @@
 import { InvokeCommand, InvokeCommandOutput, LambdaClient } from '@aws-sdk/client-lambda';
-import { AllowedRequest, CreateAssignmentRequest, CreateBeaconRequest, CreateEngagementRequest, CreateMembershipRequest, CreateProjectRequest, CreateScheduleRequest, CreateStatisticRequest, CreateTargetRequest, CreateUserRequest, GetRequest, ListRenderingParams, ListRequest, RequestType, UpdateBeaconRequest } from './types';
-
+import {
+  AllowedRequest,
+  CreateAssignmentRequest,
+  CreateBeaconRequest,
+  CreateEngagementRequest,
+  CreateMembershipRequest,
+  CreateProjectRequest,
+  CreateScheduleRequest,
+  CreateStatisticRequest,
+  CreateTargetRequest,
+  CreateUserRequest,
+  GetRequest,
+  ListRenderingParams,
+  ListRequest,
+  RequestType,
+  UpdateBeaconRequest,
+} from './types';
 
 /**
  * Represents a client for interacting with the Lambda service.
@@ -478,6 +493,16 @@ class DalClient {
       si,
       cls,
       screenshots,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async updateBeaconRetries(id: number, retries: number) {
+    const request: UpdateBeaconRequest = {
+      request_type: RequestType.UpdateBeacon,
+      id,
+      retries,
     };
 
     return await DalClient.parsedInvoke(request);

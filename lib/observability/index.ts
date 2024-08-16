@@ -10,9 +10,9 @@ import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
 import { createApiLambdas } from './functions/api';
 import { createPreTokenGenerationTrigger } from './functions/authorization';
+import { createFailureHandlerLambda, createProcessingLambda } from './functions/background';
 import { createKickoffCacheLambda } from './functions/cache';
 import { createDataAccessLambda } from './functions/dal';
-import { createProcessingLambda } from './functions/processing';
 import { createWebSocketLambdas } from './functions/websockets';
 import { createDistribution } from './network';
 import { createCacheTable } from './persistence';
@@ -109,6 +109,7 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
    * Worker Lambda
    */
   const { processingLambda } = createProcessingLambda(stack, defaultApiEnvironment, observabilityBucket, dataAccessLambda, webSocketApi);
+  const { failureHandlerLambda } = createFailureHandlerLambda(stack, defaultApiEnvironment,dataAccessLambda,webSocketApi);
   cacheTable.grantReadWriteData(processingLambda);
 
   /**
@@ -131,7 +132,7 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   const requiredEnvVariables = ['CERTIFICATE_ARN', 'FRONTEND_FQDN', 'DATABASE_SECRET_ARN', 'DATABASE_FQDN', 'DATABASE_NAME'];
   if (requiredEnvVariables.some((variable) => !process.env[variable])) {
     console.error(`Missing required environment variables: ${requiredEnvVariables.join(', ')}`);
-    return { observabilityBucket };
+    return { observabilityBucket, failureHandlerLambda };
   }
 
   /**
@@ -157,7 +158,7 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   /**
    * Return the bucket for the ECS Task to upload the files
    */
-  return { observabilityBucket };
+  return { observabilityBucket, failureHandlerLambda };
 };
 
 export { createObservabilityInfrastructure };

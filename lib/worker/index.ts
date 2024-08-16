@@ -5,6 +5,7 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { createFargateTask } from './fargate';
 import { createTriggerLambda } from './functions/trigger';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 /**
  * Creates the worker infrastructure.
@@ -14,8 +15,10 @@ import { createTriggerLambda } from './functions/trigger';
  * @param cluster - The ECS (Elastic Container Service) cluster.
  * @param serverDnsName - The DNS name of the server.
  * @param observabilityBucket - The bucket for observability.
+ * @param triggerTopic - The SNS (Simple Notification Service) topic for triggering the worker.
+ * @param failureHandlerLambda - The Lambda function to handle failures.
  */
-const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, cluster: Cluster, observabilityBucket: Bucket, triggerTopic: Topic) => {
+const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, cluster: Cluster, observabilityBucket: Bucket, triggerTopic: Topic, failureHandlerLambda: NodejsFunction) => {
   /**
    * Create Fargate Service
    *
@@ -27,7 +30,7 @@ const createWorkerInfrastructure = (stack: Stack, securityGroup: SecurityGroup, 
    * Said that, this can be directly deployed by CLI from local if the computer is x64. Hence, it'll be needed to
    * create a CodeBuild Project and deploy this CDK project from there.
    */
-  const { fargateTaskDefinition } = createFargateTask(stack, observabilityBucket);
+  const { fargateTaskDefinition } = createFargateTask(stack, observabilityBucket, failureHandlerLambda);
 
   /**
    * Create Trigger Lambda

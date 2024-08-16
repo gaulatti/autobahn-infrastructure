@@ -406,6 +406,11 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      retries: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,

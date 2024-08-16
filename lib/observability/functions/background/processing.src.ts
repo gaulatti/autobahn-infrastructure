@@ -144,7 +144,7 @@ const main = async (event: S3Event) => {
          */
         await DalClient.updateBeacon(
           currentRecord.id,
-          2,
+          4,
           timeToFirstByte,
           firstContentfulPaint,
           observedDomContentLoaded,

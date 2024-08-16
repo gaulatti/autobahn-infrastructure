@@ -1,14 +1,17 @@
 import { Stack } from 'aws-cdk-lib';
 import { AwsLogDriver, ContainerImage, CpuArchitecture, FargateTaskDefinition, OperatingSystemFamily } from 'aws-cdk-lib/aws-ecs';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 
 /**
  * Creates a Fargate task definition with the specified stack and secrets.
  * @param stack - The CloudFormation stack.
+ * @param observabilityBucket - The bucket for observability.
+ * @param failureHandlerLambda - The Lambda function to handle failures.
  * @returns The Fargate task definition.
  */
-const createFargateTask = (stack: Stack, observabilityBucket: Bucket) => {
+const createFargateTask = (stack: Stack, observabilityBucket: Bucket, failureHandlerLambda: NodejsFunction) => {
   /**
    * Represents the CloudWatch log group.
    */
@@ -35,9 +38,11 @@ const createFargateTask = (stack: Stack, observabilityBucket: Bucket) => {
   });
 
   /**
-   * Grants the Fargate task permission to write to the observability bucket.
+   * Grants the Fargate task permission to write to the
+   * observability bucket and invoke the failure handler Lambda.
    */
   observabilityBucket.grantWrite(fargateTaskDefinition.taskRole);
+  failureHandlerLambda.grantInvoke(fargateTaskDefinition.taskRole);
 
   /**
    * Adds a container to the Fargate task definition.
@@ -47,6 +52,7 @@ const createFargateTask = (stack: Stack, observabilityBucket: Bucket) => {
     image: ContainerImage.fromAsset('./lib/worker/assets'),
     logging: logDriver,
     environment: {
+      ERROR_LAMBDA_ARN: failureHandlerLambda.functionArn,
       BUCKET_NAME: observabilityBucket.bucketName,
     }
   });

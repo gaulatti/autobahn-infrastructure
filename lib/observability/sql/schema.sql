@@ -54,6 +54,7 @@ CREATE TABLE `beacons` (
   `targets_id` int DEFAULT NULL,
   `triggered_by` int DEFAULT NULL,
   `stage` int NOT NULL,
+  `retries` int NOT NULL DEFAULT '0',
   `uuid` varchar(45) NOT NULL,
   `url` text NOT NULL,
   `provider` int NOT NULL,

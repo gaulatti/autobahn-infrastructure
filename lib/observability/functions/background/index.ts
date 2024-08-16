@@ -19,7 +19,7 @@ const createProcessingLambda = (stack: Stack, defaultApiEnvironment: Record<stri
    */
   const processingLambda = new NodejsFunction(stack, `${stack.stackName}ProcessingLambda`, {
     functionName: `${stack.stackName}Processing`,
-    entry: './lib/observability/functions/processing/index.src.ts',
+    entry: './lib/observability/functions/background/processing.src.ts',
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
     timeout: Duration.minutes(1),
@@ -62,4 +62,36 @@ const createProcessingLambda = (stack: Stack, defaultApiEnvironment: Record<stri
   return { processingLambda };
 };
 
-export { createProcessingLambda };
+const createFailureHandlerLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, dataAccessLambda: NodejsFunction, webSocketApi: WebSocketApi) => {
+  /**
+   * Create Failure Handler Lambda
+   */
+  const failureHandlerLambda = new NodejsFunction(stack, `${stack.stackName}FailureHandlerLambda`, {
+    functionName: `${stack.stackName}FailureHandler`,
+    entry: './lib/observability/functions/background/failure.src.ts',
+    handler: 'main',
+    runtime: Runtime.NODEJS_20_X,
+    timeout: Duration.minutes(1),
+    tracing: Tracing.ACTIVE,
+    environment: {
+      ...defaultApiEnvironment,
+      DATA_ACCESS_ARN: dataAccessLambda.functionArn,
+      WEBSOCKET_API_FQDN: `${webSocketApi.apiId}.execute-api.${stack.region}.amazonaws.com`,
+    },
+    memorySize: 1024,
+  });
+
+  /**
+   * Grant Permissions for managing connections in the WebSocket API
+   */
+  webSocketApi.grantManageConnections(failureHandlerLambda);
+
+  /**
+   * Allow this lambda to save the metrics in the Database.
+   */
+  dataAccessLambda.grantInvoke(failureHandlerLambda);
+
+  return { failureHandlerLambda };
+};
+
+export { createProcessingLambda, createFailureHandlerLambda };

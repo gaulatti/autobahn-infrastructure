@@ -62,6 +62,46 @@ const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Recor
 };
 
 /**
+ * Creates a retry execution lambda function.
+ *
+ * @param stack - The stack object.
+ * @param defaultApiEnvironment - The default environment variables for the lambda function.
+ * @param triggerTopic - The topic object used for triggering the execution.
+ * @param webSocketApi - The WebSocket API object.
+ * @returns An object containing the retry execution lambda function.
+ */
+const createRetryExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, triggerTopic: Topic, webSocketApi: WebSocketApi) => {
+  /**
+   * The environment variables for the trigger execution lambda function.
+   */
+  const environment = {
+    ...defaultApiEnvironment,
+    TRIGGER_TOPIC_ARN: triggerTopic.topicArn,
+    WEBSOCKET_API_FQDN: `${webSocketApi.apiId}.execute-api.${stack.region}.amazonaws.com`,
+  };
+
+  /**
+   * Create the trigger execution lambda function.
+   */
+  const retryExecutionLambda = new NodejsFunction(stack, `${stack.stackName}RetryExecutionLambda`, {
+    tracing: Tracing.ACTIVE,
+    ...buildLambdaSpecs(stack, 'TriggerExecution', './lib/observability/functions/api/executions/trigger.src.ts', environment),
+  });
+
+  /**
+   * Grant Permissions for managing connections in the WebSocket API
+   */
+  webSocketApi.grantManageConnections(retryExecutionLambda);
+
+  /**
+   * Grant the trigger execution lambda the permission to publish to the trigger topic.
+   */
+  triggerTopic.grantPublish(retryExecutionLambda);
+
+  return { retryExecutionLambda };
+};
+
+/**
  * Creates an execution result lambda function.
  *
  * @param stack - The AWS CloudFormation stack.
@@ -99,4 +139,4 @@ const createExecutionDetailsLambda = (stack: Stack, defaultApiEnvironment: Recor
   return { executionDetailsLambda };
 };
 
-export { createExecutionDetailsLambda, createExecutionResultLambda, createExecutionsLambda, createTriggerExecutionLambda };
+export { createExecutionDetailsLambda, createExecutionResultLambda, createExecutionsLambda, createTriggerExecutionLambda, createRetryExecutionLambda };

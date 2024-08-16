@@ -20,12 +20,12 @@ class DressYouUpStack extends Stack {
     /**
      * Create Observability Infrastructure
      */
-    const { observabilityBucket } = createObservabilityInfrastructure(this, triggerTopic);
+    const { observabilityBucket, failureHandlerLambda } = createObservabilityInfrastructure(this, triggerTopic);
 
     /**
      * Create the worker infrastructure
      */
-    createWorkerInfrastructure(this, securityGroup, cluster, observabilityBucket, triggerTopic);
+    createWorkerInfrastructure(this, securityGroup, cluster, observabilityBucket, triggerTopic, failureHandlerLambda);
   }
 }
 
