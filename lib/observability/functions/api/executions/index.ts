@@ -85,7 +85,7 @@ const createRetryExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<
    */
   const retryExecutionLambda = new NodejsFunction(stack, `${stack.stackName}RetryExecutionLambda`, {
     tracing: Tracing.ACTIVE,
-    ...buildLambdaSpecs(stack, 'TriggerExecution', './lib/observability/functions/api/executions/trigger.src.ts', environment),
+    ...buildLambdaSpecs(stack, 'RetryExecution', './lib/observability/functions/api/executions/trigger.src.ts', environment),
   });
 
   /**
