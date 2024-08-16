@@ -509,6 +509,17 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  public static async updateFailedBeacon(id: number, retries: number) {
+    const request: UpdateBeaconRequest = {
+      request_type: RequestType.UpdateBeacon,
+      id,
+      retries,
+      status: 5
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
   /**
    * Engagements
    */

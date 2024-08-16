@@ -5,6 +5,7 @@ import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Bucket, EventType } from 'aws-cdk-lib/aws-s3';
 import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 
 /**
  * Creates a processing Lambda function for handling S3 events.
@@ -62,7 +63,7 @@ const createProcessingLambda = (stack: Stack, defaultApiEnvironment: Record<stri
   return { processingLambda };
 };
 
-const createFailureHandlerLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, dataAccessLambda: NodejsFunction, webSocketApi: WebSocketApi) => {
+const createFailureHandlerLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, dataAccessLambda: NodejsFunction, webSocketApi: WebSocketApi, triggerTopic: Topic) => {
   /**
    * Create Failure Handler Lambda
    */
@@ -75,6 +76,7 @@ const createFailureHandlerLambda = (stack: Stack, defaultApiEnvironment: Record<
     tracing: Tracing.ACTIVE,
     environment: {
       ...defaultApiEnvironment,
+      TRIGGER_TOPIC_ARN: triggerTopic.topicArn,
       DATA_ACCESS_ARN: dataAccessLambda.functionArn,
       WEBSOCKET_API_FQDN: `${webSocketApi.apiId}.execute-api.${stack.region}.amazonaws.com`,
     },
@@ -90,6 +92,11 @@ const createFailureHandlerLambda = (stack: Stack, defaultApiEnvironment: Record<
    * Allow this lambda to save the metrics in the Database.
    */
   dataAccessLambda.grantInvoke(failureHandlerLambda);
+
+  /**
+   * Grant permissions to publish to the trigger topic
+   */
+  triggerTopic.grantPublish(failureHandlerLambda);
 
   return { failureHandlerLambda };
 };

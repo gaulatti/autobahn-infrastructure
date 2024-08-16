@@ -71,15 +71,15 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
    */
   await DalClient.updateBeaconRetries(id, retries + 1);
 
-  // /**
-  //  * it's mobile or desktop
-  //  */
-  // const command = new PublishCommand({
-  //   Message: JSON.stringify({ url, uuid, mode: viewport }),
-  //   TopicArn: process.env.TRIGGER_TOPIC_ARN,
-  // });
+  /**
+   * Re-trigger the execution.
+   */
+  const command = new PublishCommand({
+    Message: JSON.stringify({ url, uuid, mode: viewport }),
+    TopicArn: process.env.TRIGGER_TOPIC_ARN,
+  });
 
-  // const execution = await snsClient.send(command);
+  const execution = await snsClient.send(command);
 
   /**
    * Broadcast the new metrics to all connections.
@@ -110,7 +110,7 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
     }
   }
 
-  return { results: {} };
+  return { results: execution };
 });
 
 export { main };

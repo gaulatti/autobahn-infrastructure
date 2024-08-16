@@ -109,8 +109,9 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
    * Worker Lambda
    */
   const { processingLambda } = createProcessingLambda(stack, defaultApiEnvironment, observabilityBucket, dataAccessLambda, webSocketApi);
-  const { failureHandlerLambda } = createFailureHandlerLambda(stack, defaultApiEnvironment,dataAccessLambda,webSocketApi);
+  const { failureHandlerLambda } = createFailureHandlerLambda(stack, defaultApiEnvironment, dataAccessLambda, webSocketApi, triggerTopic);
   cacheTable.grantReadWriteData(processingLambda);
+  cacheTable.grantReadWriteData(failureHandlerLambda);
 
   /**
    * Dashboard
