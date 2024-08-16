@@ -115,6 +115,11 @@ const createRestApi = (stack: Stack, userPool: UserPool, lambdas: Record<string,
   executionMobileResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
   executionDesktopResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
 
+  const executionMobileRetry = executionMobileResults.addResource('retry');
+  const executionDesktopRetry = executionDesktopResults.addResource('retry');
+  executionMobileRetry.addMethod('POST', new LambdaIntegration(lambdas.retryExecutionLambda));
+  executionDesktopRetry.addMethod('POST', new LambdaIntegration(lambdas.retryExecutionLambda));
+
   return { restApi };
 };
 

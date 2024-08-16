@@ -4,6 +4,7 @@ import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { HandleDelivery } from '../../../../common/utils/api';
 import { DalClient } from '../../dal/client';
+import { exec } from 'child_process';
 
 /**
  * The SNS client.
@@ -39,7 +40,24 @@ const getViewportIndex = (viewport: string) => {
 const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const { path, pathParameters } = event;
   const { uuid } = pathParameters!;
-  const viewport = path.split('/').pop();
+
+  /**
+   * Create a new API Gateway Management API client.
+   */
+  if (!apiGatewayManagementApiClient) {
+    apiGatewayManagementApiClient = new ApiGatewayManagementApiClient({
+      endpoint: `https://${process.env.WEBSOCKET_API_FQDN}/prod`,
+    });
+  }
+
+
+  /**
+   * As the path is in the format /executions/{uuid}/{viewport},
+   * we can extract the viewport from the path.
+   */
+  const viewport = path.split('/').slice(-2).shift();
+
+  console.log({viewport})
 
   /**
    * Retrieve the viewport ID from the path parameters.

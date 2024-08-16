@@ -18,7 +18,11 @@ trigger_lambda_on_failure() {
       '{status: $error, uuid: $uuid, mode: $mode}')
 
     # Invoke the Lambda function with the payload
-    aws lambda invoke --function-name $ERROR_LAMBDA_ARN --payload "$PAYLOAD" /dev/null
+    aws lambda invoke \
+      --function-name $ERROR_LAMBDA_ARN \
+      --payload "$PAYLOAD" \
+      --cli-binary-format raw-in-base64-out \
+      /dev/null
 }
 
 # Set up a trap to catch errors and trigger the Lambda function
