@@ -60,7 +60,7 @@ const main = async (event: { status: string; uuid: string; mode: string }) => {
   const beacons = await DalClient.getBeaconByUUID(uuid!);
   const { id, url, retries, teams_id } = beacons.find(({ mode }: { mode: number }) => mode === viewportIndex);
 
-  if (retries > 3) {
+  if (retries > 2) {
     /**
      * Update the retries count
      */
