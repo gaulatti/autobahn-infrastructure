@@ -333,10 +333,6 @@ const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      type: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
       stage: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -674,11 +670,6 @@ const defineStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
       performance_score: {
         type: DataTypes.INTEGER,
         allowNull: false,
-      },
-      pleasantness_score: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: null,
       },
       date_from: {
         type: DataTypes.DATE,

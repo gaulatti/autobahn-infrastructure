@@ -419,11 +419,7 @@ class DalClient {
     uuid: string,
     url: string,
     provider: number,
-    type: number,
-    mode: number,
-    status: number,
-    targets_id?: number,
-    triggered_by?: number
+    ownership: { triggered_by?: number; targets_id?: number }
   ) {
     const request: CreatePulseRequest = {
       request_type: RequestType.CreatePulse,
@@ -432,9 +428,7 @@ class DalClient {
       uuid,
       url,
       provider,
-      type,
-      targets_id,
-      triggered_by,
+      ...ownership,
     };
 
     return await DalClient.parsedInvoke(request);
@@ -443,44 +437,12 @@ class DalClient {
   /**
    * Heartbeats
    */
-  public static async createHeartbeat(
-    mode: number,
-    pulses_id: number,
-    retries: number,
-    ttfb: number,
-    fcp: number,
-    dcl: number,
-    lcp: number,
-    tti: number,
-    si: number,
-    cls: number,
-    performance_score: number,
-    accessibility_score: number,
-    best_practices_score: number,
-    seo_score: number,
-    status: number,
-    screenshots?: { timestamp: number }[],
-    ended_at?: Date
-  ) {
+  public static async createHeartbeat(mode: number, pulses_id: number) {
     const request: CreateHeartbeatRequest = {
       request_type: RequestType.CreateHeartbeat,
       pulses_id,
-      retries,
-      ttfb,
-      fcp,
-      dcl,
-      lcp,
-      tti,
-      si,
-      cls,
-      performance_score,
-      accessibility_score,
-      best_practices_score,
-      seo_score,
-      status,
-      screenshots,
-      ended_at,
       mode,
+      status: 0,
     };
 
     return await DalClient.parsedInvoke(request);
@@ -501,7 +463,6 @@ class DalClient {
     seo_score: number,
     status: number,
     screenshots?: { timestamp: number }[],
-    pleasantness_score?: number,
     ended_at?: Date
   ) {
     const request: UpdateHeartbeatRequest = {
@@ -520,20 +481,18 @@ class DalClient {
       best_practices_score,
       seo_score,
       screenshots,
-      pleasantness_score,
       ended_at,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-
   public static async updateHeartbeatRetries(id: number, retries: number) {
     const request: UpdateHeartbeatRequest = {
       request_type: RequestType.UpdateHeartbeat,
       id,
       retries,
-      status: 6
+      status: 6,
     };
 
     return await DalClient.parsedInvoke(request);
@@ -544,7 +503,7 @@ class DalClient {
       request_type: RequestType.UpdateHeartbeat,
       id,
       retries,
-      status: 5
+      status: 5,
     };
 
     return await DalClient.parsedInvoke(request);
@@ -684,8 +643,7 @@ class DalClient {
     count: number,
     performance_score: number,
     date_from: Date,
-    date_to: Date,
-    pleasantness_score?: number
+    date_to: Date
   ) {
     const request: CreateStatisticRequest = {
       request_type: RequestType.CreateStatistic,
@@ -703,7 +661,6 @@ class DalClient {
       performance_score,
       date_from,
       date_to,
-      pleasantness_score,
     };
 
     return await DalClient.parsedInvoke(request);

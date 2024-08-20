@@ -40,10 +40,15 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const uuid = randomUUID();
 
   /**
+   * Create a new Pulse record.
+   */
+  const pulse = await DalClient.createPulse(team, 3, uuid, url, 1, { triggered_by: me.id });
+
+  /**
    * Create new heartbeat records.
    */
-  const mobile = await DalClient.createPulse(team, 3, uuid, url, 1, me.username, 0, 0);
-  const desktop = await DalClient.createPulse(team, 3, uuid, url, 1, me.username, 1, 0);
+  const mobile = await DalClient.createHeartbeat(0, pulse.id);
+  const desktop = await DalClient.createHeartbeat(1, pulse.id);
 
   /**
    * Trigger the new heartbeat records.

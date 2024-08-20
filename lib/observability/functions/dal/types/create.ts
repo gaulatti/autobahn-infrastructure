@@ -45,7 +45,6 @@ export interface CreatePulseRequest extends BaseRequest {
   uuid: string;
   url: string;
   provider: number;
-  type: number;
   targets_id?: number;
   triggered_by?: number;
 }
@@ -53,22 +52,8 @@ export interface CreatePulseRequest extends BaseRequest {
 export interface CreateHeartbeatRequest extends BaseRequest {
   request_type: RequestType.CreateHeartbeat;
   pulses_id: number;
-  retries: number;
-  ttfb: number;
-  fcp: number;
-  dcl: number;
-  lcp: number;
-  tti: number;
-  si: number;
-  cls: number;
-  screenshots?: any; // JSON type can be replaced with appropriate interface/type if needed
   mode: number;
-  performance_score: number;
-  accessibility_score: number;
-  best_practices_score: number;
-  seo_score: number;
   status: number;
-  ended_at?: Date;
 }
 
 export interface CreateEngagementRequest extends BaseRequest {
@@ -102,7 +87,6 @@ export interface CreateStatisticRequest extends BaseRequest {
   mode: number;
   count: number;
   performance_score: number;
-  pleasantness_score?: number;
   date_from: Date;
   date_to: Date;
 }

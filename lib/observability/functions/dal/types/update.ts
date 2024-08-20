@@ -16,7 +16,6 @@ export interface UpdateHeartbeatRequest extends BaseRequest {
   accessibility_score?: number;
   best_practices_score?: number;
   seo_score?: number;
-  pleasantness_score?: number;
   ended_at?: Date;
   status?: number;
 }
