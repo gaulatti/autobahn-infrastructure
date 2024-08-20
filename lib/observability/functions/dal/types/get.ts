@@ -10,8 +10,8 @@ export type GetRequestType =
   | RequestType.GetMembership
   | RequestType.GetAssignment
   | RequestType.GetTarget
-  | RequestType.GetBeacon
-  | RequestType.GetBeaconByUUID
+  | RequestType.GetPulse
+  | RequestType.GetPulseByUUID
   | RequestType.GetEngagement
   | RequestType.GetSchedule
   | RequestType.GetStatistic;

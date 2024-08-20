@@ -1,7 +1,7 @@
 import { CreateRequests } from './create';
 import { GetRequest } from './get';
 import { ListRequest } from './lists';
-import { UpdateBeaconRequest } from './update';
+import { UpdateHeartbeatRequest } from './update';
 
 export enum RequestType {
   GetTeam = 'GetTeam',
@@ -35,13 +35,15 @@ export enum RequestType {
   ListTargetsByProject = 'ListTargetsByProject',
   GetTarget = 'GetTarget',
   CreateTarget = 'CreateTarget',
-  ListBeacons = 'ListBeacons',
-  ListBeaconsByTeam = 'ListBeaconsByTeam',
-  ListBeaconsByUser = 'ListBeaconsByUser',
-  GetBeacon = 'GetBeacon',
-  GetBeaconByUUID = 'GetBeaconByUUID',
-  CreateBeacon = 'CreateBeacon',
-  UpdateBeacon = 'UpdateBeacon',
+  ListPulses = 'ListPulses',
+  ListPulsesByTeam = 'ListPulsesByTeam',
+  ListPulsesByUser = 'ListPulsesByUser',
+  GetPulse = 'GetPulse',
+  GetPulseByUUID = 'GetPulseByUUID',
+  CreatePulse = 'CreatePulse',
+  UpdatePulse = 'UpdatePulse',
+  CreateHeartbeat = 'CreateHeartbeat',
+  UpdateHeartbeat = 'UpdateHeartbeat',
   ListEngagements = 'ListEngagements',
   ListEngagementsByTarget = 'ListEngagementsByTarget',
   GetEngagement = 'GetEngagement',
@@ -65,4 +67,4 @@ export * from './lists';
 export * from './create';
 export * from './update';
 
-export type AllowedRequest = GetRequest | ListRequest | CreateRequests | UpdateBeaconRequest
+export type AllowedRequest = GetRequest | ListRequest | CreateRequests | UpdateHeartbeatRequest

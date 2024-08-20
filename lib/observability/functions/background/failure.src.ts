@@ -55,18 +55,19 @@ const main = async (event: { status: string; uuid: string; mode: string }) => {
   const viewportIndex = getViewportIndex(mode!);
 
   /**
-   * Retrieve the beacon details from the database.
+   * Retrieve the heartbeat details from the database.
    */
-  const beacons = await DalClient.getBeaconByUUID(uuid!);
-  const { id, url, retries, teams_id } = beacons.find(({ mode }: { mode: number }) => mode === viewportIndex);
+  const pulse = await DalClient.getPulseByUUID(uuid!);
+  const { url, teams_id } = pulse;
+  const { id, retries } = pulse.heartbeats.find(({ mode }: { mode: number }) => mode === viewportIndex);
 
   if (retries > 2) {
     /**
      * Update the retries count
      */
-    await DalClient.updateFailedBeacon(id, retries + 1);
+    await DalClient.updateFailedHeartbeat(id, retries + 1);
   } else {
-    await DalClient.updateBeaconRetries(id, retries + 1);
+    await DalClient.updateHeartbeatRetries(id, retries + 1);
 
     /**
      * Re-trigger the execution.

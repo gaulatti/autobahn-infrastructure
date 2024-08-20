@@ -1,7 +1,6 @@
 import { Model, ModelStatic, Op, Transaction } from 'sequelize';
-import { AllowedRequest, GetRequest, RequestType, UpdateBeaconRequest } from './types';
+import { AllowedRequest, GetRequest, RequestType, UpdateHeartbeatRequest } from './types';
 import { ListRequest } from './types/lists';
-
 
 /**
  * Executes an operation based on the provided request.
@@ -12,7 +11,7 @@ import { ListRequest } from './types/lists';
  * @returns {Promise<any>} - A promise that resolves to the result of the operation.
  */
 const executeOperation = async (transaction: Transaction, models: Record<string, ModelStatic<Model>>, request: AllowedRequest): Promise<any> => {
-  const { User, Team, Project, Membership, Target, Assignment, Beacon, Engagement, Schedule, Statistic } = models;
+  const { User, Team, Project, Membership, Target, Assignment, Pulse, Heartbeat, Engagement, Schedule, Statistic } = models;
 
   if (request.request_type.startsWith('List')) {
     const where: Record<string, any> = {};
@@ -158,12 +157,22 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
         return Target.findAndCountAll({ ...paginationParams, transaction, where });
       case RequestType.ListTargetsByProject:
         return Target.findAndCountAll({ ...paginationParams, transaction, where: { projects_id: listRequest.payload, ...where } });
-      case RequestType.ListBeacons:
-        return Beacon.findAndCountAll({ ...paginationParams, transaction, where });
-      case RequestType.ListBeaconsByTeam:
-        return Beacon.findAndCountAll({ ...paginationParams, transaction, where: { teams_id: listRequest.payload, ...where } });
-      case RequestType.ListBeaconsByUser:
-        return Beacon.findAndCountAll({ ...paginationParams, transaction, where: { triggered_by: listRequest.payload, ...where } });
+      case RequestType.ListPulses:
+        return Pulse.findAndCountAll({ ...paginationParams, transaction, where, include: [{ model: Heartbeat, as: 'heartbeats' }] });
+      case RequestType.ListPulsesByTeam:
+        return Pulse.findAndCountAll({
+          ...paginationParams,
+          transaction,
+          where: { teams_id: listRequest.payload, ...where },
+          include: [{ model: Heartbeat, as: 'heartbeats' }],
+        });
+      case RequestType.ListPulsesByUser:
+        return Pulse.findAndCountAll({
+          ...paginationParams,
+          transaction,
+          where: { triggered_by: listRequest.payload, ...where },
+          include: [{ model: Heartbeat, as: 'heartbeats' }],
+        });
       case RequestType.ListEngagements:
         return Engagement.findAndCountAll({ ...paginationParams, transaction, where });
       case RequestType.ListEngagementsByTarget:
@@ -207,8 +216,6 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
         });
       case RequestType.GetUserBySub:
         return User.findOne({ transaction, where: { sub: getRequest.payload } });
-      case RequestType.GetUserBySub:
-        return User.findOne({ transaction, where: { sub: getRequest.payload } });
       case RequestType.GetTeam:
         return Team.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetProject:
@@ -223,10 +230,10 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
         return Assignment.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetTarget:
         return Target.findOne({ transaction, where: { id: getRequest.payload } });
-      case RequestType.GetBeacon:
-        return Beacon.findOne({ transaction, where: { id: getRequest.payload } });
-      case RequestType.GetBeaconByUUID:
-        return Beacon.findAll({ transaction, where: { uuid: getRequest.payload } });
+      case RequestType.GetPulse:
+        return Pulse.findOne({ transaction, where: { id: getRequest.payload }, include: [{ model: Heartbeat, as: 'heartbeats' }] });
+      case RequestType.GetPulseByUUID:
+        return Pulse.findOne({ transaction, where: { uuid: getRequest.payload }, include: [{ model: Heartbeat, as: 'heartbeats' }] });
       case RequestType.GetEngagement:
         return Engagement.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetSchedule:
@@ -252,11 +259,16 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
       return Assignment.create({ transaction, ...request });
     case RequestType.CreateTarget:
       return Target.create({ transaction, ...request });
-    case RequestType.CreateBeacon:
-      return Beacon.create({ transaction, ...request });
-    case RequestType.UpdateBeacon:
-      const updateBeaconRequest = request as UpdateBeaconRequest;
-      return await (await Beacon.findOne({ transaction, where: { id: updateBeaconRequest.id } }))!.update({ transaction, ...updateBeaconRequest });
+    case RequestType.CreatePulse:
+      return Pulse.create({ transaction, ...request });
+    case RequestType.CreateHeartbeat:
+      return Heartbeat.create({ transaction, ...request });
+    case RequestType.UpdateHeartbeat:
+      const updatePulseRequest = request as UpdateHeartbeatRequest;
+      return await (await Pulse.findOne({ transaction, where: { id: updatePulseRequest.id } }))!.update({ transaction, ...updatePulseRequest });
+    case RequestType.UpdateHeartbeat:
+      const updateHeartbeatRequest = request as UpdateHeartbeatRequest;
+      return await (await Heartbeat.findOne({ transaction, where: { id: updateHeartbeatRequest.id } }))!.update({ transaction, ...updateHeartbeatRequest });
     case RequestType.CreateEngagement:
       return Engagement.create({ transaction, ...request });
     case RequestType.CreateSchedule:

@@ -40,13 +40,13 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const uuid = randomUUID();
 
   /**
-   * Create new beacon records.
+   * Create new heartbeat records.
    */
-  const mobile = await DalClient.createBeacon(team, 3, uuid, url, 1, me.username, 0, 0);
-  const desktop = await DalClient.createBeacon(team, 3, uuid, url, 1, me.username, 1, 0);
+  const mobile = await DalClient.createPulse(team, 3, uuid, url, 1, me.username, 0, 0);
+  const desktop = await DalClient.createPulse(team, 3, uuid, url, 1, me.username, 1, 0);
 
   /**
-   * Trigger the new beacon records.
+   * Trigger the new heartbeat records.
    */
   const mobileCommand = new PublishCommand({
     Message: JSON.stringify({ url, uuid, mode: 'mobile' }),

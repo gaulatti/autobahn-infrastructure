@@ -109,8 +109,8 @@ const main = async (event: S3Event) => {
 
         const [uuid, mode] = objectKey.split('.');
         const isMobile = mode === 'mobile';
-        const uuidRecords: any[] = await DalClient.getBeaconByUUID(uuid);
-        const currentRecord = uuidRecords.find((record: any) => record.mode === (isMobile ? 0 : 1));
+        const pulse = await DalClient.getPulseByUUID(uuid);
+        const currentHeartbeat = pulse.heartbeats.find((record: any) => record.mode === (isMobile ? 0 : 1));
 
         const { firstContentfulPaint, largestContentfulPaint, interactive, speedIndex, cumulativeLayoutShift, timeToFirstByte, observedDomContentLoaded } =
           metrics.find(() => true);
@@ -142,8 +142,8 @@ const main = async (event: S3Event) => {
         /**
          * Update the record with the new metrics.
          */
-        await DalClient.updateBeacon(
-          currentRecord.id,
+        await DalClient.updateHeartbeat(
+          currentHeartbeat.id,
           4,
           timeToFirstByte,
           firstContentfulPaint,
@@ -165,7 +165,7 @@ const main = async (event: S3Event) => {
         const teamParams = {
           TableName: process.env.CACHE_TABLE_NAME,
           Key: marshall({
-            sub: currentRecord.teams_id.toString(),
+            sub: pulse.teams_id.toString(),
             type: 'teamConnections',
           }),
         };

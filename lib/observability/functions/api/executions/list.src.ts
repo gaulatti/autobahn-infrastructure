@@ -16,8 +16,8 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const renderingParams: ListRenderingParams = (event.queryStringParameters as unknown as ListRenderingParams) || {};
 
   const teams = memberships.map(({ team: { id } }: { team: { id: number } }) => id);
-  const teamBeacons = await DalClient.listBeaconsByTeam(teams, renderingParams);
-  const output = { beacons: teamBeacons };
+  const teamPulses = await DalClient.listPulsesByTeam(teams, renderingParams);
+  const output = { pulses: teamPulses };
 
   return output;
 });

@@ -15,10 +15,10 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const executionId = pathParameters!.uuid;
 
   /**
-   * Retrieve the beacon details from the database.
+   * Retrieve the pulse details from the database.
    */
-  const output = await DalClient.getBeaconByUUID(executionId!);
-  return { results: output};
+  const output = await DalClient.getPulseByUUID(executionId!);
+  return { results: output };
 });
 
 export { main };

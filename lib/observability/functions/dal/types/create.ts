@@ -13,6 +13,7 @@ export interface CreateProjectRequest extends BaseRequest {
   teams_id: number;
   name: string;
 }
+
 export interface CreateMembershipRequest extends BaseRequest {
   request_type: RequestType.CreateMembership;
   users_id: number;
@@ -37,26 +38,37 @@ export interface CreateTargetRequest extends BaseRequest {
   lambda_arn?: string;
 }
 
-export interface CreateBeaconRequest extends BaseRequest {
-  request_type: RequestType.CreateBeacon;
+export interface CreatePulseRequest extends BaseRequest {
+  request_type: RequestType.CreatePulse;
   teams_id: number;
   stage: number;
   uuid: string;
   url: string;
   provider: number;
   type: number;
-  mode: number;
-  status: number;
-  fcp?: number;
-  lcp?: number;
-  tti?: number;
-  si?: number;
-  cls?: number;
-  performance_score?: number;
-  pleasantness_score?: number;
-  ended_at?: Date;
   targets_id?: number;
   triggered_by?: number;
+}
+
+export interface CreateHeartbeatRequest extends BaseRequest {
+  request_type: RequestType.CreateHeartbeat;
+  pulses_id: number;
+  retries: number;
+  ttfb: number;
+  fcp: number;
+  dcl: number;
+  lcp: number;
+  tti: number;
+  si: number;
+  cls: number;
+  screenshots?: any; // JSON type can be replaced with appropriate interface/type if needed
+  mode: number;
+  performance_score: number;
+  accessibility_score: number;
+  best_practices_score: number;
+  seo_score: number;
+  status: number;
+  ended_at?: Date;
 }
 
 export interface CreateEngagementRequest extends BaseRequest {
@@ -67,6 +79,7 @@ export interface CreateEngagementRequest extends BaseRequest {
   date_from: Date;
   date_to: Date;
 }
+
 export interface CreateScheduleRequest extends BaseRequest {
   request_type: RequestType.CreateSchedule;
   targets_id: number;
@@ -74,6 +87,7 @@ export interface CreateScheduleRequest extends BaseRequest {
   cron: string;
   next_execution: Date;
 }
+
 export interface CreateStatisticRequest extends BaseRequest {
   request_type: RequestType.CreateStatistic;
   targets_id: number;
@@ -93,4 +107,14 @@ export interface CreateStatisticRequest extends BaseRequest {
   date_to: Date;
 }
 
-export type CreateRequests = CreateUserRequest | CreateProjectRequest | CreateMembershipRequest | CreateAssignmentRequest | CreateTargetRequest | CreateBeaconRequest | CreateEngagementRequest | CreateScheduleRequest | CreateStatisticRequest;
+export type CreateRequests =
+  | CreateUserRequest
+  | CreateProjectRequest
+  | CreateMembershipRequest
+  | CreateAssignmentRequest
+  | CreateTargetRequest
+  | CreatePulseRequest
+  | CreateHeartbeatRequest
+  | CreateEngagementRequest
+  | CreateScheduleRequest
+  | CreateStatisticRequest;

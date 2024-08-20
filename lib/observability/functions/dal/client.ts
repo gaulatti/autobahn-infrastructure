@@ -2,7 +2,8 @@ import { InvokeCommand, InvokeCommandOutput, LambdaClient } from '@aws-sdk/clien
 import {
   AllowedRequest,
   CreateAssignmentRequest,
-  CreateBeaconRequest,
+  CreatePulseRequest,
+  CreateHeartbeatRequest,
   CreateEngagementRequest,
   CreateMembershipRequest,
   CreateProjectRequest,
@@ -14,7 +15,7 @@ import {
   ListRenderingParams,
   ListRequest,
   RequestType,
-  UpdateBeaconRequest,
+  UpdateHeartbeatRequest,
 } from './types';
 
 /**
@@ -363,20 +364,20 @@ class DalClient {
   }
 
   /**
-   * Beacons
+   * Pulses
    */
-  public static async listBeacons(params: ListRenderingParams) {
+  public static async listPulses(params: ListRenderingParams) {
     const request: ListRequest = {
-      request_type: RequestType.ListBeacons,
+      request_type: RequestType.ListPulses,
       params,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listBeaconsByTeam(payload: number[], params: ListRenderingParams) {
+  public static async listPulsesByTeam(payload: number[], params: ListRenderingParams) {
     const request: ListRequest = {
-      request_type: RequestType.ListBeaconsByTeam,
+      request_type: RequestType.ListPulsesByTeam,
       payload,
       params,
     };
@@ -384,9 +385,9 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listBeaconsByUser(payload: number, params: ListRenderingParams) {
+  public static async listPulsesByUser(payload: number, params: ListRenderingParams) {
     const request: ListRequest = {
-      request_type: RequestType.ListBeaconsByUser,
+      request_type: RequestType.ListPulsesByUser,
       payload,
       params,
     };
@@ -394,25 +395,25 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async getBeacon(payload: number) {
+  public static async getPulse(payload: number) {
     const request: GetRequest = {
-      request_type: RequestType.GetBeacon,
+      request_type: RequestType.GetPulse,
       payload,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async getBeaconByUUID(payload: string) {
+  public static async getPulseByUUID(payload: string) {
     const request: GetRequest = {
-      request_type: RequestType.GetBeaconByUUID,
+      request_type: RequestType.GetPulseByUUID,
       payload,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async createBeacon(
+  public static async createPulse(
     teams_id: number,
     stage: number,
     uuid: string,
@@ -421,45 +422,31 @@ class DalClient {
     type: number,
     mode: number,
     status: number,
-    fcp?: number,
-    lcp?: number,
-    tti?: number,
-    si?: number,
-    cls?: number,
-    performance_score?: number,
-    pleasantness_score?: number,
-    ended_at?: Date,
     targets_id?: number,
     triggered_by?: number
   ) {
-    const request: CreateBeaconRequest = {
-      request_type: RequestType.CreateBeacon,
+    const request: CreatePulseRequest = {
+      request_type: RequestType.CreatePulse,
       teams_id,
       stage,
       uuid,
       url,
       provider,
       type,
-      fcp,
-      lcp,
-      tti,
-      si,
-      cls,
-      mode,
-      performance_score,
-      ended_at,
       targets_id,
       triggered_by,
-      pleasantness_score,
-      status,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async updateBeacon(
-    id: number,
-    status: number,
+  /**
+   * Heartbeats
+   */
+  public static async createHeartbeat(
+    mode: number,
+    pulses_id: number,
+    retries: number,
     ttfb: number,
     fcp: number,
     dcl: number,
@@ -471,19 +458,55 @@ class DalClient {
     accessibility_score: number,
     best_practices_score: number,
     seo_score: number,
+    status: number,
     screenshots?: { timestamp: number }[],
-    pleasantness_score?: number,
     ended_at?: Date
   ) {
-    const request: UpdateBeaconRequest = {
-      request_type: RequestType.UpdateBeacon,
-      id,
+    const request: CreateHeartbeatRequest = {
+      request_type: RequestType.CreateHeartbeat,
+      pulses_id,
+      retries,
+      ttfb,
+      fcp,
+      dcl,
+      lcp,
+      tti,
+      si,
+      cls,
       performance_score,
       accessibility_score,
       best_practices_score,
       seo_score,
-      pleasantness_score,
+      status,
+      screenshots,
       ended_at,
+      mode,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async updateHeartbeat(
+    id: number,
+    ttfb: number,
+    fcp: number,
+    dcl: number,
+    lcp: number,
+    tti: number,
+    si: number,
+    cls: number,
+    performance_score: number,
+    accessibility_score: number,
+    best_practices_score: number,
+    seo_score: number,
+    status: number,
+    screenshots?: { timestamp: number }[],
+    pleasantness_score?: number,
+    ended_at?: Date
+  ) {
+    const request: UpdateHeartbeatRequest = {
+      request_type: RequestType.UpdateHeartbeat,
+      id,
       status,
       ttfb,
       fcp,
@@ -492,15 +515,22 @@ class DalClient {
       tti,
       si,
       cls,
+      performance_score,
+      accessibility_score,
+      best_practices_score,
+      seo_score,
       screenshots,
+      pleasantness_score,
+      ended_at,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async updateBeaconRetries(id: number, retries: number) {
-    const request: UpdateBeaconRequest = {
-      request_type: RequestType.UpdateBeacon,
+
+  public static async updateHeartbeatRetries(id: number, retries: number) {
+    const request: UpdateHeartbeatRequest = {
+      request_type: RequestType.UpdateHeartbeat,
       id,
       retries,
       status: 6
@@ -509,9 +539,9 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async updateFailedBeacon(id: number, retries: number) {
-    const request: UpdateBeaconRequest = {
-      request_type: RequestType.UpdateBeacon,
+  public static async updateFailedHeartbeat(id: number, retries: number) {
+    const request: UpdateHeartbeatRequest = {
+      request_type: RequestType.UpdateHeartbeat,
       id,
       retries,
       status: 5

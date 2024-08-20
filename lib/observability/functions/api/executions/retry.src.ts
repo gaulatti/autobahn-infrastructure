@@ -61,15 +61,17 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const viewportIndex = getViewportIndex(viewport!);
 
   /**
-   * Retrieve the beacon details from the database.
+   * Retrieve the heartbeat details from the database.
    */
-  const beacons = await DalClient.getBeaconByUUID(uuid!);
-  const { id, url, retries, teams_id } = beacons.find(({ mode }: { mode: number }) => mode === viewportIndex);
+  const pulse = await DalClient.getPulseByUUID(uuid!);
+  const { url, teams_id } = pulse;
+  const { id, retries } = pulse.heartbeats.find(({ mode }: { mode: number }) => mode === viewportIndex);
 
   /**
    * Update the retries count
    */
-  await DalClient.updateBeaconRetries(id, retries + 1);
+
+  await DalClient.updateHeartbeatRetries(id, retries + 1);
 
   /**
    * Re-trigger the execution.

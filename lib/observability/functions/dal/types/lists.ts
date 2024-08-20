@@ -22,9 +22,9 @@ export type ListRequestType = RequestType.ListTeamsBySub
   | RequestType.ListAssignmentsByMembership
   | RequestType.ListTargets
   | RequestType.ListTargetsByProject
-  | RequestType.ListBeacons
-  | RequestType.ListBeaconsByUser
-  | RequestType.ListBeaconsByTeam
+  | RequestType.ListPulses
+  | RequestType.ListPulsesByUser
+  | RequestType.ListPulsesByTeam
   | RequestType.ListEngagements
   | RequestType.ListEngagementsByTarget
   | RequestType.ListSchedules

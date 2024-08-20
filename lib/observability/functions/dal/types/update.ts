@@ -1,9 +1,8 @@
 import { BaseRequest, RequestType } from '.';
 
-export interface UpdateBeaconRequest extends BaseRequest {
-  request_type: RequestType.UpdateBeacon;
+export interface UpdateHeartbeatRequest extends BaseRequest {
+  request_type: RequestType.UpdateHeartbeat;
   id: number;
-  status?: number;
   retries?: number;
   ttfb?: number;
   fcp?: number;
@@ -19,4 +18,7 @@ export interface UpdateBeaconRequest extends BaseRequest {
   seo_score?: number;
   pleasantness_score?: number;
   ended_at?: Date;
+  status?: number;
 }
+
+export type UpdateRequests = UpdateHeartbeatRequest;

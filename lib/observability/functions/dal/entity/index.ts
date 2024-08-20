@@ -281,14 +281,14 @@ const defineAssignment = (sequelize: Sequelize): ModelStatic<Model> => {
 };
 
 /**
- * Defines the Beacon model in the database.
+ * Defines the Pulse model in the database.
  *
  * @param {Sequelize} sequelize - The Sequelize instance.
- * @returns {Model} The Beacon model.
+ * @returns {Model} The Pulse model.
  */
-const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
+const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
   return sequelize.define(
-    'Beacon',
+    'Pulse',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -333,6 +333,65 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      type: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      stage: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
+      },
+    },
+    {
+      tableName: 'pulses',
+      underscored: true,
+    }
+  );
+};
+
+/**
+ * Defines the Heartbeat model in the database.
+ *
+ * @param {Sequelize} sequelize - The Sequelize instance.
+ * @returns {Model} The Heartbeat model.
+ */
+const defineHeartbeat = (sequelize: Sequelize): ModelStatic<Model> => {
+  return sequelize.define(
+    'Heartbeat',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      pulses_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'pulses',
+          key: 'id',
+        },
+      },
+      retries: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
       ttfb: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
@@ -368,14 +427,14 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
         allowNull: false,
         defaultValue: 0.0,
       },
-      mode: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
       screenshots: {
         type: DataTypes.JSON,
         allowNull: true,
         defaultValue: null,
+      },
+      mode: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
       performance_score: {
         type: DataTypes.INTEGER,
@@ -397,19 +456,9 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
         allowNull: false,
         defaultValue: 0,
       },
-      pleasantness_score: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: null,
-      },
       status: {
         type: DataTypes.INTEGER,
         allowNull: false,
-      },
-      retries: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0,
       },
       created_at: {
         type: DataTypes.DATE,
@@ -433,7 +482,7 @@ const defineBeacon = (sequelize: Sequelize): ModelStatic<Model> => {
       },
     },
     {
-      tableName: 'beacons',
+      tableName: 'heartbeats',
       underscored: true,
     }
   );
@@ -675,7 +724,8 @@ const defineModels = (sequelize: Sequelize) => {
   const Membership = defineMembership(sequelize);
   const Target = defineTarget(sequelize);
   const Assignment = defineAssignment(sequelize);
-  const Beacon = defineBeacon(sequelize);
+  const Pulse = definePulse(sequelize);
+  const Heartbeat = defineHeartbeat(sequelize);
   const Engagement = defineEngagement(sequelize);
   const Schedule = defineSchedule(sequelize);
   const Statistic = defineStatistic(sequelize);
@@ -685,9 +735,11 @@ const defineModels = (sequelize: Sequelize) => {
   Target.belongsTo(Project, { foreignKey: 'projects_id' });
   Assignment.belongsTo(Project, { foreignKey: 'projects_id' });
   Assignment.belongsTo(Membership, { foreignKey: 'memberships_id' });
-  Beacon.belongsTo(Team, { foreignKey: 'teams_id' });
-  Beacon.belongsTo(Target, { foreignKey: 'targets_id' });
-  Beacon.belongsTo(Assignment, { foreignKey: 'triggered_by' });
+  Pulse.belongsTo(Team, { foreignKey: 'teams_id' });
+  Pulse.belongsTo(Target, { foreignKey: 'targets_id' });
+  Pulse.belongsTo(Assignment, { foreignKey: 'triggered_by' });
+  Pulse.hasMany(Heartbeat, { foreignKey: 'pulses_id', as: 'heartbeats' });
+  Heartbeat.belongsTo(Pulse, { foreignKey: 'pulses_id' });
   Engagement.belongsTo(Target, { foreignKey: 'targets_id' });
   Schedule.belongsTo(Target, { foreignKey: 'targets_id' });
   Statistic.belongsTo(Target, { foreignKey: 'targets_id' });
@@ -707,7 +759,8 @@ const defineModels = (sequelize: Sequelize) => {
     Membership,
     Target,
     Assignment,
-    Beacon,
+    Pulse,
+    Heartbeat,
     Engagement,
     Schedule,
     Statistic,
