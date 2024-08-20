@@ -144,7 +144,6 @@ const main = async (event: S3Event) => {
          */
         await DalClient.updateHeartbeat(
           currentHeartbeat.id,
-          4,
           timeToFirstByte,
           firstContentfulPaint,
           observedDomContentLoaded,
@@ -156,7 +155,8 @@ const main = async (event: S3Event) => {
           accessibilityScore * 100,
           bestPracticesScore * 100,
           seoScore * 100,
-          thumbnails
+          4,
+          thumbnails,
         );
 
         /**

@@ -264,9 +264,6 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
     case RequestType.CreateHeartbeat:
       return Heartbeat.create({ transaction, ...request });
     case RequestType.UpdateHeartbeat:
-      const updatePulseRequest = request as UpdateHeartbeatRequest;
-      return await (await Pulse.findOne({ transaction, where: { id: updatePulseRequest.id } }))!.update({ transaction, ...updatePulseRequest });
-    case RequestType.UpdateHeartbeat:
       const updateHeartbeatRequest = request as UpdateHeartbeatRequest;
       return await (await Heartbeat.findOne({ transaction, where: { id: updateHeartbeatRequest.id } }))!.update({ transaction, ...updateHeartbeatRequest });
     case RequestType.CreateEngagement:

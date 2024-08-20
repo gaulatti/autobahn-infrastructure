@@ -70,7 +70,6 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   /**
    * Update the retries count
    */
-
   await DalClient.updateHeartbeatRetries(id, retries + 1);
 
   /**
