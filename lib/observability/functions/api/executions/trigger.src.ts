@@ -38,11 +38,12 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
    * Generate a new UUID.
    */
   const uuid = randomUUID();
+  const membership = me.memberships.find((membership: { teams_id: number }) => membership.teams_id == team);
 
   /**
    * Create a new Pulse record.
    */
-  const pulse = await DalClient.createPulse(team, 3, uuid, url, 1, { triggered_by: me.id });
+  const pulse = await DalClient.createPulse(team, 3, uuid, url, 1, { triggered_by: membership.id });
 
   /**
    * Create new heartbeat records.

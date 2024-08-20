@@ -728,7 +728,7 @@ const defineModels = (sequelize: Sequelize) => {
   Assignment.belongsTo(Membership, { foreignKey: 'memberships_id' });
   Pulse.belongsTo(Team, { foreignKey: 'teams_id' });
   Pulse.belongsTo(Target, { foreignKey: 'targets_id' });
-  Pulse.belongsTo(Assignment, { foreignKey: 'triggered_by' });
+  Pulse.belongsTo(Membership, { foreignKey: 'triggered_by' });
   Pulse.hasMany(Heartbeat, { foreignKey: 'pulses_id', as: 'heartbeats' });
   Heartbeat.belongsTo(Pulse, { foreignKey: 'pulses_id' });
   Engagement.belongsTo(Target, { foreignKey: 'targets_id' });
@@ -740,6 +740,7 @@ const defineModels = (sequelize: Sequelize) => {
    */
   Membership.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
   Membership.belongsTo(User, { foreignKey: 'users_id', as: 'user' });
+  Membership.hasMany(User, { foreignKey: 'triggered_by', as: 'pulses' });
   Team.hasMany(Membership, { foreignKey: 'teams_id', as: 'memberships' });
   User.hasMany(Membership, { foreignKey: 'users_id', as: 'memberships' });
 
