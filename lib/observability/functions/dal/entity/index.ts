@@ -740,7 +740,7 @@ const defineModels = (sequelize: Sequelize) => {
    */
   Membership.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
   Membership.belongsTo(User, { foreignKey: 'users_id', as: 'user' });
-  Membership.hasMany(User, { foreignKey: 'triggered_by', as: 'pulses' });
+  Membership.hasMany(Pulse, { foreignKey: 'triggered_by', as: 'pulses' });
   Team.hasMany(Membership, { foreignKey: 'teams_id', as: 'memberships' });
   User.hasMany(Membership, { foreignKey: 'users_id', as: 'memberships' });
 
