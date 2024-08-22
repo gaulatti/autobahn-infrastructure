@@ -317,13 +317,31 @@ const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
         allowNull: true,
         defaultValue: null,
         references: {
-          model: 'assignments',
+          model: 'memberships',
           key: 'id',
         },
       },
       uuid: {
-        type: DataTypes.STRING(45),
+        type: DataTypes.UUID,
         allowNull: false,
+        defaultValue: DataTypes.UUIDV4,
+        get() {
+          const rawValue = this.getDataValue('uuid');
+          return rawValue
+            ? [
+                rawValue.toString('hex').slice(0, 8),
+                rawValue.toString('hex').slice(8, 12),
+                rawValue.toString('hex').slice(12, 16),
+                rawValue.toString('hex').slice(16, 20),
+                rawValue.toString('hex').slice(20),
+              ].join('-')
+            : null;
+        },
+        set(value: string) {
+          if (value) {
+            this.setDataValue('uuid', Buffer.from(value.replace(/-/g, ''), 'hex'));
+          }
+        },
       },
       url: {
         type: DataTypes.TEXT,
@@ -356,6 +374,22 @@ const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
     {
       tableName: 'pulses',
       underscored: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['uuid'],
+        },
+      ],
+      hooks: {
+        beforeFind(options) {
+          if (options.where && typeof options.where === 'object' && 'uuid' in options.where) {
+            const where = options.where as Record<string, any>;
+            if (typeof where.uuid === 'string') {
+              where.uuid = Buffer.from(where.uuid.replace(/-/g, ''), 'hex');
+            }
+          }
+        },
+      },
     }
   );
 };

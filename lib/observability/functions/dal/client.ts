@@ -416,7 +416,6 @@ class DalClient {
   public static async createPulse(
     teams_id: number,
     stage: number,
-    uuid: string,
     url: string,
     provider: number,
     ownership: { triggered_by?: number; targets_id?: number }
@@ -425,7 +424,6 @@ class DalClient {
       request_type: RequestType.CreatePulse,
       teams_id,
       stage,
-      uuid,
       url,
       provider,
       ...ownership,
