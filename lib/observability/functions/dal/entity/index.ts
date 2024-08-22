@@ -324,7 +324,6 @@ const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
       uuid: {
         type: DataTypes.UUID,
         allowNull: false,
-        defaultValue: DataTypes.UUIDV4,
         get() {
           const rawValue = this.getDataValue('uuid');
           return rawValue

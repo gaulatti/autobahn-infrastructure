@@ -41,6 +41,7 @@ export interface CreateTargetRequest extends BaseRequest {
 export interface CreatePulseRequest extends BaseRequest {
   request_type: RequestType.CreatePulse;
   teams_id: number;
+  uuid: string;
   stage: number;
   url: string;
   provider: number;

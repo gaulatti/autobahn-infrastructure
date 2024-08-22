@@ -75,6 +75,7 @@ const main = async (event: S3Event) => {
     const bucketName = record.s3.bucket.name;
     const objectKey = record.s3.object.key;
 
+    console.log(`Processing object: ${objectKey}`);
     if (objectKey.includes('.json')) {
       /**
        * Get the object from S3.

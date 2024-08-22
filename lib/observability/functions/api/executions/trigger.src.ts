@@ -42,7 +42,9 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   /**
    * Create a new Pulse record.
    */
-  const { id, uuid } = await DalClient.createPulse(team, 3, url, 1, { triggered_by: membership.id });
+  const uuid = randomUUID();
+  const { id } = await DalClient.createPulse(team, 3, uuid, url, 1, { triggered_by: membership.id });
+  console.log(`Created pulse ${id} with UUID ${uuid}`);
 
   /**
    * Create new heartbeat records.
