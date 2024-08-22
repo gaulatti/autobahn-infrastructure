@@ -3,7 +3,7 @@ FROM public.ecr.aws/ubuntu/ubuntu:latest
 
 # Update Package List and install dependencies
 RUN apt-get update && \
-    apt-get install -y wget software-properties-common curl gnupg uuid-runtime unzip jq
+    apt-get install -y wget software-properties-common curl gnupg uuid-runtime unzip jq esbuild
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
