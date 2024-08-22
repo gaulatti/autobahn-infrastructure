@@ -35,7 +35,17 @@ google-chrome --headless --no-sandbox --disable-dev-shm-usage --remote-debugging
 sleep 5
 
 # Run Lighthouse using the pre-started Chrome instance
-lighthouse --port=9222 --chrome-flags="--no-sandbox --disable-dev-shm-usage --headless --remote-debugging-port=9222" $TARGET_PARAMETER $PRESET_FLAG --output=json --output-path=./$UUID.json
+lighthouse \
+  --port=9222 \
+  --chrome-flags="--no-sandbox --disable-dev-shm-usage --headless --remote-debugging-port=9222" \
+  $TARGET_PARAMETER \
+  $PRESET_FLAG \
+  --output=json \
+  --output-path=./$UUID.json \
+  --throttling-method=devtools \
+  --throttling.cpuSlowdownMultiplier=1 \
+  --throttling.throughputKbps=0 \
+  --throttling.requestLatencyMs=0
 
 echo "Lighthouse Complete, time to upload"
 
