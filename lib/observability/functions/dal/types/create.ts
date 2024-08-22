@@ -34,7 +34,7 @@ export interface CreateTargetRequest extends BaseRequest {
   stage: number;
   provider: number;
   name: string;
-  url?: string;
+  url_id?: number;
   lambda_arn?: string;
 }
 
@@ -43,7 +43,7 @@ export interface CreatePulseRequest extends BaseRequest {
   teams_id: number;
   uuid: string;
   stage: number;
-  url: string;
+  url_id: number;
   provider: number;
   targets_id?: number;
   triggered_by?: number;
@@ -58,7 +58,7 @@ export interface CreateHeartbeatRequest extends BaseRequest {
 
 export interface CreateEngagementRequest extends BaseRequest {
   request_type: RequestType.CreateEngagement;
-  targets_id: number;
+  url_id: number;
   bounce_rate: number;
   mode: number;
   date_from: Date;
@@ -75,7 +75,7 @@ export interface CreateScheduleRequest extends BaseRequest {
 
 export interface CreateStatisticRequest extends BaseRequest {
   request_type: RequestType.CreateStatistic;
-  targets_id: number;
+  url_id: number;
   provider: number;
   period: number;
   statistic: number;

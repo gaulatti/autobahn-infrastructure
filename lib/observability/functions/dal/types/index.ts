@@ -46,6 +46,7 @@ export enum RequestType {
   UpdateHeartbeat = 'UpdateHeartbeat',
   ListEngagements = 'ListEngagements',
   ListEngagementsByTarget = 'ListEngagementsByTarget',
+  ListEngagementsByURL = 'ListEngagementsByURL',
   GetEngagement = 'GetEngagement',
   CreateEngagement = 'CreateEngagement',
   ListSchedules = 'ListSchedules',
@@ -54,6 +55,7 @@ export enum RequestType {
   CreateSchedule = 'CreateSchedule',
   ListStatistics = 'ListStatistics',
   ListStatisticsByTarget = 'ListStatisticsByTarget',
+  ListStatisticsByURL = 'ListStatisticsByURL',
   GetStatistic = 'GetStatistic',
   CreateStatistic = 'CreateStatistic',
 }
@@ -67,4 +69,4 @@ export * from './lists';
 export * from './create';
 export * from './update';
 
-export type AllowedRequest = GetRequest | ListRequest | CreateRequests | UpdateHeartbeatRequest
+export type AllowedRequest = GetRequest | ListRequest | CreateRequests | UpdateHeartbeatRequest;

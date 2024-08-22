@@ -177,6 +177,43 @@ const defineMembership = (sequelize: Sequelize): ModelStatic<Model> => {
 };
 
 /**
+ * Defines the URL model in the database.
+ *
+ * @param {Sequelize} sequelize - The Sequelize instance.
+ * @returns {Model} The URL model.
+ */
+const defineURL = (sequelize: Sequelize): ModelStatic<Model> => {
+  return sequelize.define(
+    'URL',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      url: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+    },
+    {
+      tableName: 'urls',
+      underscored: true,
+    }
+  );
+};
+
+/**
  * Defines the Target model in the database.
  *
  * @param {Sequelize} sequelize - The Sequelize instance.
@@ -203,10 +240,13 @@ const defineTarget = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.STRING(255),
         allowNull: false,
       },
-      url: {
-        type: DataTypes.TEXT,
+      url_id: {
+        type: DataTypes.INTEGER,
         allowNull: true,
-        defaultValue: null,
+        references: {
+          model: 'urls',
+          key: 'id',
+        },
       },
       lambda_arn: {
         type: DataTypes.STRING(110),
@@ -342,9 +382,13 @@ const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
           }
         },
       },
-      url: {
-        type: DataTypes.TEXT,
+      url_id: {
+        type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'urls',
+          key: 'id',
+        },
       },
       provider: {
         type: DataTypes.INTEGER,
@@ -532,11 +576,11 @@ const defineEngagement = (sequelize: Sequelize): ModelStatic<Model> => {
         autoIncrement: true,
         primaryKey: true,
       },
-      targets_id: {
+      url_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'targets',
+          model: 'urls',
           key: 'id',
         },
       },
@@ -652,11 +696,11 @@ const defineStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
         autoIncrement: true,
         primaryKey: true,
       },
-      targets_id: {
+      url_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'targets',
+          model: 'urls',
           key: 'id',
         },
       },
@@ -746,6 +790,7 @@ const defineModels = (sequelize: Sequelize) => {
   const Team = defineTeam(sequelize);
   const Project = defineProject(sequelize);
   const Membership = defineMembership(sequelize);
+  const URL = defineURL(sequelize);
   const Target = defineTarget(sequelize);
   const Assignment = defineAssignment(sequelize);
   const Pulse = definePulse(sequelize);
@@ -755,26 +800,41 @@ const defineModels = (sequelize: Sequelize) => {
   const Statistic = defineStatistic(sequelize);
 
   // Define associations
-  Project.belongsTo(Team, { foreignKey: 'teams_id' });
-  Target.belongsTo(Project, { foreignKey: 'projects_id' });
-  Assignment.belongsTo(Project, { foreignKey: 'projects_id' });
   Assignment.belongsTo(Membership, { foreignKey: 'memberships_id' });
-  Pulse.belongsTo(Team, { foreignKey: 'teams_id' });
-  Pulse.belongsTo(Target, { foreignKey: 'targets_id' });
-  Pulse.belongsTo(Membership, { foreignKey: 'triggered_by' });
-  Pulse.hasMany(Heartbeat, { foreignKey: 'pulses_id', as: 'heartbeats' });
+  Assignment.belongsTo(Membership, { foreignKey: 'memberships_id', as: 'membership' });
+  Assignment.belongsTo(Project, { foreignKey: 'projects_id' });
+  Assignment.belongsTo(Project, { foreignKey: 'projects_id', as: 'project' });
+  Engagement.belongsTo(URL, { foreignKey: 'url_id' });
+  Engagement.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
   Heartbeat.belongsTo(Pulse, { foreignKey: 'pulses_id' });
-  Engagement.belongsTo(Target, { foreignKey: 'targets_id' });
-  Schedule.belongsTo(Target, { foreignKey: 'targets_id' });
-  Statistic.belongsTo(Target, { foreignKey: 'targets_id' });
-
-  /**
-   * User Associations
-   */
+  Heartbeat.belongsTo(Pulse, { foreignKey: 'pulses_id', as: 'pulse' });
   Membership.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
   Membership.belongsTo(User, { foreignKey: 'users_id', as: 'user' });
+  Project.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
+  Pulse.belongsTo(Membership, { foreignKey: 'triggered_by', as: 'triggeredBy' });
+  Pulse.belongsTo(Target, { foreignKey: 'targets_id', as: 'target' });
+  Pulse.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
+  Pulse.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
+  Schedule.belongsTo(Target, { foreignKey: 'targets_id', as: 'target' });
+  Statistic.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
+  Target.belongsTo(Project, { foreignKey: 'projects_id', as: 'project' });
+  Target.belongsTo(URL, { foreignKey: 'url_id' });
+  Target.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
+
+  Membership.hasMany(Assignment, { foreignKey: 'memberships_id', as: 'assignments' });
   Membership.hasMany(Pulse, { foreignKey: 'triggered_by', as: 'pulses' });
+  Project.hasMany(Assignment, { foreignKey: 'projects_id', as: 'assignments' });
+  Project.hasMany(Target, { foreignKey: 'projects_id', as: 'targets' });
+  Pulse.hasMany(Heartbeat, { foreignKey: 'pulses_id', as: 'heartbeats' });
+  Target.hasMany(Pulse, { foreignKey: 'targets_id', as: 'pulses' });
+  Target.hasMany(Schedule, { foreignKey: 'targets_id', as: 'schedules' });
   Team.hasMany(Membership, { foreignKey: 'teams_id', as: 'memberships' });
+  Team.hasMany(Project, { foreignKey: 'teams_id', as: 'projects' });
+  Team.hasMany(Pulse, { foreignKey: 'teams_id', as: 'pulses' });
+  URL.hasMany(Engagement, { foreignKey: 'url_id', as: 'engagements' });
+  URL.hasMany(Pulse, { foreignKey: 'url_id', as: 'pulses' });
+  URL.hasMany(Statistic, { foreignKey: 'url_id', as: 'statistics' });
+  URL.hasMany(Target, { foreignKey: 'url_id', as: 'targets' });
   User.hasMany(Membership, { foreignKey: 'users_id', as: 'memberships' });
 
   return {
@@ -782,6 +842,7 @@ const defineModels = (sequelize: Sequelize) => {
     Team,
     Project,
     Membership,
+    URL,
     Target,
     Assignment,
     Pulse,

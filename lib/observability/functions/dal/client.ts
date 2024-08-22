@@ -349,14 +349,14 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async createTarget(projects_id: number, stage: number, provider: number, name: string, url?: string, lambda_arn?: string) {
+  public static async createTarget(projects_id: number, stage: number, provider: number, name: string, url_id?: number, lambda_arn?: string) {
     const request: CreateTargetRequest = {
       request_type: RequestType.CreateTarget,
       projects_id,
       stage,
       provider,
       name,
-      url,
+      url_id,
       lambda_arn,
     };
 
@@ -417,7 +417,7 @@ class DalClient {
     teams_id: number,
     stage: number,
     uuid: string,
-    url: string,
+    url_id: number,
     provider: number,
     ownership: { triggered_by?: number; targets_id?: number }
   ) {
@@ -426,7 +426,7 @@ class DalClient {
       teams_id,
       uuid,
       stage,
-      url,
+      url_id,
       provider,
       ...ownership,
     };
@@ -532,6 +532,16 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  public static async listEngagementsByURL(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
+      request_type: RequestType.ListEngagementsByURL,
+      payload,
+      params,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
   public static async getEngagement(payload: number) {
     const request: GetRequest = {
       request_type: RequestType.GetEngagement,
@@ -541,10 +551,10 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async createEngagement(targets_id: number, bounce_rate: number, mode: number, date_from: Date, date_to: Date) {
+  public static async createEngagement(url_id: number, bounce_rate: number, mode: number, date_from: Date, date_to: Date) {
     const request: CreateEngagementRequest = {
       request_type: RequestType.CreateEngagement,
-      targets_id,
+      url_id,
       bounce_rate,
       mode,
       date_from,
@@ -620,6 +630,16 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  public static async listStatisticsByURL(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
+      request_type: RequestType.ListStatisticsByURL,
+      payload,
+      params,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
   public static async getStatistic(payload: number) {
     const request: GetRequest = {
       request_type: RequestType.GetStatistic,
@@ -630,7 +650,7 @@ class DalClient {
   }
 
   public static async createStatistic(
-    targets_id: number,
+    url_id: number,
     provider: number,
     period: number,
     statistic: number,
@@ -647,7 +667,7 @@ class DalClient {
   ) {
     const request: CreateStatisticRequest = {
       request_type: RequestType.CreateStatistic,
-      targets_id,
+      url_id,
       provider,
       period,
       statistic,

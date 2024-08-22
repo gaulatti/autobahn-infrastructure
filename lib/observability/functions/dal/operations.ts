@@ -11,7 +11,7 @@ import { ListRequest } from './types/lists';
  * @returns {Promise<any>} - A promise that resolves to the result of the operation.
  */
 const executeOperation = async (transaction: Transaction, models: Record<string, ModelStatic<Model>>, request: AllowedRequest): Promise<any> => {
-  const { User, Team, Project, Membership, Target, Assignment, Pulse, Heartbeat, Engagement, Schedule, Statistic } = models;
+  const { User, Team, Project, Membership, Target, Assignment, Pulse, Heartbeat, Engagement, Schedule, Statistic, URL } = models;
 
   if (request.request_type.startsWith('List')) {
     const where: Record<string, any> = {};
@@ -158,33 +158,33 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
       case RequestType.ListTargetsByProject:
         return Target.findAndCountAll({ ...paginationParams, transaction, where: { projects_id: listRequest.payload, ...where } });
       case RequestType.ListPulses:
-        return Pulse.findAndCountAll({ ...paginationParams, transaction, where, include: [{ model: Heartbeat, as: 'heartbeats' }] });
+        return Pulse.findAndCountAll({ ...paginationParams, transaction, where, include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }] });
       case RequestType.ListPulsesByTeam:
         return Pulse.findAndCountAll({
           ...paginationParams,
           transaction,
           where: { teams_id: listRequest.payload, ...where },
-          include: [{ model: Heartbeat, as: 'heartbeats' }],
+          include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }],
         });
       case RequestType.ListPulsesByUser:
         return Pulse.findAndCountAll({
           ...paginationParams,
           transaction,
           where: { triggered_by: listRequest.payload, ...where },
-          include: [{ model: Heartbeat, as: 'heartbeats' }],
+          include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }],
         });
       case RequestType.ListEngagements:
         return Engagement.findAndCountAll({ ...paginationParams, transaction, where });
-      case RequestType.ListEngagementsByTarget:
-        return Engagement.findAndCountAll({ ...paginationParams, transaction, where: { targets_id: listRequest.payload, ...where } });
+      case RequestType.ListEngagementsByURL:
+        return Engagement.findAndCountAll({ ...paginationParams, transaction, where: { url_id: listRequest.payload, ...where } });
       case RequestType.ListSchedules:
         return Schedule.findAndCountAll({ ...paginationParams, transaction, where });
       case RequestType.ListSchedulesByTarget:
         return Schedule.findAndCountAll({ ...paginationParams, transaction, where: { targets_id: listRequest.payload, ...where } });
       case RequestType.ListStatistics:
         return Statistic.findAndCountAll({ ...paginationParams, transaction, where });
-      case RequestType.ListStatisticsByTarget:
-        return Statistic.findAndCountAll({ ...paginationParams, transaction, where: { targets_id: listRequest.payload, ...where } });
+      case RequestType.ListStatisticsByURL:
+        return Statistic.findAndCountAll({ ...paginationParams, transaction, where: { url_id: listRequest.payload, ...where } });
       default:
         throw new Error(`Invalid LIST request: ${listRequest.request_type}`);
     }
@@ -231,9 +231,9 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
       case RequestType.GetTarget:
         return Target.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetPulse:
-        return Pulse.findOne({ transaction, where: { id: getRequest.payload }, include: [{ model: Heartbeat, as: 'heartbeats' }] });
+        return Pulse.findOne({ transaction, where: { id: getRequest.payload }, include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }] });
       case RequestType.GetPulseByUUID:
-        return Pulse.findOne({ transaction, where: { uuid: getRequest.payload }, include: [{ model: Heartbeat, as: 'heartbeats' }] });
+        return Pulse.findOne({ transaction, where: { uuid: getRequest.payload }, include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }] });
       case RequestType.GetEngagement:
         return Engagement.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetSchedule:

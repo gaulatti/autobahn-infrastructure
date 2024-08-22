@@ -27,10 +27,12 @@ export type ListRequestType = RequestType.ListTeamsBySub
   | RequestType.ListPulsesByTeam
   | RequestType.ListEngagements
   | RequestType.ListEngagementsByTarget
+  | RequestType.ListEngagementsByURL
   | RequestType.ListSchedules
   | RequestType.ListSchedulesByTarget
   | RequestType.ListStatistics
-  | RequestType.ListStatisticsByTarget;
+  | RequestType.ListStatisticsByTarget
+  | RequestType.ListStatisticsByURL;
 
 export interface ListRequest {
   params?: ListRenderingParams;
