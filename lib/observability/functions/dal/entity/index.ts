@@ -195,6 +195,27 @@ const defineURL = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
+      uuid: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        get() {
+          const rawValue = this.getDataValue('uuid');
+          return rawValue
+            ? [
+                rawValue.toString('hex').slice(0, 8),
+                rawValue.toString('hex').slice(8, 12),
+                rawValue.toString('hex').slice(12, 16),
+                rawValue.toString('hex').slice(16, 20),
+                rawValue.toString('hex').slice(20),
+              ].join('-')
+            : null;
+        },
+        set(value: string) {
+          if (value) {
+            this.setDataValue('uuid', Buffer.from(value.replace(/-/g, ''), 'hex'));
+          }
+        },
+      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -209,6 +230,22 @@ const defineURL = (sequelize: Sequelize): ModelStatic<Model> => {
     {
       tableName: 'urls',
       underscored: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['uuid'],
+        },
+      ],
+      hooks: {
+        beforeFind(options) {
+          if (options.where && typeof options.where === 'object' && 'uuid' in options.where) {
+            const where = options.where as Record<string, any>;
+            if (typeof where.uuid === 'string') {
+              where.uuid = Buffer.from(where.uuid.replace(/-/g, ''), 'hex');
+            }
+          }
+        },
+      },
     }
   );
 };
