@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `urls` (
   `url` TEXT NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `uuid` BINARY(16) NOT NULL,
+  `uuid` BINARY(16) NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
   PRIMARY KEY (`id`),
   UNIQUE INDEX `idx_uuid` (`uuid` ASC) VISIBLE)
 ENGINE = InnoDB
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS `pulses` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` DATETIME NULL DEFAULT NULL,
-  `uuid` BINARY(16) NOT NULL,
+  `uuid` BINARY(16) NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
   PRIMARY KEY (`id`, `teams_id`),
   UNIQUE INDEX `uuid_unique_idx` (`uuid` ASC) VISIBLE,
   INDEX `fk_performance_executions_targets1_idx` (`targets_id` ASC) VISIBLE,
