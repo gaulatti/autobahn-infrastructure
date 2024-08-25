@@ -91,6 +91,12 @@ export interface CreateStatisticRequest extends BaseRequest {
   date_to: Date;
 }
 
+export interface CreateURLRequest extends BaseRequest {
+  request_type: RequestType.CreateURL;
+  url: string;
+  uuid: string;
+}
+
 export type CreateRequests =
   | CreateUserRequest
   | CreateProjectRequest
@@ -101,4 +107,5 @@ export type CreateRequests =
   | CreateHeartbeatRequest
   | CreateEngagementRequest
   | CreateScheduleRequest
-  | CreateStatisticRequest;
+  | CreateStatisticRequest
+  | CreateURLRequest;

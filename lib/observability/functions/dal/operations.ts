@@ -1,6 +1,7 @@
 import { Model, ModelStatic, Op, Transaction } from 'sequelize';
 import { AllowedRequest, GetRequest, RequestType, UpdateHeartbeatRequest } from './types';
 import { ListRequest } from './types/lists';
+import { get } from 'lodash';
 
 /**
  * Executes an operation based on the provided request.
@@ -158,20 +159,34 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
       case RequestType.ListTargetsByProject:
         return Target.findAndCountAll({ ...paginationParams, transaction, where: { projects_id: listRequest.payload, ...where } });
       case RequestType.ListPulses:
-        return Pulse.findAndCountAll({ ...paginationParams, transaction, where, include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }] });
+        return Pulse.findAndCountAll({
+          ...paginationParams,
+          transaction,
+          where,
+          include: [
+            { model: Heartbeat, as: 'heartbeats' },
+            { model: URL, as: 'url' },
+          ],
+        });
       case RequestType.ListPulsesByTeam:
         return Pulse.findAndCountAll({
           ...paginationParams,
           transaction,
           where: { teams_id: listRequest.payload, ...where },
-          include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }],
+          include: [
+            { model: Heartbeat, as: 'heartbeats' },
+            { model: URL, as: 'url' },
+          ],
         });
       case RequestType.ListPulsesByUser:
         return Pulse.findAndCountAll({
           ...paginationParams,
           transaction,
           where: { triggered_by: listRequest.payload, ...where },
-          include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }],
+          include: [
+            { model: Heartbeat, as: 'heartbeats' },
+            { model: URL, as: 'url' },
+          ],
         });
       case RequestType.ListEngagements:
         return Engagement.findAndCountAll({ ...paginationParams, transaction, where });
@@ -193,6 +208,11 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
   if (request.request_type.startsWith('Get')) {
     const getRequest = request as GetRequest;
     switch (request.request_type) {
+      case RequestType.GetURL:
+        console.log({ getRequest });
+        return URL.findOne({ transaction, where: { url: getRequest.payload } });
+      case RequestType.GetURLByUUID:
+        return URL.findOne({ transaction, where: { uuid: getRequest.payload } });
       case RequestType.GetUser:
         return User.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetUserByEmail:
@@ -231,9 +251,23 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
       case RequestType.GetTarget:
         return Target.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetPulse:
-        return Pulse.findOne({ transaction, where: { id: getRequest.payload }, include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }] });
+        return Pulse.findOne({
+          transaction,
+          where: { id: getRequest.payload },
+          include: [
+            { model: Heartbeat, as: 'heartbeats' },
+            { model: URL, as: 'url' },
+          ],
+        });
       case RequestType.GetPulseByUUID:
-        return Pulse.findOne({ transaction, where: { uuid: getRequest.payload }, include: [{ model: Heartbeat, as: 'heartbeats' }, { model: URL, as: 'url' }] });
+        return Pulse.findOne({
+          transaction,
+          where: { uuid: getRequest.payload },
+          include: [
+            { model: Heartbeat, as: 'heartbeats' },
+            { model: URL, as: 'url' },
+          ],
+        });
       case RequestType.GetEngagement:
         return Engagement.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetSchedule:
@@ -249,6 +283,8 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
    * Perform the operation based on the request type.
    */
   switch (request.request_type) {
+    case RequestType.CreateURL:
+      return URL.create({ transaction, ...request });
     case RequestType.CreateUser:
       return User.create({ transaction, ...request });
     case RequestType.CreateProject:

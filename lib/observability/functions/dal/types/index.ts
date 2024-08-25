@@ -1,7 +1,7 @@
 import { CreateRequests } from './create';
 import { GetRequest } from './get';
 import { ListRequest } from './lists';
-import { UpdateHeartbeatRequest } from './update';
+import { UpdateHeartbeatRequest, UpdateRequests } from './update';
 
 export enum RequestType {
   GetTeam = 'GetTeam',
@@ -58,6 +58,10 @@ export enum RequestType {
   ListStatisticsByURL = 'ListStatisticsByURL',
   GetStatistic = 'GetStatistic',
   CreateStatistic = 'CreateStatistic',
+  GetURL = 'GetURL',
+  GetURLByUUID = 'GetURLByUUID',
+  CreateURL = 'CreateURL',
+  UpdateURL = 'UpdateURL',
 }
 
 export interface BaseRequest {
@@ -69,4 +73,4 @@ export * from './lists';
 export * from './create';
 export * from './update';
 
-export type AllowedRequest = GetRequest | ListRequest | CreateRequests | UpdateHeartbeatRequest;
+export type AllowedRequest = GetRequest | ListRequest | CreateRequests | UpdateRequests;

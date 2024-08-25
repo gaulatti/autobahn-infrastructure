@@ -14,7 +14,9 @@ export type GetRequestType =
   | RequestType.GetPulseByUUID
   | RequestType.GetEngagement
   | RequestType.GetSchedule
-  | RequestType.GetStatistic;
+  | RequestType.GetStatistic
+  | RequestType.GetURL
+  | RequestType.GetURLByUUID;
 
 export interface GetRequest extends BaseRequest {
   payload: number | string;

@@ -16,6 +16,8 @@ import {
   ListRequest,
   RequestType,
   UpdateHeartbeatRequest,
+  CreateURLRequest,
+  UpdateURLRequest,
 } from './types';
 
 /**
@@ -681,6 +683,47 @@ class DalClient {
       performance_score,
       date_from,
       date_to,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  /**
+   * URLs
+   */
+  public static async getURL(payload: string) {
+    const request: GetRequest = {
+      request_type: RequestType.GetURL,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async getURLByUUID(payload: string) {
+    const request: GetRequest = {
+      request_type: RequestType.GetURLByUUID,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async createURL(url: string, uuid: string) {
+    const request: CreateURLRequest = {
+      request_type: RequestType.CreateURL,
+      url,
+      uuid,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async updateURL(id: number, url: string) {
+    const request: UpdateURLRequest = {
+      request_type: RequestType.UpdateURL,
+      id,
+      url,
     };
 
     return await DalClient.parsedInvoke(request);

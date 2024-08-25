@@ -20,4 +20,10 @@ export interface UpdateHeartbeatRequest extends BaseRequest {
   status?: number;
 }
 
-export type UpdateRequests = UpdateHeartbeatRequest;
+export interface UpdateURLRequest extends BaseRequest {
+  request_type: RequestType.UpdateURL;
+  id: number;
+  url: string;
+}
+
+export type UpdateRequests = UpdateHeartbeatRequest | UpdateURLRequest;

@@ -7,6 +7,30 @@ import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 
 /**
+ * Prepends 'www.' to the hostname of the given URL if it does not already start with 'www.'.
+ *
+ * @param url - The URL to modify.
+ * @returns The modified URL with 'www.' prepended to the hostname if necessary.
+ */
+const prependWWW = (url: string): string => {
+  const urlObj = new URL(url);
+
+  /**
+   * Split the hostname into parts.
+   */
+  const parts = urlObj.hostname.split('.');
+
+  /**
+   * If the hostname has exactly two parts and does not start with 'www.', prepend 'www.' to the hostname.
+   */
+  if (parts.length === 2 && !urlObj.hostname.startsWith('www.')) {
+    urlObj.hostname = 'www.' + urlObj.hostname;
+  }
+
+  return urlObj.toString();
+};
+
+/**
  * The SNS client.
  */
 const snsClient = new SNSClient();
@@ -40,10 +64,16 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const membership = me.memberships.find((membership: { teams_id: number }) => membership.teams_id == team);
 
   /**
+   * Get URL Record
+   */
+  const sanitizedUrl = prependWWW(url);
+  let urlRecord = (await DalClient.getURL(sanitizedUrl)) || (await DalClient.createURL(url, randomUUID()));
+
+  /**
    * Create a new Pulse record.
    */
   const uuid = randomUUID();
-  const { id } = await DalClient.createPulse(team, 3, uuid, url, 1, { triggered_by: membership.id });
+  const { id } = await DalClient.createPulse(team, 3, uuid, urlRecord.id, 1, { triggered_by: membership.id });
   console.log(`Created pulse ${id} with UUID ${uuid}`);
 
   /**
