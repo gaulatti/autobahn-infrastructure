@@ -209,7 +209,6 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
     const getRequest = request as GetRequest;
     switch (request.request_type) {
       case RequestType.GetURL:
-        console.log({ getRequest });
         return URL.findOne({ transaction, where: { url: getRequest.payload } });
       case RequestType.GetURLByUUID:
         return URL.findOne({ transaction, where: { uuid: getRequest.payload } });
