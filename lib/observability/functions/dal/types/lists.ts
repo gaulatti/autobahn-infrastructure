@@ -24,6 +24,7 @@ export type ListRequestType = RequestType.ListTeamsBySub
   | RequestType.ListTargetsByProject
   | RequestType.ListPulses
   | RequestType.ListPulsesByUser
+  | RequestType.ListPulsesByURL
   | RequestType.ListPulsesByTeam
   | RequestType.ListEngagements
   | RequestType.ListEngagementsByTarget

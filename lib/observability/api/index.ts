@@ -9,10 +9,7 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { camelToKebab } from '../../common/utils';
 
-const createWebsocketApi = (
-  stack: Stack,
-  lambdas: Record<string, NodejsFunction>,
-) => {
+const createWebsocketApi = (stack: Stack, lambdas: Record<string, NodejsFunction>) => {
   const webSocketApi = new WebSocketApi(stack, `${stack.stackName}WebSocketApi`, {});
 
   /**
@@ -119,6 +116,13 @@ const createRestApi = (stack: Stack, userPool: UserPool, lambdas: Record<string,
   const executionDesktopRetry = executionDesktopResults.addResource('retry');
   executionMobileRetry.addMethod('POST', new LambdaIntegration(lambdas.retryExecutionLambda));
   executionDesktopRetry.addMethod('POST', new LambdaIntegration(lambdas.retryExecutionLambda));
+
+  const stats = root.addResource('stats');
+  const urlResource = stats.addResource('url').addResource('{uuid}');
+  urlResource.addMethod('GET', new LambdaIntegration(lambdas.urlStatsLambda));
+
+  const urlExecutionsResource = urlResource.addResource('executions');
+  urlExecutionsResource.addMethod('GET', new LambdaIntegration(lambdas.urlExecutionsLambda));
 
   return { restApi };
 };

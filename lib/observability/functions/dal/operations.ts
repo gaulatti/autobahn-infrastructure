@@ -188,6 +188,15 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
             { model: URL, as: 'url' },
           ],
         });
+      case RequestType.ListPulsesByURL:
+        return Pulse.findAndCountAll({
+          ...paginationParams,
+          transaction,
+          where: { url_id: listRequest.payload, ...where },
+          include: [
+            { model: Heartbeat, as: 'heartbeats' },
+          ],
+        });
       case RequestType.ListEngagements:
         return Engagement.findAndCountAll({ ...paginationParams, transaction, where });
       case RequestType.ListEngagementsByURL:

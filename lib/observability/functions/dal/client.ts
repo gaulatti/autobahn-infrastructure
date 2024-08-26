@@ -397,6 +397,16 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  public static async listPulsesByURL(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
+      request_type: RequestType.ListPulsesByURL,
+      payload,
+      params,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
   public static async getPulse(payload: number) {
     const request: GetRequest = {
       request_type: RequestType.GetPulse,

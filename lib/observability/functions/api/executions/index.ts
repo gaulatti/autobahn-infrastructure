@@ -1,10 +1,10 @@
 import { Stack } from 'aws-cdk-lib';
+import { WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
+import { Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { buildLambdaSpecs } from '../../../../common/utils/api';
-import { Tracing } from 'aws-cdk-lib/aws-lambda';
-import { WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
 
 /**
  * Creates the Executions Lambda function.
@@ -139,4 +139,44 @@ const createExecutionDetailsLambda = (stack: Stack, defaultApiEnvironment: Recor
   return { executionDetailsLambda };
 };
 
-export { createExecutionDetailsLambda, createExecutionResultLambda, createExecutionsLambda, createTriggerExecutionLambda, createRetryExecutionLambda };
+/**
+ * Creates a URL stats lambda function.
+ *
+ * @param stack - The stack object.
+ * @param defaultApiEnvironment - The default API environment.
+ * @returns An object containing the URL stats lambda function.
+ */
+const createUrlStatsLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
+  const urlStatsLambda = new NodejsFunction(stack, `${stack.stackName}UrlStatsLambda`, {
+    tracing: Tracing.ACTIVE,
+    ...buildLambdaSpecs(stack, 'UrlStats', './lib/observability/functions/api/stats/url.src.ts', defaultApiEnvironment),
+  });
+
+  return { urlStatsLambda };
+};
+
+/**
+ * Creates the URL Executions Lambda function.
+ *
+ * @param stack - The AWS CloudFormation stack.
+ * @param defaultApiEnvironment - The default environment variables for the API.
+ * @returns An object containing the `executionsLambda` function.
+ */
+const createURLExecutionsLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
+  const urlExecutionsLambda = new NodejsFunction(stack, `${stack.stackName}URLExecutionsLambda`, {
+    tracing: Tracing.ACTIVE,
+    ...buildLambdaSpecs(stack, 'URLExecutions', './lib/observability/functions/api/executions/url.src.ts', defaultApiEnvironment),
+  });
+
+  return { urlExecutionsLambda };
+};
+
+export {
+  createExecutionDetailsLambda,
+  createExecutionResultLambda,
+  createExecutionsLambda,
+  createRetryExecutionLambda,
+  createTriggerExecutionLambda,
+  createUrlStatsLambda,
+  createURLExecutionsLambda,
+};
