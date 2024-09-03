@@ -18,6 +18,7 @@ import {
   UpdateHeartbeatRequest,
   CreateURLRequest,
   UpdateURLRequest,
+  DateRangeParams,
 } from './types';
 
 /**
@@ -402,6 +403,15 @@ class DalClient {
       request_type: RequestType.ListPulsesByURL,
       payload,
       params,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+  public static async listStatsPulsesByURL(payload: number, range: DateRangeParams) {
+    const request: ListRequest = {
+      request_type: RequestType.ListStatsPulsesByURL,
+      payload,
+      range,
     };
 
     return await DalClient.parsedInvoke(request);

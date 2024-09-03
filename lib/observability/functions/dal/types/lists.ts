@@ -6,8 +6,13 @@ export interface ListRenderingParams {
   sort: string;
   filters: string;
 }
+export interface DateRangeParams {
+  from: string;
+  to: string;
+}
 
-export type ListRequestType = RequestType.ListTeamsBySub
+export type ListRequestType =
+  | RequestType.ListTeamsBySub
   | RequestType.ListFeaturesBySub
   | RequestType.ListUsers
   | RequestType.ListUsersByTeam
@@ -24,6 +29,7 @@ export type ListRequestType = RequestType.ListTeamsBySub
   | RequestType.ListTargetsByProject
   | RequestType.ListPulses
   | RequestType.ListPulsesByUser
+  | RequestType.ListStatsPulsesByURL
   | RequestType.ListPulsesByURL
   | RequestType.ListPulsesByTeam
   | RequestType.ListEngagements
@@ -37,6 +43,7 @@ export type ListRequestType = RequestType.ListTeamsBySub
 
 export interface ListRequest {
   params?: ListRenderingParams;
+  range?: DateRangeParams
   request_type: ListRequestType;
   payload?: number | number[] | string;
 }

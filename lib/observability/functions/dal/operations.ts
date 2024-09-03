@@ -1,4 +1,4 @@
-import { Model, ModelStatic, Op, Transaction } from 'sequelize';
+import { Model, ModelStatic, Op, Sequelize, Transaction } from 'sequelize';
 import { AllowedRequest, GetRequest, RequestType, UpdateHeartbeatRequest } from './types';
 import { ListRequest } from './types/lists';
 import { get } from 'lodash';
@@ -188,14 +188,26 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
             { model: URL, as: 'url' },
           ],
         });
+      case RequestType.ListStatsPulsesByURL:
+        return Pulse.findAll({
+          transaction,
+          where: {
+            url_id: listRequest.payload,
+            created_at: {
+              [Op.between]: [
+                request.range!.from,
+                request.range!.to,
+              ],
+            },
+          },
+          include: [{ model: Heartbeat, as: 'heartbeats' }],
+        });
       case RequestType.ListPulsesByURL:
         return Pulse.findAndCountAll({
           ...paginationParams,
           transaction,
           where: { url_id: listRequest.payload, ...where },
-          include: [
-            { model: Heartbeat, as: 'heartbeats' },
-          ],
+          include: [{ model: Heartbeat, as: 'heartbeats' }],
         });
       case RequestType.ListEngagements:
         return Engagement.findAndCountAll({ ...paginationParams, transaction, where });

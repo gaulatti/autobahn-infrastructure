@@ -38,6 +38,7 @@ export enum RequestType {
   ListPulses = 'ListPulses',
   ListPulsesByTeam = 'ListPulsesByTeam',
   ListPulsesByUser = 'ListPulsesByUser',
+  ListStatsPulsesByURL = 'ListStatsPulsesByURL',
   ListPulsesByURL = 'ListPulsesByURL',
   GetPulse = 'GetPulse',
   GetPulseByUUID = 'GetPulseByUUID',
