@@ -23,7 +23,7 @@ const createProcessingLambda = (stack: Stack, defaultApiEnvironment: Record<stri
     entry: './lib/observability/functions/background/processing.src.ts',
     handler: 'main',
     runtime: Runtime.NODEJS_20_X,
-    timeout: Duration.minutes(1),
+    timeout: Duration.minutes(15),
     tracing: Tracing.ACTIVE,
     environment: {
       ...defaultApiEnvironment,

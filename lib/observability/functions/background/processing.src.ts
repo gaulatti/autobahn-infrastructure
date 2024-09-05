@@ -1,14 +1,12 @@
+import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
+import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { SNSEventRecord } from 'aws-lambda';
 import { Readable } from 'stream';
+import { isWarmup } from '../../../common/utils';
 import { streamToString } from '../../../common/utils/s3';
 import { DalClient } from '../dal/client';
-import { isWarmup } from '../../../common/utils';
-import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
-
-import * as fs from 'fs';
 
 interface LighthouseResult {
   categories: {
