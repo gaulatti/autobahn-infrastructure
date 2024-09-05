@@ -16,7 +16,6 @@ interface LighthouseResult {
     accessibility: any;
     'best-practices': any;
     seo: any;
-    pwa: any;
   };
   audits: { [key: string]: any };
   configSettings: {
@@ -37,7 +36,6 @@ interface SimplifiedLHResult {
   accessibility: number;
   bestPractices: number;
   seo: number;
-  pwa: number;
   timings: {
     FCP: number;
     LCP: number;
@@ -80,7 +78,6 @@ const extractLighthouseSummary = (rawData: string) => {
     accessibility: lhReport.categories.accessibility.score * 100,
     bestPractices: lhReport.categories['best-practices'].score * 100,
     seo: lhReport.categories.seo.score * 100,
-    pwa: lhReport.categories.pwa.score * 100,
     timings: {
       FCP: lhReport.audits['first-contentful-paint'].numericValue,
       LCP: lhReport.audits['largest-contentful-paint'].numericValue,
@@ -187,8 +184,8 @@ const main = async (event: S3Event) => {
     const bucketName = record.s3.bucket.name;
     const objectKey = record.s3.object.key;
 
-    console.log(`Processing object: ${objectKey}`);
-    if (objectKey.includes('.json')) {
+    if (objectKey.includes('.json') && !objectKey.includes('.min.json')) {
+      console.log(`Processing object: ${objectKey}`);
       /**
        * Get the object from S3.
        */
