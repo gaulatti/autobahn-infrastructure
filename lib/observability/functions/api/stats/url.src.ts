@@ -262,7 +262,7 @@ const calculateCWVStats = (data: any[], metric: string): CWVStatsEntry[] => {
   data.forEach((pulse) => {
     pulse.heartbeats.forEach((heartbeat: any) => {
       const metrics = heartbeat.mode === 0 ? mobileMetrics : desktopMetrics;
-      const timestamp = heartbeat.created_at;
+      const timestamp = pulse.created_at;
 
       metrics.ttfb.push({ timestamp, value: parseFloat(heartbeat.ttfb) });
       metrics.fcp.push({ timestamp, value: parseFloat(heartbeat.fcp) });

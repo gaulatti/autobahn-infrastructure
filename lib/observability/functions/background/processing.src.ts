@@ -7,6 +7,118 @@ import { isWarmup } from '../../../common/utils';
 import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+
+import * as fs from 'fs';
+
+interface LighthouseResult {
+  categories: {
+    performance: any;
+    accessibility: any;
+    'best-practices': any;
+    seo: any;
+    pwa: any;
+  };
+  audits: { [key: string]: any };
+  configSettings: {
+    emulatedFormFactor: string;
+    locale: string;
+  };
+  timing: {
+    total: number;
+  };
+  finalUrl: string;
+  requestedUrl: string;
+}
+
+interface SimplifiedLHResult {
+  url: string;
+  finalUrl: string;
+  performance: number;
+  accessibility: number;
+  bestPractices: number;
+  seo: number;
+  pwa: number;
+  timings: {
+    FCP: number;
+    LCP: number;
+    CLS: number;
+    TBT: number;
+    TTI: number;
+  };
+  opportunities: Array<{
+    id: string;
+    title: string;
+    description: string;
+    savings: string;
+  }>;
+  diagnostics: Array<{
+    id: string;
+    title: string;
+    description: string;
+    details: any;
+  }>;
+  resourceSummary: {
+    totalRequests: number;
+    totalTransferSize: number;
+    breakdown: { [key: string]: { size: number; count: number } };
+  };
+}
+
+/**
+ * Extracts a simplified summary from a raw Lighthouse report.
+ *
+ * @param rawData - The raw data of the Lighthouse report.
+ * @returns The simplified summary of the Lighthouse report.
+ */
+const extractLighthouseSummary = (rawData: string) => {
+  const lhReport: LighthouseResult = JSON.parse(rawData);
+
+  const simplifiedResult: SimplifiedLHResult = {
+    url: lhReport.requestedUrl,
+    finalUrl: lhReport.finalUrl,
+    performance: lhReport.categories.performance.score * 100,
+    accessibility: lhReport.categories.accessibility.score * 100,
+    bestPractices: lhReport.categories['best-practices'].score * 100,
+    seo: lhReport.categories.seo.score * 100,
+    pwa: lhReport.categories.pwa.score * 100,
+    timings: {
+      FCP: lhReport.audits['first-contentful-paint'].numericValue,
+      LCP: lhReport.audits['largest-contentful-paint'].numericValue,
+      CLS: lhReport.audits['cumulative-layout-shift'].numericValue,
+      TBT: lhReport.audits['total-blocking-time'].numericValue,
+      TTI: lhReport.audits['interactive'].numericValue,
+    },
+    opportunities: Object.keys(lhReport.audits)
+      .filter((key) => lhReport.audits[key].details?.type === 'opportunity')
+      .map((key) => ({
+        id: key,
+        title: lhReport.audits[key].title,
+        description: lhReport.audits[key].description,
+        savings: lhReport.audits[key].details.overallSavingsMs + 'ms',
+      })),
+    diagnostics: Object.keys(lhReport.audits)
+      .filter((key) => lhReport.audits[key].details?.type === 'diagnostic')
+      .map((key) => ({
+        id: key,
+        title: lhReport.audits[key].title,
+        description: lhReport.audits[key].description,
+        details: lhReport.audits[key].details,
+      })),
+    resourceSummary: {
+      totalRequests: lhReport.audits['resource-summary'].details.items.length,
+      totalTransferSize: lhReport.audits['resource-summary'].details.items.reduce((acc: number, item: any) => acc + item.transferSize, 0),
+      breakdown: lhReport.audits['resource-summary'].details.items.reduce((acc: any, item: any) => {
+        acc[item.resourceType] = acc[item.resourceType] || { size: 0, count: 0 };
+        acc[item.resourceType].size += item.transferSize;
+        acc[item.resourceType].count += 1;
+        return acc;
+      }, {}),
+    },
+  };
+
+  return { simplifiedResult };
+};
+
 /**
  * AWS does not maintain types, so we need to figure out on our own.
  */
@@ -141,6 +253,18 @@ const main = async (event: S3Event) => {
         }
 
         /**
+         * Extract the summary from the Lighthouse report and upload it to s3.
+         */
+        const { simplifiedResult } = extractLighthouseSummary(bodyContents);
+        const uploadParams = {
+          Bucket: bucketName,
+          Key: `${uuid}.${mode}.min.json`,
+          Body: JSON.stringify(simplifiedResult, null, 2),
+        };
+
+        await s3Client.send(new PutObjectCommand(uploadParams));
+
+        /**
          * Update the record with the new metrics.
          */
         await DalClient.updateHeartbeat(
@@ -157,7 +281,7 @@ const main = async (event: S3Event) => {
           bestPracticesScore * 100,
           seoScore * 100,
           4,
-          thumbnails,
+          thumbnails
         );
 
         /**

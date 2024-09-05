@@ -171,6 +171,28 @@ const createURLExecutionsLambda = (stack: Stack, defaultApiEnvironment: Record<s
   return { urlExecutionsLambda };
 };
 
+ /*
+  * Creates an execution details lambda (JSON download) function.
+  *
+  * @param stack - The AWS CloudFormation stack.
+  * @param defaultApiEnvironment - The default API environment.
+  * @returns An object containing the execution details lambda function.
+  */
+ const createExecutionJSONLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, observabilityBucket: Bucket) => {
+   const environment = {
+     ...defaultApiEnvironment,
+     BUCKET_NAME: observabilityBucket.bucketName,
+   };
+   const executionJSONLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionJSONLambda`, {
+     tracing: Tracing.ACTIVE,
+     ...buildLambdaSpecs(stack, 'ExecutionJSON', './lib/observability/functions/api/executions/json.src.ts', environment),
+   });
+
+   observabilityBucket.grantRead(executionJSONLambda);
+
+   return { executionJSONLambda };
+ };
+
 export {
   createExecutionDetailsLambda,
   createExecutionResultLambda,
@@ -179,4 +201,5 @@ export {
   createTriggerExecutionLambda,
   createUrlStatsLambda,
   createURLExecutionsLambda,
+  createExecutionJSONLambda,
 };

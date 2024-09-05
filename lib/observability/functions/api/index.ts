@@ -9,6 +9,7 @@ import {
   createTriggerExecutionLambda,
   createURLExecutionsLambda,
   createUrlStatsLambda,
+  createExecutionJSONLambda,
 } from './executions';
 import { createKickoffLambda } from './kickoff';
 import { WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
@@ -30,6 +31,7 @@ const createApiLambdas = (
   const { triggerExecutionLambda } = createTriggerExecutionLambda(stack, defaultApiEnvironment, triggerTopic, webSocketApi);
   const { executionResultLambda } = createExecutionResultLambda(stack, defaultApiEnvironment);
   const { executionDetailsLambda } = createExecutionDetailsLambda(stack, defaultApiEnvironment, observabilityBucket);
+  const { executionJSONLambda } = createExecutionJSONLambda(stack, defaultApiEnvironment, observabilityBucket);
 
   /**
    * Stats API.
@@ -46,6 +48,7 @@ const createApiLambdas = (
     retryExecutionLambda,
     urlStatsLambda,
     urlExecutionsLambda,
+    executionJSONLambda
   };
 };
 

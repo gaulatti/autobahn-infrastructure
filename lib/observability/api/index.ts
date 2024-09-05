@@ -104,18 +104,35 @@ const createRestApi = (stack: Stack, userPool: UserPool, lambdas: Record<string,
   executions.addMethod('GET', new LambdaIntegration(lambdas.executionsLambda));
   executions.addMethod('POST', new LambdaIntegration(lambdas.triggerExecutionLambda));
 
+  /**
+   * Add the execution endpoint.
+   */
   const executionById = executions.addResource('{uuid}');
   executionById.addMethod('GET', new LambdaIntegration(lambdas.executionResultLambda));
 
+  /**
+   * Add the results endpoint.
+   */
   const executionMobileResults = executionById.addResource('mobile');
   const executionDesktopResults = executionById.addResource('desktop');
   executionMobileResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
   executionDesktopResults.addMethod('GET', new LambdaIntegration(lambdas.executionDetailsLambda));
 
+  /**
+   * Add the retry endpoint.
+   */
   const executionMobileRetry = executionMobileResults.addResource('retry');
   const executionDesktopRetry = executionDesktopResults.addResource('retry');
   executionMobileRetry.addMethod('POST', new LambdaIntegration(lambdas.retryExecutionLambda));
   executionDesktopRetry.addMethod('POST', new LambdaIntegration(lambdas.retryExecutionLambda));
+
+  /**
+   * Add the JSON endpoint.
+   */
+  const executionMobileJSON = executionMobileResults.addResource('json');
+  const executionDesktopJSON = executionDesktopResults.addResource('json');
+  executionMobileJSON.addMethod('GET', new LambdaIntegration(lambdas.executionJSONLambda));
+  executionDesktopJSON.addMethod('GET', new LambdaIntegration(lambdas.executionJSONLambda));
 
   const stats = root.addResource('stats');
   const urlResource = stats.addResource('url').addResource('{uuid}');
