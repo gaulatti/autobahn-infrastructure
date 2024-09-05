@@ -108,7 +108,6 @@ const createRestApi = (stack: Stack, userPool: UserPool, lambdas: Record<string,
    * Add the execution endpoint.
    */
   const executionById = executions.addResource('{uuid}');
-  executionById.addMethod('GET', new LambdaIntegration(lambdas.executionResultLambda));
 
   /**
    * Add the results endpoint.

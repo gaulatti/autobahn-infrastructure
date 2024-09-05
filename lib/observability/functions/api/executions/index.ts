@@ -102,22 +102,6 @@ const createRetryExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<
 };
 
 /**
- * Creates an execution result lambda function.
- *
- * @param stack - The AWS CloudFormation stack.
- * @param defaultApiEnvironment - The default environment variables for the API.
- * @returns An object containing the triggerExecutionLambda function.
- */
-const createExecutionResultLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
-  const executionResultLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionResultLambda`, {
-    tracing: Tracing.ACTIVE,
-    ...buildLambdaSpecs(stack, 'ExecutionResult', './lib/observability/functions/api/executions/result.src.ts', defaultApiEnvironment),
-  });
-
-  return { executionResultLambda };
-};
-
-/**
  * Creates an execution details lambda function.
  *
  * @param stack - The AWS CloudFormation stack.
@@ -195,7 +179,6 @@ const createURLExecutionsLambda = (stack: Stack, defaultApiEnvironment: Record<s
 
 export {
   createExecutionDetailsLambda,
-  createExecutionResultLambda,
   createExecutionsLambda,
   createRetryExecutionLambda,
   createTriggerExecutionLambda,

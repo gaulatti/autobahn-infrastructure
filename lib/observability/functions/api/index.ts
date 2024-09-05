@@ -3,7 +3,6 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import {
   createExecutionDetailsLambda,
-  createExecutionResultLambda,
   createExecutionsLambda,
   createRetryExecutionLambda,
   createTriggerExecutionLambda,
@@ -29,7 +28,6 @@ const createApiLambdas = (
   const { executionsLambda } = createExecutionsLambda(stack, defaultApiEnvironment);
   const { retryExecutionLambda } = createRetryExecutionLambda(stack, defaultApiEnvironment, triggerTopic, webSocketApi);
   const { triggerExecutionLambda } = createTriggerExecutionLambda(stack, defaultApiEnvironment, triggerTopic, webSocketApi);
-  const { executionResultLambda } = createExecutionResultLambda(stack, defaultApiEnvironment);
   const { executionDetailsLambda } = createExecutionDetailsLambda(stack, defaultApiEnvironment, observabilityBucket);
   const { executionJSONLambda } = createExecutionJSONLambda(stack, defaultApiEnvironment, observabilityBucket);
 
@@ -44,7 +42,6 @@ const createApiLambdas = (
     executionDetailsLambda,
     executionsLambda,
     triggerExecutionLambda,
-    executionResultLambda,
     retryExecutionLambda,
     urlStatsLambda,
     urlExecutionsLambda,
