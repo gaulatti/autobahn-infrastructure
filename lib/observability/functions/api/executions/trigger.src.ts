@@ -128,7 +128,7 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   /**
    * Return the response.
    */
-  return { mobile, desktop };
+  return { mobile, desktop, url: urlRecord.uuid };
 });
 
 export { main };
