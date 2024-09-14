@@ -1,5 +1,7 @@
 import { Duration, Stack } from 'aws-cdk-lib';
 import { WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
+import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -14,7 +16,13 @@ import { Topic } from 'aws-cdk-lib/aws-sns';
  * @param dataAccessLambda - The data access Lambda function.
  * @returns An object containing the processing Lambda function.
  */
-const createProcessingLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, observabilityBucket: Bucket, dataAccessLambda: NodejsFunction, webSocketApi: WebSocketApi) => {
+const createProcessingLambda = (
+  stack: Stack,
+  defaultApiEnvironment: Record<string, string>,
+  observabilityBucket: Bucket,
+  dataAccessLambda: NodejsFunction,
+  webSocketApi: WebSocketApi
+) => {
   /**
    * Create Processing Lambda
    */
@@ -63,7 +71,13 @@ const createProcessingLambda = (stack: Stack, defaultApiEnvironment: Record<stri
   return { processingLambda };
 };
 
-const createFailureHandlerLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, dataAccessLambda: NodejsFunction, webSocketApi: WebSocketApi, triggerTopic: Topic) => {
+const createFailureHandlerLambda = (
+  stack: Stack,
+  defaultApiEnvironment: Record<string, string>,
+  dataAccessLambda: NodejsFunction,
+  webSocketApi: WebSocketApi,
+  triggerTopic: Topic
+) => {
   /**
    * Create Failure Handler Lambda
    */
@@ -101,4 +115,57 @@ const createFailureHandlerLambda = (stack: Stack, defaultApiEnvironment: Record<
   return { failureHandlerLambda };
 };
 
-export { createProcessingLambda, createFailureHandlerLambda };
+const createEngineMonitorLambda = (
+  stack: Stack,
+  defaultApiEnvironment: Record<string, string>,
+  dataAccessLambda: NodejsFunction,
+  webSocketApi: WebSocketApi,
+  triggerTopic: Topic
+) => {
+  /**
+   * Create Failure Handler Lambda
+   */
+  const engineMonitorLambda = new NodejsFunction(stack, `${stack.stackName}EngineMonitorLambda`, {
+    functionName: `${stack.stackName}EngineMonitor`,
+    entry: './lib/observability/functions/background/engine/monitor.src.ts',
+    handler: 'main',
+    runtime: Runtime.NODEJS_20_X,
+    timeout: Duration.minutes(1),
+    tracing: Tracing.ACTIVE,
+    environment: {
+      ...defaultApiEnvironment,
+      TRIGGER_TOPIC_ARN: triggerTopic.topicArn,
+      DATA_ACCESS_ARN: dataAccessLambda.functionArn,
+      WEBSOCKET_API_FQDN: `${webSocketApi.apiId}.execute-api.${stack.region}.amazonaws.com`,
+    },
+    memorySize: 1024,
+  });
+
+  /**
+   * Grant Permissions for managing connections in the WebSocket API
+   */
+  webSocketApi.grantManageConnections(engineMonitorLambda);
+
+  /**
+   * Allow this lambda to save the metrics in the Database.
+   */
+  dataAccessLambda.grantInvoke(engineMonitorLambda);
+
+  /**
+   * Grant permissions to publish to the trigger topic
+   */
+  triggerTopic.grantPublish(engineMonitorLambda);
+
+  /**
+   * Run every minute to check scheduled executions
+   */
+  const rule = new Rule(stack, `${stack.stackName}EngineMonitorSchedule`, {
+    schedule: Schedule.rate(Duration.minutes(1)),
+  });
+
+  rule.addTarget(new LambdaFunction(engineMonitorLambda));
+
+  return { engineMonitorLambda };
+};
+
+export { createProcessingLambda, createFailureHandlerLambda, createEngineMonitorLambda };

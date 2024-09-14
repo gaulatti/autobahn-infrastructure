@@ -1,5 +1,5 @@
 import { Model, ModelStatic, Op, Sequelize, Transaction } from 'sequelize';
-import { AllowedRequest, GetRequest, RequestType, UpdateHeartbeatRequest } from './types';
+import { AllowedRequest, GetRequest, RequestType, UpdateHeartbeatRequest, UpdateScheduleRequest } from './types';
 import { ListRequest } from './types/lists';
 import { get } from 'lodash';
 
@@ -167,6 +167,7 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
             { model: Heartbeat, as: 'heartbeats' },
             { model: URL, as: 'url' },
           ],
+          distinct: true,
         });
       case RequestType.ListPulsesByTeam:
         return Pulse.findAndCountAll({
@@ -176,7 +177,19 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
           include: [
             { model: Heartbeat, as: 'heartbeats' },
             { model: URL, as: 'url' },
+            { model: Target, as: 'target', include: [{ model: Project, as: 'project' }] },
+            {
+              model: Membership,
+              as: 'triggeredBy',
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                },
+              ],
+            },
           ],
+          distinct: true,
         });
       case RequestType.ListPulsesByUser:
         return Pulse.findAndCountAll({
@@ -187,6 +200,7 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
             { model: Heartbeat, as: 'heartbeats' },
             { model: URL, as: 'url' },
           ],
+          distinct: true,
         });
       case RequestType.ListStatsPulsesByURL:
         return Pulse.findAll({
@@ -194,10 +208,7 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
           where: {
             url_id: listRequest.payload,
             created_at: {
-              [Op.between]: [
-                request.range!.from,
-                request.range!.to,
-              ],
+              [Op.between]: [request.range!.from, request.range!.to],
             },
           },
           include: [{ model: Heartbeat, as: 'heartbeats' }],
@@ -208,6 +219,7 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
           transaction,
           where: { url_id: listRequest.payload, ...where },
           include: [{ model: Heartbeat, as: 'heartbeats' }],
+          distinct: true,
         });
       case RequestType.ListEngagements:
         return Engagement.findAndCountAll({ ...paginationParams, transaction, where });
@@ -294,6 +306,36 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
         return Schedule.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetStatistic:
         return Statistic.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetCurrentSchedules:
+        return Schedule.findAll({
+          where: {
+            next_execution: {
+              [Op.lte]: getRequest.payload,
+            },
+          },
+          include: [
+            {
+              model: Target,
+              as: 'target',
+              include: [
+                {
+                  model: URL,
+                  as: 'url',
+                },
+                {
+                  model: Project,
+                  as: 'project',
+                  include: [
+                    {
+                      model: Team,
+                      as: 'team',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        });
       default:
         throw new Error(`Invalid GET request: ${getRequest.request_type}`);
     }
@@ -328,7 +370,9 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
       return Schedule.create({ transaction, ...request });
     case RequestType.CreateStatistic:
       return Statistic.create({ transaction, ...request });
-
+    case RequestType.UpdateSchedule:
+      const updateScheduleRequest = request as UpdateScheduleRequest;
+      return await (await Schedule.findOne({ transaction, where: { id: updateScheduleRequest.id } }))!.update({ transaction, ...updateScheduleRequest });
     default:
       throw new Error(`Invalid request type: ${request.request_type}`);
   }

@@ -14,6 +14,7 @@ export type GetRequestType =
   | RequestType.GetPulseByUUID
   | RequestType.GetEngagement
   | RequestType.GetSchedule
+  | RequestType.GetCurrentSchedules
   | RequestType.GetStatistic
   | RequestType.GetURL
   | RequestType.GetURLByUUID;

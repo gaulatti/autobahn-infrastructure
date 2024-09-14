@@ -26,4 +26,11 @@ export interface UpdateURLRequest extends BaseRequest {
   url: string;
 }
 
-export type UpdateRequests = UpdateHeartbeatRequest | UpdateURLRequest;
+export interface UpdateScheduleRequest extends BaseRequest {
+  request_type: RequestType.UpdateSchedule;
+  id: number;
+  cron?: string;
+  next_execution?: Date;
+}
+
+export type UpdateRequests = UpdateHeartbeatRequest | UpdateURLRequest | UpdateScheduleRequest;

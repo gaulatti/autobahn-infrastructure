@@ -9,7 +9,7 @@ import { percentile, mean } from 'stats-lite';
 interface CWVStatsDetails {
   value: number;
   variation: number;
-  datapoints: Record<string, number>;
+  datapoints: Record<string, { value: number, uuid: string}>;
 }
 
 /**
@@ -216,12 +216,15 @@ const calculateScores = (data: any[], metric: string): ScoreEntry[] => {
  * @param metric - The name of the metric to be used for calculating the value.
  * @returns A CWVStatsDetails object with the calculated value, variation, and datapoints.
  */
-const createStatsDetails = (metrics: { timestamp: string; value: number }[], metric: string): CWVStatsDetails => {
+const createStatsDetails = (metrics: { timestamp: string; value: number, uuid: string }[], metric: string): CWVStatsDetails => {
   const values = metrics.map((m) => m.value);
-  const datapoints = metrics.reduce((acc, { timestamp, value }) => {
-    acc[timestamp] = value;
+  const datapoints = metrics.reduce((acc, { timestamp, value, uuid }) => {
+    acc[timestamp] = {
+      uuid,
+      value,
+    };
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, { value: number, uuid: string}>);
 
   return {
     value: getMetric(values, metric),
@@ -239,21 +242,21 @@ const createStatsDetails = (metrics: { timestamp: string; value: number }[], met
  */
 const calculateCWVStats = (data: any[], metric: string): CWVStatsEntry[] => {
   const mobileMetrics = {
-    ttfb: [] as { timestamp: string; value: number }[],
-    fcp: [] as { timestamp: string; value: number }[],
-    dcl: [] as { timestamp: string; value: number }[],
-    si: [] as { timestamp: string; value: number }[],
-    lcp: [] as { timestamp: string; value: number }[],
-    tti: [] as { timestamp: string; value: number }[],
+    ttfb: [] as { timestamp: string; value: number, uuid: string }[],
+    fcp: [] as { timestamp: string; value: number, uuid: string }[],
+    dcl: [] as { timestamp: string; value: number, uuid: string }[],
+    si: [] as { timestamp: string; value: number, uuid: string }[],
+    lcp: [] as { timestamp: string; value: number, uuid: string }[],
+    tti: [] as { timestamp: string; value: number, uuid: string }[],
   };
 
   const desktopMetrics = {
-    ttfb: [] as { timestamp: string; value: number }[],
-    fcp: [] as { timestamp: string; value: number }[],
-    dcl: [] as { timestamp: string; value: number }[],
-    si: [] as { timestamp: string; value: number }[],
-    lcp: [] as { timestamp: string; value: number }[],
-    tti: [] as { timestamp: string; value: number }[],
+    ttfb: [] as { timestamp: string; value: number, uuid: string }[],
+    fcp: [] as { timestamp: string; value: number, uuid: string }[],
+    dcl: [] as { timestamp: string; value: number, uuid: string }[],
+    si: [] as { timestamp: string; value: number, uuid: string }[],
+    lcp: [] as { timestamp: string; value: number, uuid: string }[],
+    tti: [] as { timestamp: string; value: number, uuid: string }[],
   };
 
   /**
@@ -264,12 +267,12 @@ const calculateCWVStats = (data: any[], metric: string): CWVStatsEntry[] => {
       const metrics = heartbeat.mode === 0 ? mobileMetrics : desktopMetrics;
       const timestamp = pulse.created_at;
 
-      metrics.ttfb.push({ timestamp, value: parseFloat(heartbeat.ttfb) });
-      metrics.fcp.push({ timestamp, value: parseFloat(heartbeat.fcp) });
-      metrics.dcl.push({ timestamp, value: parseFloat(heartbeat.dcl) });
-      metrics.si.push({ timestamp, value: parseFloat(heartbeat.si) });
-      metrics.lcp.push({ timestamp, value: parseFloat(heartbeat.lcp) });
-      metrics.tti.push({ timestamp, value: parseFloat(heartbeat.tti) });
+      metrics.ttfb.push({ timestamp, value: parseFloat(heartbeat.ttfb), uuid: pulse.uuid });
+      metrics.fcp.push({ timestamp, value: parseFloat(heartbeat.fcp), uuid: pulse.uuid });
+      metrics.dcl.push({ timestamp, value: parseFloat(heartbeat.dcl), uuid: pulse.uuid });
+      metrics.si.push({ timestamp, value: parseFloat(heartbeat.si), uuid: pulse.uuid });
+      metrics.lcp.push({ timestamp, value: parseFloat(heartbeat.lcp), uuid: pulse.uuid });
+      metrics.tti.push({ timestamp, value: parseFloat(heartbeat.tti), uuid: pulse.uuid });
     });
   });
 

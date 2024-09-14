@@ -72,11 +72,11 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
    */
   await DalClient.updateHeartbeatRetries(id, retries + 1);
 
-  /**
+  /**s
    * Re-trigger the execution.
    */
   const command = new PublishCommand({
-    Message: JSON.stringify({ url, uuid, mode: viewport }),
+    Message: JSON.stringify({ url: url.url, uuid, mode: viewport }),
     TopicArn: process.env.TRIGGER_TOPIC_ARN,
   });
 

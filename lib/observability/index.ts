@@ -10,7 +10,7 @@ import { createBuildProject } from './build';
 import { createDashboard } from './dashboard';
 import { createApiLambdas } from './functions/api';
 import { createPreTokenGenerationTrigger } from './functions/authorization';
-import { createFailureHandlerLambda, createProcessingLambda } from './functions/background';
+import { createEngineMonitorLambda, createFailureHandlerLambda, createProcessingLambda } from './functions/background';
 import { createKickoffCacheLambda } from './functions/cache';
 import { createDataAccessLambda } from './functions/dal';
 import { createWebSocketLambdas } from './functions/websockets';
@@ -110,8 +110,10 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
    */
   const { processingLambda } = createProcessingLambda(stack, defaultApiEnvironment, observabilityBucket, dataAccessLambda, webSocketApi);
   const { failureHandlerLambda } = createFailureHandlerLambda(stack, defaultApiEnvironment, dataAccessLambda, webSocketApi, triggerTopic);
+  const { engineMonitorLambda } = createEngineMonitorLambda(stack, defaultApiEnvironment, dataAccessLambda, webSocketApi, triggerTopic);
   cacheTable.grantReadWriteData(processingLambda);
   cacheTable.grantReadWriteData(failureHandlerLambda);
+  cacheTable.grantReadWriteData(engineMonitorLambda);
 
   /**
    * Dashboard

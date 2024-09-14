@@ -19,6 +19,7 @@ import {
   CreateURLRequest,
   UpdateURLRequest,
   DateRangeParams,
+  UpdateScheduleRequest,
 } from './types';
 
 /**
@@ -531,6 +532,26 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  public static async updateScheduleCron(id: number, cron: string) {
+    const request: UpdateScheduleRequest = {
+      request_type: RequestType.UpdateSchedule,
+      id,
+      cron,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async updateSchedule(id: number, next_execution: Date) {
+    const request: UpdateScheduleRequest = {
+      request_type: RequestType.UpdateSchedule,
+      id,
+      next_execution,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
   /**
    * Engagements
    */
@@ -594,6 +615,15 @@ class DalClient {
     const request: ListRequest = {
       request_type: RequestType.ListSchedules,
       params,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async getCurrentSchedules(payload: string) {
+    const request: GetRequest = {
+      request_type: RequestType.GetCurrentSchedules,
+      payload,
     };
 
     return await DalClient.parsedInvoke(request);

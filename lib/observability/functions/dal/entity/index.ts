@@ -841,7 +841,6 @@ const defineModels = (sequelize: Sequelize) => {
   Assignment.belongsTo(Membership, { foreignKey: 'memberships_id', as: 'membership' });
   Assignment.belongsTo(Project, { foreignKey: 'projects_id' });
   Assignment.belongsTo(Project, { foreignKey: 'projects_id', as: 'project' });
-  Engagement.belongsTo(URL, { foreignKey: 'url_id' });
   Engagement.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
   Heartbeat.belongsTo(Pulse, { foreignKey: 'pulses_id' });
   Heartbeat.belongsTo(Pulse, { foreignKey: 'pulses_id', as: 'pulse' });

@@ -73,7 +73,7 @@ const main = async (event: { status: string; uuid: string; mode: string }) => {
      * Re-trigger the execution.
      */
     const command = new PublishCommand({
-      Message: JSON.stringify({ url, uuid, mode: mode }),
+      Message: JSON.stringify({ url: url.url, uuid, mode: mode }),
       TopicArn: process.env.TRIGGER_TOPIC_ARN,
     });
 

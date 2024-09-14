@@ -86,11 +86,11 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
    * Trigger the new heartbeat records.
    */
   const mobileCommand = new PublishCommand({
-    Message: JSON.stringify({ url, uuid, mode: 'mobile' }),
+    Message: JSON.stringify({ url: urlRecord.url, uuid, mode: 'mobile' }),
     TopicArn: process.env.TRIGGER_TOPIC_ARN,
   });
   const desktopCommand = new PublishCommand({
-    Message: JSON.stringify({ url, uuid, mode: 'desktop' }),
+    Message: JSON.stringify({ url: urlRecord.url, uuid, mode: 'desktop' }),
     TopicArn: process.env.TRIGGER_TOPIC_ARN,
   });
   await snsClient.send(mobileCommand);
