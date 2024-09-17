@@ -1,15 +1,15 @@
+import { mean, percentile } from 'stats-lite';
 import { HandleDelivery } from '../../../../common/utils/api';
 import { DalClient } from '../../dal/client';
 import { DateRangeParams } from '../../dal/types';
-import { percentile, mean } from 'stats-lite';
 
 /**
  * Represents the details of CWV (Core Web Vitals) stats.
  */
 interface CWVStatsDetails {
-  value: number;
+  values: Record<string, number>;
   variation: number;
-  datapoints: Record<string, { value: number, uuid: string}>;
+  datapoints: Record<string, { value: number; uuid: string }>;
 }
 
 /**
@@ -31,7 +31,7 @@ interface CWVStatsEntry {
  * @property {number} variation - The variation value.
  */
 interface ScoreDetails {
-  score: number;
+  scores: Record<string, number>;
   variation: number;
 }
 
@@ -56,27 +56,18 @@ interface ScoreEntry {
  * Calculates a metric value based on an array of scores.
  *
  * @param scores - The array of scores.
- * @param metric - The metric to calculate. Supported metrics are 'p90', 'p99', 'p50', 'max', 'min', and 'average'.
- * @returns The calculated metric value.
+ * @returns The calculated metric values.
  * @throws {Error} If an unsupported metric is provided.
  */
-const getMetric = (scores: number[], metric: string): number => {
-  switch (metric) {
-    case 'p90':
-      return Math.round(percentile(scores, 0.9));
-    case 'p99':
-      return Math.round(percentile(scores, 0.99));
-    case 'p50':
-      return Math.round(percentile(scores, 0.5));
-    case 'max':
-      return Math.round(Math.max(...scores));
-    case 'min':
-      return Math.round(Math.min(...scores));
-    case 'average':
-      return Math.round(mean(scores));
-    default:
-      throw new Error('Unsupported metric');
-  }
+const getMetrics = (scores: number[]): Record<string, number> => {
+  return {
+    p90: Math.round(percentile(scores, 0.9)),
+    p99: Math.round(percentile(scores, 0.99)),
+    p50: Math.round(percentile(scores, 0.5)),
+    max: Math.round(Math.max(...scores)),
+    min: Math.round(Math.min(...scores)),
+    avg: Math.round(mean(scores)),
+  };
 };
 
 /**
@@ -113,7 +104,7 @@ const calculateVariation = (scores: number[]): number => {
  * @param metric - The metric to calculate the scores for.
  * @returns An array of ScoreEntry objects representing the calculated scores.
  */
-const calculateScores = (data: any[], metric: string): ScoreEntry[] => {
+const calculateScores = (data: any[]): ScoreEntry[] => {
   /**
    * Create an object to store the mobile scores
    */
@@ -156,11 +147,11 @@ const calculateScores = (data: any[], metric: string): ScoreEntry[] => {
       name: 'Performance',
       scores: {
         mobile: {
-          score: getMetric(mobileScores.performance, metric),
+          scores: getMetrics(mobileScores.performance),
           variation: calculateVariation(mobileScores.performance),
         },
         desktop: {
-          score: getMetric(desktopScores.performance, metric),
+          scores: getMetrics(desktopScores.performance),
           variation: calculateVariation(desktopScores.performance),
         },
       },
@@ -169,11 +160,11 @@ const calculateScores = (data: any[], metric: string): ScoreEntry[] => {
       name: 'Accessibility',
       scores: {
         mobile: {
-          score: getMetric(mobileScores.accessibility, metric),
+          scores: getMetrics(mobileScores.accessibility),
           variation: calculateVariation(mobileScores.accessibility),
         },
         desktop: {
-          score: getMetric(desktopScores.accessibility, metric),
+          scores: getMetrics(desktopScores.accessibility),
           variation: calculateVariation(desktopScores.accessibility),
         },
       },
@@ -182,11 +173,11 @@ const calculateScores = (data: any[], metric: string): ScoreEntry[] => {
       name: 'Best Practices',
       scores: {
         mobile: {
-          score: getMetric(mobileScores.bestPractices, metric),
+          scores: getMetrics(mobileScores.bestPractices),
           variation: calculateVariation(mobileScores.bestPractices),
         },
         desktop: {
-          score: getMetric(desktopScores.bestPractices, metric),
+          scores: getMetrics(desktopScores.bestPractices),
           variation: calculateVariation(desktopScores.bestPractices),
         },
       },
@@ -195,11 +186,11 @@ const calculateScores = (data: any[], metric: string): ScoreEntry[] => {
       name: 'SEO',
       scores: {
         mobile: {
-          score: getMetric(mobileScores.seo, metric),
+          scores: getMetrics(mobileScores.seo),
           variation: calculateVariation(mobileScores.seo),
         },
         desktop: {
-          score: getMetric(desktopScores.seo, metric),
+          scores: getMetrics(desktopScores.seo),
           variation: calculateVariation(desktopScores.seo),
         },
       },
@@ -213,10 +204,9 @@ const calculateScores = (data: any[], metric: string): ScoreEntry[] => {
  * Creates a CWVStatsDetails object based on the provided metrics and metric name.
  *
  * @param metrics - An array of metric objects containing timestamp and value.
- * @param metric - The name of the metric to be used for calculating the value.
  * @returns A CWVStatsDetails object with the calculated value, variation, and datapoints.
  */
-const createStatsDetails = (metrics: { timestamp: string; value: number, uuid: string }[], metric: string): CWVStatsDetails => {
+const createStatsDetails = (metrics: { timestamp: string; value: number; uuid: string }[]): CWVStatsDetails => {
   const values = metrics.map((m) => m.value);
   const datapoints = metrics.reduce((acc, { timestamp, value, uuid }) => {
     acc[timestamp] = {
@@ -224,10 +214,10 @@ const createStatsDetails = (metrics: { timestamp: string; value: number, uuid: s
       value,
     };
     return acc;
-  }, {} as Record<string, { value: number, uuid: string}>);
+  }, {} as Record<string, { value: number; uuid: string }>);
 
   return {
-    value: getMetric(values, metric),
+    values: getMetrics(values),
     variation: calculateVariation(values),
     datapoints,
   };
@@ -237,26 +227,25 @@ const createStatsDetails = (metrics: { timestamp: string; value: number, uuid: s
  * Calculates CWV (Core Web Vitals) statistics based on the provided data and metric.
  *
  * @param data - An array of data containing pulses and heartbeats.
- * @param metric - The metric to calculate the CWV stats for.
  * @returns An array of CWVStatsEntry objects representing the calculated CWV stats.
  */
-const calculateCWVStats = (data: any[], metric: string): CWVStatsEntry[] => {
+const calculateCWVStats = (data: any[]): CWVStatsEntry[] => {
   const mobileMetrics = {
-    ttfb: [] as { timestamp: string; value: number, uuid: string }[],
-    fcp: [] as { timestamp: string; value: number, uuid: string }[],
-    dcl: [] as { timestamp: string; value: number, uuid: string }[],
-    si: [] as { timestamp: string; value: number, uuid: string }[],
-    lcp: [] as { timestamp: string; value: number, uuid: string }[],
-    tti: [] as { timestamp: string; value: number, uuid: string }[],
+    ttfb: [] as { timestamp: string; value: number; uuid: string }[],
+    fcp: [] as { timestamp: string; value: number; uuid: string }[],
+    dcl: [] as { timestamp: string; value: number; uuid: string }[],
+    si: [] as { timestamp: string; value: number; uuid: string }[],
+    lcp: [] as { timestamp: string; value: number; uuid: string }[],
+    tti: [] as { timestamp: string; value: number; uuid: string }[],
   };
 
   const desktopMetrics = {
-    ttfb: [] as { timestamp: string; value: number, uuid: string }[],
-    fcp: [] as { timestamp: string; value: number, uuid: string }[],
-    dcl: [] as { timestamp: string; value: number, uuid: string }[],
-    si: [] as { timestamp: string; value: number, uuid: string }[],
-    lcp: [] as { timestamp: string; value: number, uuid: string }[],
-    tti: [] as { timestamp: string; value: number, uuid: string }[],
+    ttfb: [] as { timestamp: string; value: number; uuid: string }[],
+    fcp: [] as { timestamp: string; value: number; uuid: string }[],
+    dcl: [] as { timestamp: string; value: number; uuid: string }[],
+    si: [] as { timestamp: string; value: number; uuid: string }[],
+    lcp: [] as { timestamp: string; value: number; uuid: string }[],
+    tti: [] as { timestamp: string; value: number; uuid: string }[],
   };
 
   /**
@@ -283,43 +272,43 @@ const calculateCWVStats = (data: any[], metric: string): CWVStatsEntry[] => {
     {
       name: 'TTFB',
       stats: {
-        mobile: createStatsDetails(mobileMetrics.ttfb, metric),
-        desktop: createStatsDetails(desktopMetrics.ttfb, metric),
+        mobile: createStatsDetails(mobileMetrics.ttfb),
+        desktop: createStatsDetails(desktopMetrics.ttfb),
       },
     },
     {
       name: 'FCP',
       stats: {
-        mobile: createStatsDetails(mobileMetrics.fcp, metric),
-        desktop: createStatsDetails(desktopMetrics.fcp, metric),
+        mobile: createStatsDetails(mobileMetrics.fcp),
+        desktop: createStatsDetails(desktopMetrics.fcp),
       },
     },
     {
       name: 'DCL',
       stats: {
-        mobile: createStatsDetails(mobileMetrics.dcl, metric),
-        desktop: createStatsDetails(desktopMetrics.dcl, metric),
+        mobile: createStatsDetails(mobileMetrics.dcl),
+        desktop: createStatsDetails(desktopMetrics.dcl),
       },
     },
     {
       name: 'SI',
       stats: {
-        mobile: createStatsDetails(mobileMetrics.si, metric),
-        desktop: createStatsDetails(desktopMetrics.si, metric),
+        mobile: createStatsDetails(mobileMetrics.si),
+        desktop: createStatsDetails(desktopMetrics.si),
       },
     },
     {
       name: 'LCP',
       stats: {
-        mobile: createStatsDetails(mobileMetrics.lcp, metric),
-        desktop: createStatsDetails(desktopMetrics.lcp, metric),
+        mobile: createStatsDetails(mobileMetrics.lcp),
+        desktop: createStatsDetails(desktopMetrics.lcp),
       },
     },
     {
       name: 'TTI',
       stats: {
-        mobile: createStatsDetails(mobileMetrics.tti, metric),
-        desktop: createStatsDetails(desktopMetrics.tti, metric),
+        mobile: createStatsDetails(mobileMetrics.tti),
+        desktop: createStatsDetails(desktopMetrics.tti),
       },
     },
   ];
@@ -347,9 +336,8 @@ const main = HandleDelivery(async (event: any) => {
   /**
    * Calculate the scores and CWV stats for the provided pulses
    */
-  const metric = event.queryStringParameters.statistic;
-  const scores = calculateScores(statPulses, metric);
-  const cwvStats = calculateCWVStats(statPulses, metric);
+  const scores = calculateScores(statPulses);
+  const cwvStats = calculateCWVStats(statPulses);
 
   return { urlRecord, cwvStats, scores };
 });
