@@ -6,12 +6,14 @@ export interface ListRenderingParams {
   sort: string;
   filters: string;
 }
+
 export interface DateRangeParams {
   from: string;
   to: string;
 }
 
 export type ListRequestType =
+  | RequestType.ListTeamsBySub
   | RequestType.ListTeamsBySub
   | RequestType.ListFeaturesBySub
   | RequestType.ListUsers
@@ -30,8 +32,9 @@ export type ListRequestType =
   | RequestType.ListPulses
   | RequestType.ListPulsesByUser
   | RequestType.ListStatsPulsesByURL
+  | RequestType.ListStatsPulsesByTarget
   | RequestType.ListPulsesByURL
-  | RequestType.ListPulsesByTeam
+  | RequestType.ListPulsesByTarget
   | RequestType.ListEngagements
   | RequestType.ListEngagementsByTarget
   | RequestType.ListEngagementsByURL
@@ -39,11 +42,13 @@ export type ListRequestType =
   | RequestType.ListSchedulesByTarget
   | RequestType.ListStatistics
   | RequestType.ListStatisticsByTarget
+  | RequestType.ListURLs
+  | RequestType.ListURLsByTarget
   | RequestType.ListStatisticsByURL;
 
 export interface ListRequest {
   params?: ListRenderingParams;
-  range?: DateRangeParams
+  range?: DateRangeParams;
   request_type: ListRequestType;
   payload?: number | number[] | string;
 }

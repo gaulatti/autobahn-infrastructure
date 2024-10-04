@@ -9,16 +9,13 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
  * @param stack - The AWS CloudFormation stack.
  * @param preTokenGenerationLambda - The pre-token generation lambda function.
  */
-const createCognitoAuth = (stack: Stack, preTokenGenerationLambda: NodejsFunction) => {
+const createCognitoAuth = (stack: Stack) => {
   /**
    * Create User Pool
    */
   const userPool = new UserPool(stack, `${stack.stackName}UserPool`, {
     userPoolName: `${stack.stackName}UserPool`,
     selfSignUpEnabled: true,
-    lambdaTriggers: {
-      preTokenGeneration: preTokenGenerationLambda
-    },
   });
 
   /**

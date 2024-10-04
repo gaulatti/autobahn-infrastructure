@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { CfnAccount, CognitoUserPoolsAuthorizer, Cors, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { AuthorizationType, CfnAccount, CognitoUserPoolsAuthorizer, Cors, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
 import { WebSocketLambdaAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -93,6 +93,7 @@ const createRestApi = (stack: Stack, userPool: UserPool, lambdas: Record<string,
       allowHeaders: Cors.DEFAULT_HEADERS,
     },
     defaultMethodOptions: {
+      authorizationType: AuthorizationType.COGNITO,
       authorizer,
     },
   });
@@ -108,6 +109,7 @@ const createRestApi = (stack: Stack, userPool: UserPool, lambdas: Record<string,
    * Add the execution endpoint.
    */
   const executionById = executions.addResource('{uuid}');
+  executionById.addMethod('GET', new LambdaIntegration(lambdas.executionResultLambda));
 
   /**
    * Add the results endpoint.
@@ -133,12 +135,68 @@ const createRestApi = (stack: Stack, userPool: UserPool, lambdas: Record<string,
   executionMobileJSON.addMethod('GET', new LambdaIntegration(lambdas.executionJSONLambda));
   executionDesktopJSON.addMethod('GET', new LambdaIntegration(lambdas.executionJSONLambda));
 
-  const stats = root.addResource('stats');
-  const urlResource = stats.addResource('url').addResource('{uuid}');
-  urlResource.addMethod('GET', new LambdaIntegration(lambdas.urlStatsLambda));
+  /**
+   * Projects
+   */
+  const projectsResource = root.addResource('projects');
+  projectsResource.addMethod('GET', new LambdaIntegration(lambdas.projectsLambda));
+  projectsResource.addMethod('POST', new LambdaIntegration(lambdas.createProjectLambda));
 
+  const projectResource = projectsResource.addResource('{uuid}');
+  projectResource.addMethod('GET', new LambdaIntegration(lambdas.projectDetailsLambda));
+  projectResource.addMethod('POST', new LambdaIntegration(lambdas.updateProjectLambda));
+  projectResource.addMethod('DELETE', new LambdaIntegration(lambdas.deleteProjectLambda));
+
+  const projectStatsResource = projectResource.addResource('stats');
+  projectStatsResource.addMethod('GET', new LambdaIntegration(lambdas.projectStatsLambda));
+
+  /**
+   * Schedules
+   */
+  const schedulesResource = projectResource.addResource('schedules');
+  schedulesResource.addMethod('GET', new LambdaIntegration(lambdas.schedulesLambda));
+  schedulesResource.addMethod('POST', new LambdaIntegration(lambdas.createScheduleLambda));
+
+  const scheduleResource = schedulesResource.addResource('{scheduleUuid}');
+  scheduleResource.addMethod('GET', new LambdaIntegration(lambdas.scheduleDetailsLambda));
+  scheduleResource.addMethod('POST', new LambdaIntegration(lambdas.updateScheduleLambda));
+  scheduleResource.addMethod('DELETE', new LambdaIntegration(lambdas.deleteScheduleLambda));
+
+  /**
+   * URLs
+   */
+  const urlsResource = root.addResource('urls');
+  urlsResource.addMethod('GET', new LambdaIntegration(lambdas.urlsLambda));
+
+  const urlResource = urlsResource.addResource('{uuid}');
+  const urlStatsResource = urlResource.addResource('stats');
+  urlStatsResource.addMethod('GET', new LambdaIntegration(lambdas.urlStatsLambda));
   const urlExecutionsResource = urlResource.addResource('executions');
   urlExecutionsResource.addMethod('GET', new LambdaIntegration(lambdas.urlExecutionsLambda));
+
+  /**
+   * Targets
+   */
+  const targetsResource = root.addResource('targets');
+  targetsResource.addMethod('GET', new LambdaIntegration(lambdas.targetsLambda));
+  targetsResource.addMethod('POST', new LambdaIntegration(lambdas.createTargetLambda));
+
+  const targetResource = targetsResource.addResource('{uuid}');
+  targetResource.addMethod('GET', new LambdaIntegration(lambdas.targetDetailsLambda));
+  targetResource.addMethod('POST', new LambdaIntegration(lambdas.updateTargetLambda));
+  targetResource.addMethod('DELETE', new LambdaIntegration(lambdas.deleteTargetLambda));
+
+  const targetUrlsResource = targetResource.addResource('urls');
+  targetUrlsResource.addMethod('GET', new LambdaIntegration(lambdas.targetUrlsLambda));
+
+  const targetPulsesResource = targetResource.addResource('pulses');
+  targetPulsesResource.addMethod('GET', new LambdaIntegration(lambdas.targetPulsesLambda));
+
+  const targetStatsResource = targetResource.addResource('stats');
+  targetStatsResource.addMethod('GET', new LambdaIntegration(lambdas.targetStatsLambda));
+
+  const targetBaselinesResource = targetResource.addResource('baselines');
+  targetBaselinesResource.addMethod('POST', new LambdaIntegration(lambdas.setBaselinesLambda));
 
   return { restApi };
 };

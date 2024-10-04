@@ -28,6 +28,7 @@ const createExecutionsLambda = (stack: Stack, defaultApiEnvironment: Record<stri
  * @param stack - The AWS CloudFormation stack.
  * @param defaultApiEnvironment - The default environment variables for the API.
  * @param triggerTopic - The SNS topic used as a trigger.
+ * @param webSocketApi - The WebSocket API.
  * @returns An object containing the trigger execution lambda function.
  */
 const createTriggerExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, triggerTopic: Topic, webSocketApi: WebSocketApi) => {
@@ -102,6 +103,22 @@ const createRetryExecutionLambda = (stack: Stack, defaultApiEnvironment: Record<
 };
 
 /**
+ * Creates an execution result lambda function.
+ *
+ * @param stack - The AWS CloudFormation stack.
+ * @param defaultApiEnvironment - The default environment variables for the API.
+ * @returns An object containing the triggerExecutionLambda function.
+ */
+const createExecutionResultLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
+  const executionResultLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionResultLambda`, {
+    tracing: Tracing.ACTIVE,
+    ...buildLambdaSpecs(stack, 'ExecutionResult', './lib/observability/functions/api/executions/result.src.ts', defaultApiEnvironment),
+  });
+
+  return { executionResultLambda };
+};
+
+/**
  * Creates an execution details lambda function.
  *
  * @param stack - The AWS CloudFormation stack.
@@ -124,65 +141,25 @@ const createExecutionDetailsLambda = (stack: Stack, defaultApiEnvironment: Recor
 };
 
 /**
- * Creates a URL stats lambda function.
- *
- * @param stack - The stack object.
- * @param defaultApiEnvironment - The default API environment.
- * @returns An object containing the URL stats lambda function.
- */
-const createUrlStatsLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
-  const urlStatsLambda = new NodejsFunction(stack, `${stack.stackName}UrlStatsLambda`, {
-    tracing: Tracing.ACTIVE,
-    ...buildLambdaSpecs(stack, 'UrlStats', './lib/observability/functions/api/stats/url.src.ts', defaultApiEnvironment),
-  });
-
-  return { urlStatsLambda };
-};
-
-/**
- * Creates the URL Executions Lambda function.
+ * Creates an execution details lambda (JSON download) function.
  *
  * @param stack - The AWS CloudFormation stack.
- * @param defaultApiEnvironment - The default environment variables for the API.
- * @returns An object containing the `executionsLambda` function.
+ * @param defaultApiEnvironment - The default API environment.
+ * @returns An object containing the execution details lambda function.
  */
-const createURLExecutionsLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>) => {
-  const urlExecutionsLambda = new NodejsFunction(stack, `${stack.stackName}URLExecutionsLambda`, {
+const createExecutionJSONLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, observabilityBucket: Bucket) => {
+  const environment = {
+    ...defaultApiEnvironment,
+    BUCKET_NAME: observabilityBucket.bucketName,
+  };
+  const executionJSONLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionJSONLambda`, {
     tracing: Tracing.ACTIVE,
-    ...buildLambdaSpecs(stack, 'URLExecutions', './lib/observability/functions/api/executions/url.src.ts', defaultApiEnvironment),
+    ...buildLambdaSpecs(stack, 'ExecutionJSON', './lib/observability/functions/api/executions/json.src.ts', environment),
   });
 
-  return { urlExecutionsLambda };
+  observabilityBucket.grantRead(executionJSONLambda);
+
+  return { executionJSONLambda };
 };
 
- /*
-  * Creates an execution details lambda (JSON download) function.
-  *
-  * @param stack - The AWS CloudFormation stack.
-  * @param defaultApiEnvironment - The default API environment.
-  * @returns An object containing the execution details lambda function.
-  */
- const createExecutionJSONLambda = (stack: Stack, defaultApiEnvironment: Record<string, string>, observabilityBucket: Bucket) => {
-   const environment = {
-     ...defaultApiEnvironment,
-     BUCKET_NAME: observabilityBucket.bucketName,
-   };
-   const executionJSONLambda = new NodejsFunction(stack, `${stack.stackName}ExecutionJSONLambda`, {
-     tracing: Tracing.ACTIVE,
-     ...buildLambdaSpecs(stack, 'ExecutionJSON', './lib/observability/functions/api/executions/json.src.ts', environment),
-   });
-
-   observabilityBucket.grantRead(executionJSONLambda);
-
-   return { executionJSONLambda };
- };
-
-export {
-  createExecutionDetailsLambda,
-  createExecutionsLambda,
-  createRetryExecutionLambda,
-  createTriggerExecutionLambda,
-  createUrlStatsLambda,
-  createURLExecutionsLambda,
-  createExecutionJSONLambda,
-};
+export { createExecutionDetailsLambda, createExecutionResultLambda, createExecutionsLambda, createRetryExecutionLambda, createTriggerExecutionLambda, createExecutionJSONLambda };

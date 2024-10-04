@@ -33,4 +33,15 @@ export interface UpdateScheduleRequest extends BaseRequest {
   next_execution?: Date;
 }
 
-export type UpdateRequests = UpdateHeartbeatRequest | UpdateURLRequest | UpdateScheduleRequest;
+export interface UpdateBaselineRequest extends BaseRequest {
+  targets_id: number;
+  mode: number;
+  ttfb?: number;
+  fcp?: number;
+  dcl?: number;
+  lcp?: number;
+  tti?: number;
+  si?: number;
+}
+
+export type UpdateRequests = UpdateHeartbeatRequest | UpdateURLRequest | UpdateScheduleRequest | UpdateBaselineRequest;

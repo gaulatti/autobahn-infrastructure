@@ -33,27 +33,20 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
    * Persistence / Cache Lambdas
    */
   const { dataAccessLambda } = createDataAccessLambda(stack);
-  const { kickoffCacheLambda } = createKickoffCacheLambda(stack, dataAccessLambda, cacheTable);
 
   /**
    * API Lambdas
    */
   const defaultApiEnvironment = {
     DATA_ACCESS_ARN: dataAccessLambda.functionArn,
-    KICKOFF_CACHE_ARN: kickoffCacheLambda.functionArn,
     FRONTEND_FQDN: process.env.FRONTEND_FQDN!,
     CACHE_TABLE_NAME: cacheTable.tableName,
   };
 
   /**
-   * Pre Token Generation Lambda
-   */
-  const { preTokenGenerationLambda } = createPreTokenGenerationTrigger(stack, defaultApiEnvironment);
-
-  /**
    * Auth
    */
-  const { userPool, userPoolDomain, userPoolClient } = createCognitoAuth(stack, preTokenGenerationLambda);
+  const { userPool, userPoolDomain, userPoolClient } = createCognitoAuth(stack);
 
   /**
    * Websocket API
@@ -62,7 +55,6 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
   const { webSocketApi } = createWebsocketApi(stack, webSocketLambdas);
   Object.entries(webSocketLambdas).forEach(([key, lambdaFunction]) => {
     dataAccessLambda.grantInvoke(lambdaFunction);
-    kickoffCacheLambda.grantInvoke(lambdaFunction);
     cacheTable.grantReadWriteData(lambdaFunction);
 
     /**
@@ -82,10 +74,9 @@ const createObservabilityInfrastructure = (stack: Stack, triggerTopic: Topic) =>
     );
   });
 
-  const apiLambdas = { preTokenGenerationLambda, ...createApiLambdas(stack, defaultApiEnvironment, triggerTopic, observabilityBucket, webSocketApi) };
+  const apiLambdas = createApiLambdas(stack, defaultApiEnvironment, triggerTopic, observabilityBucket, webSocketApi)
   Object.entries(apiLambdas).forEach(([key, lambdaFunction]) => {
     dataAccessLambda.grantInvoke(lambdaFunction);
-    kickoffCacheLambda.grantInvoke(lambdaFunction);
     cacheTable.grantReadWriteData(lambdaFunction);
 
     /**

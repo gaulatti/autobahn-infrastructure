@@ -1,9 +1,9 @@
-import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import jwt from 'jsonwebtoken';
 import { getCurrentUserBySub } from '../../../common/utils/api';
 import { isWarmup } from '../../../common/utils';
 import { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import jwt from 'jsonwebtoken';
 /**
  * The DynamoDB client.
  */
@@ -29,10 +29,11 @@ const main = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   /**
    * Get the user from the Authorization header.
    */
-  const {
-    payload: { sub },
-  } = jwt.decode(Authorization!, { complete: true })!;
-  const user = await getCurrentUserBySub(sub!.toString());
+  const { sub } = jwt.decode(Authorization!, { json: true })!;
+  if(!sub) {
+    throw new Error('Sub not found');
+  }
+  const user = await getCurrentUserBySub(sub!);
 
   /**
    * Get the teams the user is a member of.

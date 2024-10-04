@@ -280,12 +280,17 @@ const main = async (event: S3Event) => {
         );
 
         /**
+         * Get the team ID from the pulse or the schedule.
+         */
+        const team_id = pulse.triggeredBy?.teams_id || pulse.schedule?.project?.teams_id
+
+        /**
          * Broadcast the new metrics to all connections.
          */
         const teamParams = {
           TableName: process.env.CACHE_TABLE_NAME,
           Key: marshall({
-            sub: pulse.teams_id.toString(),
+            sub: team_id.toString(),
             type: 'teamConnections',
           }),
         };

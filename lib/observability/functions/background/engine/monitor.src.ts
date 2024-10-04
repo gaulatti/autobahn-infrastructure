@@ -1,10 +1,10 @@
 import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { CronJob } from 'cron';
-import { DalClient } from '../../dal/client';
-import { randomUUID } from 'crypto';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { CronJob } from 'cron';
+import { randomUUID } from 'crypto';
+import { DalClient } from '../../dal/client';
 
 /**
  * The SNS client.
@@ -74,11 +74,15 @@ const main = async () => {
     } = schedules[i];
 
     try {
+      if (!url) {
+        throw new Error(`URL not exists for target ${targets_id}, schedule ${id}`);
+      }
+
       /**
        * Create a new Pulse record.
        */
       const uuid = randomUUID();
-      const { id: pulseId } = await DalClient.createPulse(teams_id, 3, uuid, url.id, 1, { targets_id });
+      const { id: pulseId } = await DalClient.createPulse(3, uuid, url.id, 1, { targets_id, schedules_id: id });
       console.log(`Created pulse ${pulseId} with UUID ${uuid}`);
 
       /**

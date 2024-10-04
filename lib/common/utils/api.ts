@@ -1,50 +1,22 @@
-import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import jwt from 'jsonwebtoken';
-import { isWarmup } from '.';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { DalClient } from '../../observability/functions/dal/client';
 
 /**
- * Represents a decoder for decoding binary data.
+ * The DynamoDB client.
  */
-const decoder = new TextDecoder('utf-8');
+const dynamodbClient = new DynamoDBClient();
 
 /**
- * Represents a client for interacting with the Lambda service.
- */
-const lambdaClient = new LambdaClient();
-
-/**
- * Retrieves the current user by their sub (subject) identifier.
- * @param sub - The sub identifier of the user.
- * @returns An object containing the user information.
- */
-const getCurrentUserBySub = async (sub: string) => {
-  const invokeCommand = new InvokeCommand({
-    FunctionName: process.env.KICKOFF_CACHE_ARN,
-    Payload: JSON.stringify({ sub }),
-  });
-
-  const { Payload } = await lambdaClient.send(invokeCommand);
-  const me = JSON.parse(decoder.decode(Payload));
-
-  return { me };
-};
-
-/**
- * Retrieves the current user information.
+ * Checks if the event is a warmup event.
  *
- * @param event - The APIGatewayEvent object containing the request information.
- * @returns An object containing the current user information.
+ * @param event - The event object to check.
+ * @returns True if the event is a warmup event, false otherwise.
  */
-const getCurrentUser = async (event: AWSLambda.APIGatewayEvent) => {
-  const token = event.headers.Authorization!.split(' ')[1];
-  const {
-    payload: { sub },
-  } = jwt.decode(token, { complete: true })!;
-
-  return getCurrentUserBySub(sub!.toString());
-};
+const isWarmup = (event: any) => event.source === 'cdk.schedule' && event.action === 'warmup';
 
 /**
  * Builds the CORS output for an API Gateway event.
@@ -78,6 +50,66 @@ const buildCorsOutput = (event: AWSLambda.APIGatewayEvent, statusCode: number, o
     headers,
     body: JSON.stringify(output),
   };
+};
+
+/**
+ * Retrieves the current user by their sub (subject) identifier.
+ * @param sub - The sub identifier of the user.
+ * @returns An object containing the user information.
+ */
+const getCurrentUserBySub = async (sub: string) => {
+  const params = {
+    TableName: process.env.CACHE_TABLE_NAME,
+    Key: {
+      sub: { S: sub },
+      type: { S: 'kickoff' },
+    },
+  };
+
+  const command = new GetItemCommand(params);
+  const response = await dynamodbClient.send(command);
+  const item = response.Item;
+
+  if (!item) {
+    const me = await DalClient.getUserBySubWithMembershipAndTeam(sub!.toString());
+
+    if (!me) {
+      return { me: null };
+    }
+
+    const putParams = {
+      TableName: process.env.CACHE_TABLE_NAME,
+      Item: marshall({
+        type: 'kickoff',
+        ttl: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
+        ...me,
+      }),
+    };
+
+    await dynamodbClient.send(new PutItemCommand(putParams));
+    return { me };
+  }
+
+  return { me: unmarshall(item) };
+};
+
+/**
+ * Extracts the current user's subject (sub) from the provided API Gateway event.
+ *
+ * @param event - The API Gateway event containing the authorization header.
+ * @returns A promise that resolves to the subject (sub) of the current user.
+ *
+ * @throws Will throw an error if the authorization header is missing or malformed.
+ */
+const getCurrentSubFromEvent = (event: AWSLambda.APIGatewayEvent) => {
+  const token = event.headers.Authorization!.split(' ')[1];
+  const { sub } = jwt.decode(token, { json: true })!;
+
+  if (!sub) {
+    throw new Error('Sub not found');
+  }
+
+  return sub;
 };
 
 /**
@@ -176,4 +208,4 @@ const HandleDelivery = <T extends (event: AWSLambda.APIGatewayEvent) => Promise<
   return HandleWarmup(LogArguments(LogExecutionTime(HandleCorsOutput(fn))));
 };
 
-export { buildLambdaSpecs, getCurrentUser, getCurrentUserBySub, HandleDelivery };
+export { buildCorsOutput, buildLambdaSpecs, getCurrentSubFromEvent, getCurrentUserBySub, isWarmup, HandleDelivery };

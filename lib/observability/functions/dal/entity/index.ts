@@ -97,6 +97,52 @@ const defineTeam = (sequelize: Sequelize): ModelStatic<Model> => {
 };
 
 /**
+ * Defines the Membership model in the database.
+ *
+ * @param {Sequelize} sequelize - The Sequelize instance.
+ * @returns {Model} The Membership model.
+ */
+const defineMembership = (sequelize: Sequelize): ModelStatic<Model> => {
+  return sequelize.define(
+    'Membership',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      users_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+        primaryKey: true,
+      },
+      teams_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'teams',
+          key: 'id',
+        },
+        primaryKey: true,
+      },
+      role: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+    },
+    {
+      tableName: 'memberships',
+      underscored: true,
+      timestamps: false,
+    }
+  );
+};
+
+/**
  * Defines the Project model in the database.
  *
  * @param {Sequelize} sequelize - The Sequelize instance.
@@ -118,50 +164,105 @@ const defineProject = (sequelize: Sequelize): ModelStatic<Model> => {
           model: 'teams',
           key: 'id',
         },
+        primaryKey: true,
       },
       name: {
         type: DataTypes.STRING(255),
         allowNull: false,
+      },
+      uuid: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        get() {
+          const rawValue = this.getDataValue('uuid');
+          return rawValue
+            ? [
+                rawValue.toString('hex').slice(0, 8),
+                rawValue.toString('hex').slice(8, 12),
+                rawValue.toString('hex').slice(12, 16),
+                rawValue.toString('hex').slice(16, 20),
+                rawValue.toString('hex').slice(20),
+              ].join('-')
+            : null;
+        },
+        set(value: string) {
+          if (value) {
+            this.setDataValue('uuid', Buffer.from(value.replace(/-/g, ''), 'hex'));
+          }
+        },
+        defaultValue: Sequelize.literal('UUID()'),
+      },
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
       },
     },
     {
       tableName: 'projects',
       underscored: true,
       timestamps: false,
+      indexes: [
+        {
+          unique: true,
+          fields: ['uuid'],
+        },
+      ],
+      hooks: {
+        beforeFind(options) {
+          if (options.where && typeof options.where === 'object' && 'uuid' in options.where) {
+            const where = options.where as Record<string, any>;
+            if (typeof where.uuid === 'string') {
+              where.uuid = Buffer.from(where.uuid.replace(/-/g, ''), 'hex');
+            }
+          }
+        },
+      },
     }
   );
 };
 
 /**
- * Defines the Membership model in the database.
+ * Defines the Assignment model in the database.
  *
  * @param {Sequelize} sequelize - The Sequelize instance.
- * @returns {Model} The Membership model.
+ * @returns {Model} The Assignment model.
  */
-const defineMembership = (sequelize: Sequelize): ModelStatic<Model> => {
+const defineAssignment = (sequelize: Sequelize): ModelStatic<Model> => {
   return sequelize.define(
-    'Membership',
+    'Assignment',
     {
       id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
-      teams_id: {
+      projects_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'teams',
+          model: 'projects',
           key: 'id',
         },
+        primaryKey: true,
       },
-      users_id: {
+      memberships_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'users',
+          model: 'memberships',
           key: 'id',
         },
+        primaryKey: true,
       },
       role: {
         type: DataTypes.INTEGER,
@@ -169,7 +270,7 @@ const defineMembership = (sequelize: Sequelize): ModelStatic<Model> => {
       },
     },
     {
-      tableName: 'memberships',
+      tableName: 'assignments',
       underscored: true,
       timestamps: false,
     }
@@ -198,6 +299,7 @@ const defineURL = (sequelize: Sequelize): ModelStatic<Model> => {
       uuid: {
         type: DataTypes.UUID,
         allowNull: false,
+        defaultValue: Sequelize.literal('UUID()'),
         get() {
           const rawValue = this.getDataValue('uuid');
           return rawValue
@@ -265,16 +367,12 @@ const defineTarget = (sequelize: Sequelize): ModelStatic<Model> => {
         autoIncrement: true,
         primaryKey: true,
       },
-      projects_id: {
+      stage: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-          model: 'projects',
-          key: 'id',
-        },
       },
-      name: {
-        type: DataTypes.STRING(255),
+      provider: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
       url_id: {
@@ -285,10 +383,36 @@ const defineTarget = (sequelize: Sequelize): ModelStatic<Model> => {
           key: 'id',
         },
       },
+      name: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
       lambda_arn: {
         type: DataTypes.STRING(110),
         allowNull: true,
         defaultValue: null,
+      },
+      uuid: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        get() {
+          const rawValue = this.getDataValue('uuid');
+          return rawValue
+            ? [
+                rawValue.toString('hex').slice(0, 8),
+                rawValue.toString('hex').slice(8, 12),
+                rawValue.toString('hex').slice(12, 16),
+                rawValue.toString('hex').slice(16, 20),
+                rawValue.toString('hex').slice(20),
+              ].join('-')
+            : null;
+        },
+        set(value: string) {
+          if (value) {
+            this.setDataValue('uuid', Buffer.from(value.replace(/-/g, ''), 'hex'));
+          }
+        },
+        defaultValue: Sequelize.literal('UUID()'),
       },
       created_at: {
         type: DataTypes.DATE,
@@ -303,56 +427,27 @@ const defineTarget = (sequelize: Sequelize): ModelStatic<Model> => {
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: null,
       },
     },
     {
       tableName: 'targets',
       underscored: true,
-    }
-  );
-};
-
-/**
- * Defines the Assignment model in the database.
- *
- * @param {Sequelize} sequelize - The Sequelize instance.
- * @returns {Model} The Assignment model.
- */
-const defineAssignment = (sequelize: Sequelize): ModelStatic<Model> => {
-  return sequelize.define(
-    'Assignment',
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      projects_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'projects',
-          key: 'id',
+      indexes: [
+        {
+          unique: true,
+          fields: ['uuid'],
+        },
+      ],
+      hooks: {
+        beforeFind(options) {
+          if (options.where && typeof options.where === 'object' && 'uuid' in options.where) {
+            const where = options.where as Record<string, any>;
+            if (typeof where.uuid === 'string') {
+              where.uuid = Buffer.from(where.uuid.replace(/-/g, ''), 'hex');
+            }
+          }
         },
       },
-      memberships_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'memberships',
-          key: 'id',
-        },
-      },
-      role: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-    },
-    {
-      tableName: 'assignments',
-      underscored: true,
-      timestamps: false,
     }
   );
 };
@@ -372,20 +467,20 @@ const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
         autoIncrement: true,
         primaryKey: true,
       },
-      teams_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'teams',
-          key: 'id',
-        },
-      },
       targets_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
         defaultValue: null,
         references: {
           model: 'targets',
+          key: 'id',
+        },
+      },
+      schedules_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'schedules',
           key: 'id',
         },
       },
@@ -418,10 +513,11 @@ const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
             this.setDataValue('uuid', Buffer.from(value.replace(/-/g, ''), 'hex'));
           }
         },
+        defaultValue: Sequelize.literal('UUID()'),
       },
       url_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'urls',
           key: 'id',
@@ -448,7 +544,6 @@ const definePulse = (sequelize: Sequelize): ModelStatic<Model> => {
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: null,
       },
     },
     {
@@ -537,14 +632,14 @@ const defineHeartbeat = (sequelize: Sequelize): ModelStatic<Model> => {
         allowNull: false,
         defaultValue: 0.0,
       },
+      mode: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       screenshots: {
         type: DataTypes.JSON,
         allowNull: true,
         defaultValue: null,
-      },
-      mode: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
       },
       performance_score: {
         type: DataTypes.INTEGER,
@@ -583,12 +678,10 @@ const defineHeartbeat = (sequelize: Sequelize): ModelStatic<Model> => {
       ended_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: null,
       },
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: null,
       },
     },
     {
@@ -650,7 +743,6 @@ const defineEngagement = (sequelize: Sequelize): ModelStatic<Model> => {
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: null,
       },
     },
     {
@@ -683,6 +775,14 @@ const defineSchedule = (sequelize: Sequelize): ModelStatic<Model> => {
           key: 'id',
         },
       },
+      projects_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'projects',
+          key: 'id',
+        },
+      },
       provider: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -694,6 +794,28 @@ const defineSchedule = (sequelize: Sequelize): ModelStatic<Model> => {
       next_execution: {
         type: DataTypes.DATE,
         allowNull: false,
+      },
+      uuid: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        get() {
+          const rawValue = this.getDataValue('uuid');
+          return rawValue
+            ? [
+                rawValue.toString('hex').slice(0, 8),
+                rawValue.toString('hex').slice(8, 12),
+                rawValue.toString('hex').slice(12, 16),
+                rawValue.toString('hex').slice(16, 20),
+                rawValue.toString('hex').slice(20),
+              ].join('-')
+            : null;
+        },
+        set(value: string) {
+          if (value) {
+            this.setDataValue('uuid', Buffer.from(value.replace(/-/g, ''), 'hex'));
+          }
+        },
+        defaultValue: Sequelize.literal('UUID()'),
       },
       created_at: {
         type: DataTypes.DATE,
@@ -708,12 +830,27 @@ const defineSchedule = (sequelize: Sequelize): ModelStatic<Model> => {
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: null,
       },
     },
     {
       tableName: 'schedules',
       underscored: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['uuid'],
+        },
+      ],
+      hooks: {
+        beforeFind(options) {
+          if (options.where && typeof options.where === 'object' && 'uuid' in options.where) {
+            const where = options.where as Record<string, any>;
+            if (typeof where.uuid === 'string') {
+              where.uuid = Buffer.from(where.uuid.replace(/-/g, ''), 'hex');
+            }
+          }
+        },
+      },
     }
   );
 };
@@ -733,11 +870,11 @@ const defineStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
         autoIncrement: true,
         primaryKey: true,
       },
-      url_id: {
+      targets_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'urls',
+          model: 'targets',
           key: 'id',
         },
       },
@@ -749,11 +886,15 @@ const defineStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      statistic: {
-        type: DataTypes.INTEGER,
+      ttfb: {
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
       },
       fcp: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      dcl: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
       },
@@ -785,6 +926,26 @@ const defineStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      accessibility_score: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      best_practices_score: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      seo_score: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      pleasantness_score: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
       date_from: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -806,7 +967,6 @@ const defineStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
       deleted_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: null,
       },
     },
     {
@@ -815,6 +975,97 @@ const defineStatistic = (sequelize: Sequelize): ModelStatic<Model> => {
     }
   );
 };
+
+/**
+ * Defines the Baseline model in the database.
+ *
+ * @param {Sequelize} sequelize - The Sequelize instance.
+ * @returns {Model} The Baseline model.
+ */
+const defineBaseline = (sequelize: Sequelize): ModelStatic<Model> => {
+  return sequelize.define(
+    'Baseline',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      targets_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'targets',
+          key: 'id',
+        },
+        primaryKey: true,
+      },
+      ttfb: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: '0.00',
+      },
+      fcp: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: '0.00',
+      },
+      dcl: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: '0.00',
+      },
+      lcp: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: '0.00',
+      },
+      tti: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: '0.00',
+      },
+      si: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: '0.00',
+      },
+      cls: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: '0.00',
+      },
+      mode: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      ended_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+    },
+    {
+      tableName: 'baselines',
+      underscored: true,
+    }
+  );
+};
+
 
 /**
  * Defines the models for the database.
@@ -835,43 +1086,42 @@ const defineModels = (sequelize: Sequelize) => {
   const Engagement = defineEngagement(sequelize);
   const Schedule = defineSchedule(sequelize);
   const Statistic = defineStatistic(sequelize);
+  const Baseline = defineBaseline(sequelize);
 
-  // Define associations
-  Assignment.belongsTo(Membership, { foreignKey: 'memberships_id' });
+  /**
+   * Define the relationships between the models.
+   */
   Assignment.belongsTo(Membership, { foreignKey: 'memberships_id', as: 'membership' });
-  Assignment.belongsTo(Project, { foreignKey: 'projects_id' });
   Assignment.belongsTo(Project, { foreignKey: 'projects_id', as: 'project' });
   Engagement.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
-  Heartbeat.belongsTo(Pulse, { foreignKey: 'pulses_id' });
   Heartbeat.belongsTo(Pulse, { foreignKey: 'pulses_id', as: 'pulse' });
   Membership.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
   Membership.belongsTo(User, { foreignKey: 'users_id', as: 'user' });
   Project.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
   Pulse.belongsTo(Membership, { foreignKey: 'triggered_by', as: 'triggeredBy' });
   Pulse.belongsTo(Target, { foreignKey: 'targets_id', as: 'target' });
-  Pulse.belongsTo(Team, { foreignKey: 'teams_id', as: 'team' });
   Pulse.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
+  Pulse.belongsTo(Schedule, { foreignKey: 'schedules_id', as: 'schedule' });
   Schedule.belongsTo(Target, { foreignKey: 'targets_id', as: 'target' });
-  Statistic.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
-  Target.belongsTo(Project, { foreignKey: 'projects_id', as: 'project' });
-  Target.belongsTo(URL, { foreignKey: 'url_id' });
+  Schedule.belongsTo(Project, { foreignKey: 'projects_id', as: 'project' });
+  Statistic.belongsTo(Target, { foreignKey: 'targets_id', as: 'target' });
   Target.belongsTo(URL, { foreignKey: 'url_id', as: 'url' });
+  Baseline.belongsTo(Target, { foreignKey: 'targets_id', as: 'target' });
+  Target.hasMany(Baseline, { foreignKey: 'targets_id', as: 'baselines' });
 
   Membership.hasMany(Assignment, { foreignKey: 'memberships_id', as: 'assignments' });
   Membership.hasMany(Pulse, { foreignKey: 'triggered_by', as: 'pulses' });
   Project.hasMany(Assignment, { foreignKey: 'projects_id', as: 'assignments' });
-  Project.hasMany(Target, { foreignKey: 'projects_id', as: 'targets' });
+  Project.hasMany(Schedule, { foreignKey: 'projects_id', as: 'schedules' });
   Pulse.hasMany(Heartbeat, { foreignKey: 'pulses_id', as: 'heartbeats' });
   Target.hasMany(Pulse, { foreignKey: 'targets_id', as: 'pulses' });
   Target.hasMany(Schedule, { foreignKey: 'targets_id', as: 'schedules' });
-  Team.hasMany(Membership, { foreignKey: 'teams_id', as: 'memberships' });
-  Team.hasMany(Project, { foreignKey: 'teams_id', as: 'projects' });
-  Team.hasMany(Pulse, { foreignKey: 'teams_id', as: 'pulses' });
+  Target.hasMany(Statistic, { foreignKey: 'targets_id', as: 'statistics' });
   URL.hasMany(Engagement, { foreignKey: 'url_id', as: 'engagements' });
   URL.hasMany(Pulse, { foreignKey: 'url_id', as: 'pulses' });
-  URL.hasMany(Statistic, { foreignKey: 'url_id', as: 'statistics' });
   URL.hasMany(Target, { foreignKey: 'url_id', as: 'targets' });
   User.hasMany(Membership, { foreignKey: 'users_id', as: 'memberships' });
+  Schedule.hasMany(Pulse, { foreignKey: 'schedules_id', as: 'pulses' });
 
   return {
     User,
@@ -886,6 +1136,7 @@ const defineModels = (sequelize: Sequelize) => {
     Engagement,
     Schedule,
     Statistic,
+    Baseline,
   };
 };
 

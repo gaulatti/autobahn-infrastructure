@@ -1,12 +1,9 @@
 import { mean, percentile } from 'stats-lite';
-import { HandleDelivery } from '../../../../common/utils/api';
-import { DalClient } from '../../dal/client';
-import { DateRangeParams } from '../../dal/types';
 
 /**
  * Represents the details of CWV (Core Web Vitals) stats.
  */
-interface CWVStatsDetails {
+export interface CWVStatsDetails {
   values: Record<string, number>;
   variation: number;
   datapoints: Record<string, { value: number; uuid: string }>;
@@ -15,7 +12,7 @@ interface CWVStatsDetails {
 /**
  * Represents an entry for Core Web Vitals (CWV) statistics.
  */
-interface CWVStatsEntry {
+export interface CWVStatsEntry {
   name: string;
   stats: {
     mobile: CWVStatsDetails;
@@ -30,7 +27,7 @@ interface CWVStatsEntry {
  * @property {number} score - The score value.
  * @property {number} variation - The variation value.
  */
-interface ScoreDetails {
+export interface ScoreDetails {
   scores: Record<string, number>;
   variation: number;
 }
@@ -44,7 +41,7 @@ interface ScoreDetails {
  * @property {ScoreDetails} scores.mobile - The score details for mobile.
  * @property {ScoreDetails} scores.desktop - The score details for desktop.
  */
-interface ScoreEntry {
+export interface ScoreEntry {
   name: string;
   scores: {
     mobile: ScoreDetails;
@@ -316,30 +313,4 @@ const calculateCWVStats = (data: any[]): CWVStatsEntry[] => {
   return result;
 };
 
-const main = HandleDelivery(async (event: any) => {
-  const { pathParameters } = event;
-  const { uuid } = pathParameters!;
-
-  const urlRecord = await DalClient.getURLByUUID(uuid);
-  const rangeParams: DateRangeParams = event.queryStringParameters || {};
-
-  /**
-   * Fetch the pulses for the provided URL
-   */
-  const result = await DalClient.listStatsPulsesByURL(urlRecord.id, rangeParams);
-
-  /**
-   * Filter out pulses that don't have any completed heartbeats
-   */
-  const statPulses = result.filter((pulse: { heartbeats: { status: number }[] }) => pulse.heartbeats.every((heartbeat) => heartbeat.status === 4));
-
-  /**
-   * Calculate the scores and CWV stats for the provided pulses
-   */
-  const scores = calculateScores(statPulses);
-  const cwvStats = calculateCWVStats(statPulses);
-
-  return { urlRecord, cwvStats, scores };
-});
-
-export { main };
+export { calculateScores, calculateCWVStats };

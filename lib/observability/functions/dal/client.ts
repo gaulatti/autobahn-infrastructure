@@ -2,11 +2,11 @@ import { InvokeCommand, InvokeCommandOutput, LambdaClient } from '@aws-sdk/clien
 import {
   AllowedRequest,
   CreateAssignmentRequest,
-  CreatePulseRequest,
-  CreateHeartbeatRequest,
   CreateEngagementRequest,
+  CreateHeartbeatRequest,
   CreateMembershipRequest,
   CreateProjectRequest,
+  CreatePulseRequest,
   CreateScheduleRequest,
   CreateStatisticRequest,
   CreateTargetRequest,
@@ -20,6 +20,7 @@ import {
   UpdateURLRequest,
   DateRangeParams,
   UpdateScheduleRequest,
+  UpdateBaselineRequest,
 } from './types';
 
 /**
@@ -120,13 +121,10 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async createUser(sub: string, email: string, name: string, last_name: string) {
+  public static async createUser(sub: string) {
     const request: CreateUserRequest = {
       request_type: RequestType.CreateUser,
       sub,
-      email,
-      name,
-      last_name,
     };
 
     return await DalClient.parsedInvoke(request);
@@ -179,7 +177,7 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listProjectsByTeam(payload: number, params: ListRenderingParams) {
+  public static async listProjectsByTeam(payload: number[], params: ListRenderingParams) {
     const request: ListRequest = {
       request_type: RequestType.ListProjectsByTeam,
       payload,
@@ -198,11 +196,21 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async createProject(teams_id: number, name: string) {
+  public static async getProjectByUUID(payload: string) {
+    const request: GetRequest = {
+      request_type: RequestType.GetProjectByUUID,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async createProject(teams_id: number, name: string, uuid: string) {
     const request: CreateProjectRequest = {
       request_type: RequestType.CreateProject,
       teams_id,
       name,
+      uuid,
     };
 
     return await DalClient.parsedInvoke(request);
@@ -353,10 +361,18 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async createTarget(projects_id: number, stage: number, provider: number, name: string, url_id?: number, lambda_arn?: string) {
+  public static async getTargetByUUID(payload: string) {
+    const request: GetRequest = {
+      request_type: RequestType.GetTargetByUUID,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async createTarget(stage: number, provider: number, name: string, url_id?: number, lambda_arn?: string) {
     const request: CreateTargetRequest = {
       request_type: RequestType.CreateTarget,
-      projects_id,
       stage,
       provider,
       name,
@@ -370,19 +386,19 @@ class DalClient {
   /**
    * Pulses
    */
-  public static async listPulses(params: ListRenderingParams) {
+  public static async listPulsesByTarget(payload: number, params: ListRenderingParams) {
     const request: ListRequest = {
-      request_type: RequestType.ListPulses,
+      request_type: RequestType.ListPulsesByTarget,
       params,
+      payload,
     };
 
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async listPulsesByTeam(payload: number[], params: ListRenderingParams) {
+  public static async listPulses(params: ListRenderingParams) {
     const request: ListRequest = {
-      request_type: RequestType.ListPulsesByTeam,
-      payload,
+      request_type: RequestType.ListPulses,
       params,
     };
 
@@ -399,6 +415,15 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
+  public static async getPulse(payload: number) {
+    const request: GetRequest = {
+      request_type: RequestType.GetPulse,
+      payload,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
   public static async listPulsesByURL(payload: number, params: ListRenderingParams) {
     const request: ListRequest = {
       request_type: RequestType.ListPulsesByURL,
@@ -408,6 +433,7 @@ class DalClient {
 
     return await DalClient.parsedInvoke(request);
   }
+
   public static async listStatsPulsesByURL(payload: number, range: DateRangeParams) {
     const request: ListRequest = {
       request_type: RequestType.ListStatsPulsesByURL,
@@ -418,15 +444,15 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async getPulse(payload: number) {
-    const request: GetRequest = {
-      request_type: RequestType.GetPulse,
+  public static async listStatsPulsesByTarget(payload: number, range: DateRangeParams) {
+    const request: ListRequest = {
+      request_type: RequestType.ListStatsPulsesByTarget,
       payload,
+      range,
     };
 
     return await DalClient.parsedInvoke(request);
   }
-
   public static async getPulseByUUID(payload: string) {
     const request: GetRequest = {
       request_type: RequestType.GetPulseByUUID,
@@ -437,18 +463,16 @@ class DalClient {
   }
 
   public static async createPulse(
-    teams_id: number,
     stage: number,
     uuid: string,
     url_id: number,
     provider: number,
-    ownership: { triggered_by?: number; targets_id?: number }
+    ownership: { triggered_by?: number; targets_id?: number; schedules_id?: number }
   ) {
     const request: CreatePulseRequest = {
       request_type: RequestType.CreatePulse,
-      teams_id,
-      uuid,
       stage,
+      uuid,
       url_id,
       provider,
       ...ownership,
@@ -553,6 +577,31 @@ class DalClient {
   }
 
   /**
+   * Baselines
+   */
+  public static async updateBaseline(id: number, mode: number, baseline: Record<string, number>) {
+    const request: UpdateBaselineRequest = {
+      request_type: RequestType.UpdateBaseline,
+      targets_id: id,
+      mode,
+      ...baseline,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async createBaseline(targets_id: number, mode: number, baseline: Record<string, number>) {
+    const request: UpdateBaselineRequest = {
+      request_type: RequestType.CreateBaseline,
+      targets_id,
+      mode,
+      ...baseline,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  /**
    * Engagements
    */
 
@@ -648,9 +697,10 @@ class DalClient {
     return await DalClient.parsedInvoke(request);
   }
 
-  public static async createSchedule(targets_id: number, provider: number, cron: string, next_execution: Date) {
+  public static async createSchedule(projects_id: number, targets_id: number, provider: number, cron: string, next_execution: Date) {
     const request: CreateScheduleRequest = {
       request_type: RequestType.CreateSchedule,
+      projects_id,
       targets_id,
       provider,
       cron,
@@ -774,6 +824,25 @@ class DalClient {
       request_type: RequestType.UpdateURL,
       id,
       url,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async listUrls(params: ListRenderingParams) {
+    const request: ListRequest = {
+      request_type: RequestType.ListURLs,
+      params,
+    };
+
+    return await DalClient.parsedInvoke(request);
+  }
+
+  public static async listUrlsByTarget(payload: number, params: ListRenderingParams) {
+    const request: ListRequest = {
+      request_type: RequestType.ListURLsByTarget,
+      payload,
+      params,
     };
 
     return await DalClient.parsedInvoke(request);

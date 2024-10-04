@@ -6,10 +6,12 @@ export type GetRequestType =
   | RequestType.GetUserBySubWithMembershipAndTeam
   | RequestType.GetUserByEmail
   | RequestType.GetTeam
-  | RequestType.GetProject
+  | RequestType.GetProjectByUUID
   | RequestType.GetMembership
   | RequestType.GetAssignment
   | RequestType.GetTarget
+  | RequestType.GetTargetByUUID
+  | RequestType.GetProject
   | RequestType.GetPulse
   | RequestType.GetPulseByUUID
   | RequestType.GetEngagement

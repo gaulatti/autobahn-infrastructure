@@ -3,15 +3,13 @@ import { BaseRequest, RequestType } from '.';
 export interface CreateUserRequest extends BaseRequest {
   request_type: RequestType.CreateUser;
   sub: string;
-  email: string;
-  name: string;
-  last_name: string;
 }
 
 export interface CreateProjectRequest extends BaseRequest {
   request_type: RequestType.CreateProject;
   teams_id: number;
   name: string;
+  uuid: string;
 }
 
 export interface CreateMembershipRequest extends BaseRequest {
@@ -30,7 +28,6 @@ export interface CreateAssignmentRequest extends BaseRequest {
 
 export interface CreateTargetRequest extends BaseRequest {
   request_type: RequestType.CreateTarget;
-  projects_id: number;
   stage: number;
   provider: number;
   name: string;
@@ -40,9 +37,8 @@ export interface CreateTargetRequest extends BaseRequest {
 
 export interface CreatePulseRequest extends BaseRequest {
   request_type: RequestType.CreatePulse;
-  teams_id: number;
-  uuid: string;
   stage: number;
+  uuid: string;
   url_id: number;
   provider: number;
   targets_id?: number;
@@ -67,6 +63,7 @@ export interface CreateEngagementRequest extends BaseRequest {
 
 export interface CreateScheduleRequest extends BaseRequest {
   request_type: RequestType.CreateSchedule;
+  projects_id: number;
   targets_id: number;
   provider: number;
   cron: string;
@@ -97,6 +94,18 @@ export interface CreateURLRequest extends BaseRequest {
   uuid: string;
 }
 
+export interface CreateBaselineRequest extends BaseRequest {
+  request_type: RequestType.CreateBaseline;
+  targets_id: number;
+  ttfb: number;
+  fcp: number;
+  lcp: number;
+  tti: number;
+  si: number;
+  cls: number;
+  mode: number;
+}
+
 export type CreateRequests =
   | CreateUserRequest
   | CreateProjectRequest
@@ -108,4 +117,5 @@ export type CreateRequests =
   | CreateEngagementRequest
   | CreateScheduleRequest
   | CreateStatisticRequest
+  | CreateBaselineRequest
   | CreateURLRequest;

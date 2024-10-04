@@ -1,10 +1,10 @@
-import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
-import { randomUUID } from 'crypto';
-import { getCurrentUser, HandleDelivery } from '../../../../common/utils/api';
-import { DalClient } from '../../dal/client';
 import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { randomUUID } from 'crypto';
+import { getCurrentSubFromEvent, getCurrentUserBySub, HandleDelivery } from '../../../../common/utils/api';
+import { DalClient } from '../../dal/client';
 
 /**
  * Prepends 'www.' to the hostname of the given URL if it does not already start with 'www.'.
@@ -47,7 +47,8 @@ let apiGatewayManagementApiClient: ApiGatewayManagementApiClient;
 
 const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
   const { url, team } = JSON.parse(event.body!);
-  const { me } = await getCurrentUser(event);
+  const sub = getCurrentSubFromEvent(event);
+  const { me } = await getCurrentUserBySub(sub);
 
   /**
    * Create a new API Gateway Management API client.
@@ -73,7 +74,7 @@ const main = HandleDelivery(async (event: AWSLambda.APIGatewayEvent) => {
    * Create a new Pulse record.
    */
   const uuid = randomUUID();
-  const { id } = await DalClient.createPulse(team, 3, uuid, urlRecord.id, 1, { triggered_by: membership.id });
+  const { id } = await DalClient.createPulse(3, uuid, urlRecord.id, 1, { triggered_by: membership.id });
   console.log(`Created pulse ${id} with UUID ${uuid}`);
 
   /**

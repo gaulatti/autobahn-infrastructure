@@ -1,7 +1,7 @@
 import { CreateRequests } from './create';
 import { GetRequest } from './get';
 import { ListRequest } from './lists';
-import { UpdateHeartbeatRequest, UpdateRequests } from './update';
+import { UpdateRequests } from './update';
 
 export enum RequestType {
   GetTeam = 'GetTeam',
@@ -19,6 +19,7 @@ export enum RequestType {
   ListProjects = 'ListProjects',
   ListProjectsByTeam = 'ListProjectsByTeam',
   GetProject = 'GetProject',
+  GetProjectByUUID = 'GetProjectByUUID',
   CreateProject = 'CreateProject',
   ListMemberships = 'ListMemberships',
   ListMembershipsByUser = 'ListMembershipsByUser',
@@ -34,11 +35,13 @@ export enum RequestType {
   ListTargets = 'ListTargets',
   ListTargetsByProject = 'ListTargetsByProject',
   GetTarget = 'GetTarget',
+  GetTargetByUUID = 'GetTargetByUUID',
   CreateTarget = 'CreateTarget',
   ListPulses = 'ListPulses',
-  ListPulsesByTeam = 'ListPulsesByTeam',
+  ListPulsesByTarget = 'ListPulsesByTarget',
   ListPulsesByUser = 'ListPulsesByUser',
   ListStatsPulsesByURL = 'ListStatsPulsesByURL',
+  ListStatsPulsesByTarget = 'ListStatsPulsesByTarget',
   ListPulsesByURL = 'ListPulsesByURL',
   GetPulse = 'GetPulse',
   GetPulseByUUID = 'GetPulseByUUID',
@@ -62,19 +65,23 @@ export enum RequestType {
   ListStatisticsByURL = 'ListStatisticsByURL',
   GetStatistic = 'GetStatistic',
   CreateStatistic = 'CreateStatistic',
+  ListURLs = 'ListURLs',
+  ListURLsByTarget = 'ListURLsByTarget',
   GetURL = 'GetURL',
   GetURLByUUID = 'GetURLByUUID',
   CreateURL = 'CreateURL',
   UpdateURL = 'UpdateURL',
+  CreateBaseline = 'CreateBaseline',
+  UpdateBaseline = 'UpdateBaseline',
 }
 
 export interface BaseRequest {
   request_type: RequestType;
 }
 
+export * from './create';
 export * from './get';
 export * from './lists';
-export * from './create';
 export * from './update';
 
 export type AllowedRequest = GetRequest | ListRequest | CreateRequests | UpdateRequests;

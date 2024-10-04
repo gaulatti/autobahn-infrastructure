@@ -1,7 +1,6 @@
-import { Model, ModelStatic, Op, Sequelize, Transaction } from 'sequelize';
-import { AllowedRequest, GetRequest, RequestType, UpdateHeartbeatRequest, UpdateScheduleRequest } from './types';
+import { Model, ModelStatic, Op, Transaction } from 'sequelize';
+import { AllowedRequest, GetRequest, RequestType, UpdateBaselineRequest, UpdateHeartbeatRequest, UpdateScheduleRequest } from './types';
 import { ListRequest } from './types/lists';
-import { get } from 'lodash';
 
 /**
  * Executes an operation based on the provided request.
@@ -12,7 +11,7 @@ import { get } from 'lodash';
  * @returns {Promise<any>} - A promise that resolves to the result of the operation.
  */
 const executeOperation = async (transaction: Transaction, models: Record<string, ModelStatic<Model>>, request: AllowedRequest): Promise<any> => {
-  const { User, Team, Project, Membership, Target, Assignment, Pulse, Heartbeat, Engagement, Schedule, Statistic, URL } = models;
+  const { Baseline, User, Team, Project, Membership, Target, Assignment, Pulse, Heartbeat, Engagement, Schedule, Statistic, URL } = models;
 
   if (request.request_type.startsWith('List')) {
     const where: Record<string, any> = {};
@@ -24,12 +23,33 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
 
       const offset = parseInt(startRow!, 10);
       const limit = parseInt(endRow!, 10) - offset;
-      const order: [string, string][] = [];
+      const order: any[] = [];
 
       if (sort.length) {
         sort.split(';').forEach((s) => {
           const splittedSort = s.split(',');
-          order.push([splittedSort[0], splittedSort[1].toUpperCase()]);
+          const sortField = splittedSort[0];
+          const sortDirection = splittedSort[1].toUpperCase();
+
+          /**
+           * If the sort field is nested, we need to split
+           * it and add it to the order array.
+           */
+          let field = sortField.includes('.') ? sortField.split('.') : [sortField];
+
+          /**
+           * This is a special case. TriggeredBy in the frontend includes
+           * either the Project (if the Pulse was triggered by a Schedule)
+           * or the User (if the Pulse was triggered manually).
+           *
+           * We must handle that case by sorting by both fields.
+           */
+          if (sortField.includes('triggeredBy')) {
+            order.push(['triggeredBy', 'user', 'sub', sortDirection]);
+            order.push(['target', 'name', sortDirection]);
+          } else {
+            order.push([...field, sortDirection]);
+          }
         });
       }
 
@@ -154,6 +174,23 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
         return Assignment.findAndCountAll({ ...paginationParams, transaction, where: { projects_id: listRequest.payload, ...where } });
       case RequestType.ListAssignmentsByMembership:
         return Assignment.findAndCountAll({ ...paginationParams, transaction, where: { memberships_id: listRequest.payload, ...where } });
+      case RequestType.ListURLs:
+        return URL.findAndCountAll({ ...paginationParams, transaction, where });
+      case RequestType.ListURLsByTarget:
+        return URL.findAndCountAll({
+          ...paginationParams,
+          transaction,
+          include: [
+            {
+              model: Pulse,
+              as: 'pulses',
+              where: { targets_id: listRequest.payload },
+              required: true,
+            },
+          ],
+          where,
+          distinct: true,
+        });
       case RequestType.ListTargets:
         return Target.findAndCountAll({ ...paginationParams, transaction, where });
       case RequestType.ListTargetsByProject:
@@ -166,18 +203,29 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
           include: [
             { model: Heartbeat, as: 'heartbeats' },
             { model: URL, as: 'url' },
+            { model: Target, as: 'target' },
+            {
+              model: Membership,
+              as: 'triggeredBy',
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                },
+              ],
+            },
           ],
           distinct: true,
         });
-      case RequestType.ListPulsesByTeam:
+      case RequestType.ListPulsesByTarget:
         return Pulse.findAndCountAll({
           ...paginationParams,
           transaction,
-          where: { teams_id: listRequest.payload, ...where },
+          where,
           include: [
             { model: Heartbeat, as: 'heartbeats' },
             { model: URL, as: 'url' },
-            { model: Target, as: 'target', include: [{ model: Project, as: 'project' }] },
+            { model: Target, as: 'target', where: { id: listRequest.payload }, required: true },
             {
               model: Membership,
               as: 'triggeredBy',
@@ -208,7 +256,18 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
           where: {
             url_id: listRequest.payload,
             created_at: {
-              [Op.between]: [request.range!.from, request.range!.to],
+              [Op.between]: [listRequest.range!.from, listRequest.range!.to],
+            },
+          },
+          include: [{ model: Heartbeat, as: 'heartbeats' }],
+        });
+      case RequestType.ListStatsPulsesByTarget:
+        return Pulse.findAll({
+          transaction,
+          where: {
+            targets_id: listRequest.payload,
+            created_at: {
+              [Op.between]: [listRequest.range!.from, listRequest.range!.to],
             },
           },
           include: [{ model: Heartbeat, as: 'heartbeats' }],
@@ -218,13 +277,29 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
           ...paginationParams,
           transaction,
           where: { url_id: listRequest.payload, ...where },
-          include: [{ model: Heartbeat, as: 'heartbeats' }],
+          include: [
+            { model: Heartbeat, as: 'heartbeats' },
+            { model: URL, as: 'url' },
+            { model: Target, as: 'target' },
+            {
+              model: Membership,
+              as: 'triggeredBy',
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                },
+              ],
+            },
+          ],
           distinct: true,
         });
       case RequestType.ListEngagements:
         return Engagement.findAndCountAll({ ...paginationParams, transaction, where });
       case RequestType.ListEngagementsByURL:
         return Engagement.findAndCountAll({ ...paginationParams, transaction, where: { url_id: listRequest.payload, ...where } });
+      case RequestType.ListEngagementsByTarget:
+        return Engagement.findAndCountAll({ ...paginationParams, transaction, where: { targets_id: listRequest.payload, ...where } });
       case RequestType.ListSchedules:
         return Schedule.findAndCountAll({ ...paginationParams, transaction, where });
       case RequestType.ListSchedulesByTarget:
@@ -233,6 +308,8 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
         return Statistic.findAndCountAll({ ...paginationParams, transaction, where });
       case RequestType.ListStatisticsByURL:
         return Statistic.findAndCountAll({ ...paginationParams, transaction, where: { url_id: listRequest.payload, ...where } });
+      case RequestType.ListStatisticsByTarget:
+        return Statistic.findAndCountAll({ ...paginationParams, transaction, where: { targets_id: listRequest.payload, ...where } });
       default:
         throw new Error(`Invalid LIST request: ${listRequest.request_type}`);
     }
@@ -245,6 +322,8 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
         return URL.findOne({ transaction, where: { url: getRequest.payload } });
       case RequestType.GetURLByUUID:
         return URL.findOne({ transaction, where: { uuid: getRequest.payload } });
+      case RequestType.GetTargetByUUID:
+        return Target.findOne({ transaction, where: { uuid: getRequest.payload }, include: [{ model: Baseline, as: 'baselines' }] });
       case RequestType.GetUser:
         return User.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetUserByEmail:
@@ -272,6 +351,12 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
         return Team.findOne({ transaction, where: { id: getRequest.payload } });
       case RequestType.GetProject:
         return Project.findOne({ transaction, where: { id: getRequest.payload } });
+      case RequestType.GetProjectByUUID:
+        return Project.findOne({
+          transaction,
+          where: { uuid: getRequest.payload },
+          include: [{ model: Schedule, as: 'schedules', include: [{ model: Target, as: 'target' }] }],
+        });
 
       /**
        * Memberships
@@ -298,6 +383,8 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
           include: [
             { model: Heartbeat, as: 'heartbeats' },
             { model: URL, as: 'url' },
+            { model: Membership, as: 'triggeredBy' },
+            { model: Schedule, as: 'schedule', include: [{ model: Project, as: 'project' }] },
           ],
         });
       case RequestType.GetEngagement:
@@ -322,17 +409,11 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
                   model: URL,
                   as: 'url',
                 },
-                {
-                  model: Project,
-                  as: 'project',
-                  include: [
-                    {
-                      model: Team,
-                      as: 'team',
-                    },
-                  ],
-                },
               ],
+            },
+            {
+              model: Project,
+              as: 'project',
             },
           ],
         });
@@ -347,6 +428,8 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
   switch (request.request_type) {
     case RequestType.CreateURL:
       return URL.create({ transaction, ...request });
+    case RequestType.CreateBaseline:
+      return Baseline.create({ transaction, ...request });
     case RequestType.CreateUser:
       return User.create({ transaction, ...request });
     case RequestType.CreateProject:
@@ -364,6 +447,11 @@ const executeOperation = async (transaction: Transaction, models: Record<string,
     case RequestType.UpdateHeartbeat:
       const updateHeartbeatRequest = request as UpdateHeartbeatRequest;
       return await (await Heartbeat.findOne({ transaction, where: { id: updateHeartbeatRequest.id } }))!.update({ transaction, ...updateHeartbeatRequest });
+    case RequestType.UpdateBaseline:
+      const updateBaselineRequest = request as UpdateBaselineRequest;
+      return await (await Baseline.findOne({ transaction, where: { targets_id: updateBaselineRequest.targets_id, mode: updateBaselineRequest.mode } }))!.update(
+        { transaction, ...updateBaselineRequest }
+      );
     case RequestType.CreateEngagement:
       return Engagement.create({ transaction, ...request });
     case RequestType.CreateSchedule:
