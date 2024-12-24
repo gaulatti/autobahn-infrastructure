@@ -1,60 +1,33 @@
 {
-  "name": "dress-you-up",
+  "name": "autobahn",
   "version": "0.1.0",
   "bin": {
-    "dress-you-up": "bin/dress-you-up.js"
+    "autobahn": "bin/autobahn.js"
   },
   "scripts": {
     "build": "tsc",
-    "build:synth": "npm run build && cdk synth",
-    "build:synth:watch": "chokidar 'lib/**/*.ts' '!lib/**/*.d.ts' -c 'npm run build:synth'",
-    "deploy": "npm run build && cdk deploy --require-approval never",
     "watch": "tsc -w",
-    "test": "jest --config jest.config.ts",
+    "test": "jest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "cdk": "cdk",
-    "cdk:synth": "cdk synth",
     "cdk:diff": "cdk diff",
-    "sam:run": "sam local start-api -t cdk.out/DressYouUp.template.json",
-    "start": "npm run build && npm run cdk:synth && npm run sam:run",
-    "view:schema": "graphqlviz ./lib/observability/api/api.graphql | dot -Tpdf | open -f -a Preview"
+    "cdk:synth": "cdk synth",
+    "deploy": "npm run build && cdk deploy --require-approval never",
+    "build:synth": "npm run build && cdk synth"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudwatch": "^3.664.0",
-    "@aws-sdk/client-ecs": "^3.664.0",
-    "@aws-sdk/client-lambda": "^3.664.0",
-    "@aws-sdk/client-s3": "^3.664.0",
-    "@aws-sdk/client-secrets-manager": "^3.664.0",
-    "@aws-sdk/s3-request-presigner": "^3.664.0",
-    "@types/aws-lambda": "^8.10.145",
-    "@types/jest": "^29.5.13",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/lodash": "^4.17.10",
-    "@types/node": "20.14.2",
-    "@types/stats-lite": "^2.2.2",
-    "aws-cdk": "2.146.0",
-    "chokidar-cli": "^3.0.0",
-    "dotenv": "^16.4.5",
+    "@types/jest": "^29.5.14",
+    "@types/node": "22.7.9",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
+    "aws-cdk": "2.173.0",
     "ts-node": "^10.9.2",
-    "typescript": "~5.4.5"
+    "typescript": "~5.6.3"
   },
   "dependencies": {
-    "@aws-sdk/client-apigatewaymanagementapi": "^3.664.0",
-    "@aws-sdk/client-dynamodb": "^3.664.0",
-    "@aws-sdk/client-sns": "^3.664.0",
-    "@aws-sdk/lib-storage": "^3.664.0",
-    "@aws-sdk/util-dynamodb": "^3.664.0",
-    "aws-cdk-lib": "2.146.0",
-    "axios": "^1.7.7",
-    "constructs": "^10.3.0",
-    "cron": "^3.1.7",
-    "jsonwebtoken": "^9.0.2",
-    "jwks-rsa": "^3.1.0",
-    "lodash": "^4.17.21",
-    "mysql2": "^3.11.3",
-    "sequelize": "^6.37.3",
-    "source-map-support": "^0.5.21",
-    "stats-lite": "^2.2.0"
+    "aws-cdk-lib": "2.173.0",
+    "constructs": "^10.0.0",
+    "dotenv": "^16.4.7"
   }
 }
