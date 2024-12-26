@@ -33,6 +33,7 @@ const createAutobahnStorageLambda = (stack: Stack, updatePlaylistTopic: Topic, s
     environment: {
       UPDATE_PLAYLIST_TOPIC_ARN: updatePlaylistTopic.topicArn,
       KEY_ARN: key.secretArn,
+      AWS_ACCOUNT_ID: stack.account,
     },
   });
 
