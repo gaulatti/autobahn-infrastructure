@@ -1,9 +1,59 @@
 import { Duration, Stack } from 'aws-cdk-lib';
-import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Certificate, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { CachePolicy, Distribution, ErrorResponse, OriginAccessIdentity, SecurityPolicyProtocol, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { CnameRecord, IHostedZone } from 'aws-cdk-lib/aws-route53';
+import { IVpc, SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { CnameRecord, HostedZone, IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
+
+/**
+ * Creates a hosted zone using the provided stack and hosted zone ID.
+ *
+ * @param stack - The stack object.
+ * @returns An object containing the created hosted zone.
+ */
+const createHostedZone = (stack: Stack) => {
+  /**
+   * HostedZone
+   */
+  const hostedZone = HostedZone.fromHostedZoneAttributes(stack, `${stack.stackName}HostedZone`, {
+    hostedZoneId: process.env.HOSTED_ZONE_ID!,
+    zoneName: process.env.HOSTED_ZONE_NAME!,
+  });
+
+  return { hostedZone };
+};
+
+/**
+ * Builds a zone certificate for the given stack and hosted zone.
+ *
+ * @param stack - The stack object.
+ * @returns The built certificate object.
+ */
+const createZoneCertificate = (stack: Stack) => {
+  /**
+   * Certificate
+   */
+  const certificate = Certificate.fromCertificateArn(stack, `${stack.stackName}Certificate'`, process.env.HOSTED_ZONE_CERTIFICATE!);
+
+  return { certificate };
+};
+
+/**
+ * Creates a security group for the given stack and VPC.
+ * @param stack - The stack to create the security group in.
+ * @param vpc - The VPC to associate the security group with.
+ * @returns The created security group.
+ */
+const createSecurityGroup = (stack: Stack, vpc: IVpc) => {
+  const securityGroup = new SecurityGroup(stack, `${stack.stackName}SecurityGroup`, {
+    securityGroupName: `${stack.stackName}SecurityGroup`,
+    vpc,
+    allowAllOutbound: true,
+  });
+
+  return { securityGroup };
+};
 
 /**
  * Creates a CloudFront distribution for the specified stack and S3 bucket.
@@ -68,4 +118,19 @@ const createCNAME = (stack: Stack, zone: IHostedZone, distribution: Distribution
   return { record };
 };
 
-export { createCNAME, createDistribution };
+/**
+ * Retrieves a VPC by its ID.
+ *
+ * @param stack - The stack object.
+ * @param vpcId - The ID of the VPC to retrieve.
+ * @returns An object containing the retrieved VPC.
+ */
+const createVpc = (stack: Stack) => {
+  const vpc = new Vpc(stack, `${stack.stackName}Vpc`, {
+    vpcName: `${stack.stackName}`,
+  });
+
+  return { vpc };
+};
+
+export { createCNAME, createDistribution, createHostedZone, createSecurityGroup, createVpc, createZoneCertificate };
