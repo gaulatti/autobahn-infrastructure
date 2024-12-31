@@ -20,7 +20,7 @@ const main = async (event: { url: string; membership_id: number, isBeta: boolean
   const { url, membership_id, isBeta } = event;
 
   const params = {
-    Message: JSON.stringify({ url, membership_id, strategy: 4, isBeta }),
+    Message: JSON.stringify({ url, membership_id, strategy: 1, isBeta }),
     TopicArn: process.env.START_PLAYLIST_TOPIC_ARN,
   };
 
