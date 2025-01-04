@@ -55,4 +55,54 @@ const createAutobahnStorageLambda = (stack: Stack, updatePlaylistTopic: Topic, s
   return { autobahnStorageLambda };
 };
 
-export { createAutobahnStorageLambda };
+const createAutobahnSlackDeliveryLambda = (stack: Stack, updatePlaylistTopic: Topic, serviceRole: IRole) => {
+  /**
+   * Create a Systems Manager Parameter
+   */
+  const key = new Secret(stack, `${stack.stackName}AutobahnSlackDeliveryPluginKey`, {
+    secretName: 'autobahn/plugins/delivery/slack/key',
+  });
+
+  const slackUrl = new Secret(stack, `${stack.stackName}AutobahnSlackUrl`, {
+    secretName: 'autobahn/plugins/delivery/slack/url',
+  });
+
+  /**
+   * Create AutobahnSlackDelivery Lambda
+   */
+  const autobahnSlackDeliveryLambda = new NodejsFunction(stack, `${stack.stackName}AutobahnSlackDeliveryPluginLambda`, {
+    functionName: `${stack.stackName}AutobahnSlackDeliveryPlugin`,
+    entry: './lib/worker/functions/plugins/delivery/slack.src.ts',
+    handler: 'main',
+    runtime: Runtime.NODEJS_20_X,
+    timeout: Duration.minutes(15),
+    tracing: Tracing.ACTIVE,
+    memorySize: 1024,
+    environment: {
+      UPDATE_PLAYLIST_TOPIC_ARN: updatePlaylistTopic.topicArn,
+      SLACK_URL_ARN: slackUrl.secretArn,
+      KEY_ARN: key.secretArn,
+      AWS_ACCOUNT_ID: stack.account,
+    },
+  });
+
+  /**
+   * Grant permissions to read the key
+   */
+  slackUrl.grantRead(autobahnSlackDeliveryLambda);
+  key.grantRead(autobahnSlackDeliveryLambda);
+
+  /**
+   * Grant permissions to publish to the UpdatePlaylistTopic
+   */
+  updatePlaylistTopic.grantPublish(autobahnSlackDeliveryLambda);
+
+  /**
+   * Grant permissions to invoke from service
+   */
+  autobahnSlackDeliveryLambda.grantInvoke(serviceRole);
+
+  return { autobahnSlackDeliveryLambda };
+};
+
+export { createAutobahnStorageLambda, createAutobahnSlackDeliveryLambda };

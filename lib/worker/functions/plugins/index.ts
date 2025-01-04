@@ -4,8 +4,8 @@ import { Cluster, FargateTaskDefinition } from 'aws-cdk-lib/aws-ecs';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Topic } from 'aws-cdk-lib/aws-sns';
-import { createAutobahnStorageLambda } from './delivery';
-import { createAutobahnLighthouseProviderLambda } from './provider';
+import { createAutobahnSlackDeliveryLambda, createAutobahnStorageLambda } from './delivery';
+import { createAutobahnLighthouseProviderLambda, createPageSpeedInsightsProviderLambda } from './provider';
 import { createAdHocTriggerLambda } from './trigger';
 
 const createPlugins = (
@@ -38,10 +38,18 @@ const createPlugins = (
     securityGroup
   );
 
+  const { pageSpeedInsightsProviderLambda } = createPageSpeedInsightsProviderLambda(
+    stack,
+    updatePlaylistTopic,
+    serviceRole,
+    observabilityBucket,
+  );
+
   /**
    * Delivery
    */
   const { autobahnStorageLambda } = createAutobahnStorageLambda(stack, updatePlaylistTopic, serviceRole);
+  const { autobahnSlackDeliveryLambda } = createAutobahnSlackDeliveryLambda(stack, updatePlaylistTopic, serviceRole);
 
   return { lighthouseProviderLambda };
 };
