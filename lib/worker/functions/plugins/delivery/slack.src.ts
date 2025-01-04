@@ -23,8 +23,7 @@ const secretsManagerClient = new SecretsManagerClient();
  * @param event - The event object containing necessary data.
  * @returns A promise that resolves to void.
  */
-const main = async (event: any): Promise<void> => {
-  console.log(JSON.stringify(event))
+const main = async (event: { playlist: { id: number; slug: string; manifest: { fqdn: string; context: { url: string } } } }): Promise<void> => {
   /**
    * Retrieves the secret values from AWS Secrets Manager.
    */
@@ -39,17 +38,34 @@ const main = async (event: any): Promise<void> => {
     })
   );
 
+  const {
+    playlist: {
+      slug,
+      manifest: {
+        fqdn,
+        context: { url },
+      },
+    },
+  } = event;
+
   /**
    * Sends a message to a Slack channel using Axios.
    */
   const message = {
-    text: 'Hello from Lambda using Axios! 🎉',
+    text: `Playlist completed! 🎉\nThe playlist for ${url} has been completed.`,
     blocks: [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: '*Hello from Lambda!* 🎉',
+          text: `*Playlist Completed!* 🎉\nThe playlist for *<${url}|${url}>* has been successfully completed.`,
+        },
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*View Details:* <https://${fqdn}/playlists/${slug}|Click here to view the playlist details>`,
         },
       },
     ],
