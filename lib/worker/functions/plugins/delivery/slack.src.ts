@@ -75,8 +75,6 @@ const main = async (event: { playlist: { id: number; slug: string; manifest: { f
     const response = await axios.post(slackUrl!, message, {
       headers: { 'Content-Type': 'application/json' },
     });
-
-    console.log('Message sent to Slack:', response.data);
   } catch {
     console.error('Error sending message to Slack');
   }
@@ -91,7 +89,6 @@ const main = async (event: { playlist: { id: number; slug: string; manifest: { f
 
   try {
     const data = await snsClient.send(new PublishCommand(params));
-    console.log('Message sent to SNS topic', data);
   } catch (err) {
     console.error('Error sending message to SNS topic', err);
   }
