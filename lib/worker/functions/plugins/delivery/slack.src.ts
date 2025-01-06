@@ -65,7 +65,7 @@ const main = async (event: { playlist: { id: number; slug: string; manifest: { f
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*View Details:* <https://${fqdn}/playlists/${slug}|Click here to view the playlist details>`,
+          text: `*View Details:* <https://${fqdn}/assessments/playlists/${slug}|Click here to view the playlist details>`,
         },
       },
     ],
