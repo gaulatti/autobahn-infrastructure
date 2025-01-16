@@ -49,7 +49,7 @@ lighthouse \
   --throttling.cpuSlowdownMultiplier=1 \
   --throttling.throughputKbps=0 \
   --throttling.requestLatencyMs=0 \
-  --max-wait-for-load=180000
+  --max-wait-for-load=600000
 
 echo "Lighthouse Complete, time to upload"
 
