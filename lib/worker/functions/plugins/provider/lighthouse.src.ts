@@ -175,10 +175,8 @@ const main = async (event: any): Promise<void> => {
       /**
        * Run the Fargate tasks
        */
-      const desktopParameters = buildParameters(CLUSTER!, TASK_DEFINITION!, subnets, SECURITY_GROUP!, CONTAINER_NAME!, failedUrl, uuid, true, retries);
-      const mobileParameters = buildParameters(CLUSTER!, TASK_DEFINITION!, subnets, SECURITY_GROUP!, CONTAINER_NAME!, failedUrl, uuid, false, retries);
-      await ecsClient.send(new RunTaskCommand(desktopParameters));
-      await ecsClient.send(new RunTaskCommand(mobileParameters));
+      const retryParameters = buildParameters(CLUSTER!, TASK_DEFINITION!, subnets, SECURITY_GROUP!, CONTAINER_NAME!, failedUrl, uuid, mode === 'desktop', retries);
+      await ecsClient.send(new RunTaskCommand(retryParameters));
     } catch (error) {
       throw new Error(`Error running lighthouse (${error})`);
     }
