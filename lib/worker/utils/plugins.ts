@@ -2,6 +2,12 @@
  * Represents the result of a Lighthouse audit.
  */
 export type LighthouseResult = {
+  environment: {
+    /**
+     * The user agent used for the audit.
+     */
+    networkUserAgent: string;
+  };
   /**
    * Categories of the Lighthouse audit results.
    */
@@ -63,6 +69,11 @@ export type LighthouseResult = {
  * Represents a simplified result from a Lighthouse audit.
  */
 export type SimplifiedLHResult = {
+  /**
+   * The user agent used for the audit.
+   */
+  userAgent: string;
+
   /**
    * The URL of the audited page.
    */
@@ -214,7 +225,6 @@ export type SimplifiedLHResult = {
   };
 };
 
-
 /**
  * Extracts a simplified summary from a raw Lighthouse report.
  *
@@ -226,6 +236,7 @@ const extractLighthouseSummary = (rawData: string, mode: string) => {
 
   const simplifiedResult: SimplifiedLHResult = {
     mode,
+    userAgent: lhReport.environment.networkUserAgent,
     url: lhReport.requestedUrl,
     finalUrl: lhReport.finalUrl,
     performance: lhReport.categories.performance.score * 100,
