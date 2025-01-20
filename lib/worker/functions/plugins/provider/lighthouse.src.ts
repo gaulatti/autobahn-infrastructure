@@ -149,10 +149,10 @@ const main = async (event: any): Promise<void> => {
       };
 
       const data = await snsClient.send(new PublishCommand(params));
+      return;
     } catch (err) {
       console.error('Error sending message to SNS topic', err);
     }
-    return;
   }
 
   if (status === 'FAILED') {
@@ -175,7 +175,17 @@ const main = async (event: any): Promise<void> => {
       /**
        * Run the Fargate tasks
        */
-      const retryParameters = buildParameters(CLUSTER!, TASK_DEFINITION!, subnets, SECURITY_GROUP!, CONTAINER_NAME!, failedUrl, uuid, mode === 'desktop', retries);
+      const retryParameters = buildParameters(
+        CLUSTER!,
+        TASK_DEFINITION!,
+        subnets,
+        SECURITY_GROUP!,
+        CONTAINER_NAME!,
+        failedUrl,
+        uuid,
+        mode === 'desktop',
+        retries
+      );
       await ecsClient.send(new RunTaskCommand(retryParameters));
     } catch (error) {
       throw new Error(`Error running lighthouse (${error})`);

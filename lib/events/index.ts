@@ -63,7 +63,24 @@ const createTopics = (stack: Stack) => {
     ],
   });
 
-  return { startPlaylistTopic, triggerTopic, updatePlaylistTopic };
+
+  /**
+   * Creates an update playlist topic for the PSI worker.
+   */
+  const pageSpeedInsightsTriggerTopic = new Topic(stack, `${stack.stackName}PageSpeedInsightsTriggerTopic`, {
+    topicName: `${stack.stackName}PageSpeedInsightsTrigger`,
+    displayName: 'It Triggers a PageSpeedInsights Worker',
+    loggingConfigs: [
+      {
+        protocol: LoggingProtocol.HTTP,
+        failureFeedbackRole: loggingRole,
+        successFeedbackRole: loggingRole,
+        successFeedbackSampleRate: 100,
+      },
+    ],
+  });
+
+  return { startPlaylistTopic, triggerTopic, updatePlaylistTopic, pageSpeedInsightsTriggerTopic };
 };
 
 export { createTopics };

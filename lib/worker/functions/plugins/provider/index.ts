@@ -1,12 +1,13 @@
 import { Duration, Stack } from 'aws-cdk-lib';
 import { IVpc, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Cluster, FargateTaskDefinition } from 'aws-cdk-lib/aws-ecs';
-import { IRole, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { IRole } from 'aws-cdk-lib/aws-iam';
 import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Topic } from 'aws-cdk-lib/aws-sns';
+import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
 /**
  * Creates a Lambda function for the Autobahn Lighthouse Provider.
@@ -86,26 +87,18 @@ const createAutobahnLighthouseProviderLambda = (
  * @returns {Object} An object containing the created Lambda function.
  * @returns {NodejsFunction} return.pageSpeedInsightsProviderLambda - The created Node.js Lambda function.
  */
-const createPageSpeedInsightsProviderLambda = (stack: Stack, updatePlaylistTopic: Topic, serviceRole: IRole, observabilityBucket: Bucket) => {
+const createPageSpeedInsightsProviderLambda = (
+  stack: Stack,
+  updatePlaylistTopic: Topic,
+  pageSpeedInsightsTriggerTopic: Topic,
+  serviceRole: IRole,
+  observabilityBucket: Bucket
+) => {
   /**
    * Create a Systems Manager Parameter
    */
   const key = new Secret(stack, `${stack.stackName}PageSpeedInsightsProviderPluginKey`, {
     secretName: 'autobahn/plugins/provider/pageSpeedInsights/key',
-  });
-
-  /**
-   * Create a Role for the provider Lambda
-   */
-  const providerRole = new Role(stack, `${stack.stackName}PageSpeedInsightsProviderPluginLambdaRole`, {
-    assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
-  });
-
-  /**
-   * Create a Role for the worker Lambda
-   */
-  const workerRole = new Role(stack, `${stack.stackName}PageSpeedInsightsWorkerLambdaRole`, {
-    assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
   });
 
   /**
@@ -121,6 +114,7 @@ const createPageSpeedInsightsProviderLambda = (stack: Stack, updatePlaylistTopic
     memorySize: 1024,
     environment: {
       UPDATE_PLAYLIST_TOPIC_ARN: updatePlaylistTopic.topicArn,
+      TRIGGER_TOPIC_ARN: pageSpeedInsightsTriggerTopic.topicArn,
       BUCKET_NAME: observabilityBucket.bucketName,
       KEY_ARN: key.secretArn,
     },
@@ -144,20 +138,25 @@ const createPageSpeedInsightsProviderLambda = (stack: Stack, updatePlaylistTopic
   });
 
   /**
-   * Grant permissions to invoke the worker lambda
+   * Grant permissions to have cross-comunication between the two Lambdas
    */
-  pageSpeedInsightsProviderLambda.grantInvoke(workerRole);
-  workerLambda.grantInvoke(providerRole);
+  pageSpeedInsightsTriggerTopic.grantPublish(pageSpeedInsightsProviderLambda);
+  workerLambda.grantInvoke(pageSpeedInsightsProviderLambda);
+
+  /**
+   * Add a subscription to the PageSpeedInsightsTriggerTopic
+   */
+  pageSpeedInsightsTriggerTopic.addSubscription(new LambdaSubscription(workerLambda));
 
   /**
    * Grant permissions to read the key
    */
-  key.grantRead(providerRole);
+  key.grantRead(pageSpeedInsightsProviderLambda);
 
   /**
    * Grant permissions to publish to the UpdatePlaylistTopic
    */
-  updatePlaylistTopic.grantPublish(providerRole);
+  updatePlaylistTopic.grantPublish(pageSpeedInsightsProviderLambda);
 
   /**
    * Grant permissions to invoke from service
@@ -167,7 +166,8 @@ const createPageSpeedInsightsProviderLambda = (stack: Stack, updatePlaylistTopic
   /**
    * Grant permissions to read from the observability bucket
    */
-  observabilityBucket.grantRead(providerRole);
+  observabilityBucket.grantRead(pageSpeedInsightsProviderLambda);
+  observabilityBucket.grantWrite(workerLambda);
 
   return { pageSpeedInsightsProviderLambda };
 };

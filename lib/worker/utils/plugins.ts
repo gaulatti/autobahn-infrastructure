@@ -231,7 +231,7 @@ export type SimplifiedLHResult = {
  * @param rawData - The raw data of the Lighthouse report.
  * @returns The simplified summary of the Lighthouse report.
  */
-const extractLighthouseSummary = (rawData: string, mode: string) => {
+const extractLighthouseSummary = (rawData: string, mode: 'desktop' | 'mobile') => {
   const lhReport: LighthouseResult = JSON.parse(rawData);
 
   const simplifiedResult: SimplifiedLHResult = {

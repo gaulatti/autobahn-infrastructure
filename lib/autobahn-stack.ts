@@ -63,7 +63,7 @@ export class AutobahnStack extends cdk.Stack {
     /**
      * Create SNS Topics
      */
-    const { triggerTopic, startPlaylistTopic, updatePlaylistTopic } = createTopics(this);
+    const { triggerTopic, startPlaylistTopic, updatePlaylistTopic, pageSpeedInsightsTriggerTopic } = createTopics(this);
 
     /**
      * Create Cache Table
@@ -129,6 +129,17 @@ export class AutobahnStack extends cdk.Stack {
     /**
      * Create Worker Infrastructure
      */
-    createWorkerInfrastructure(this, vpc, startPlaylistTopic, updatePlaylistTopic, cacheTable, observabilityBucket, serviceRole, cluster, securityGroup);
+    createWorkerInfrastructure(
+      this,
+      vpc,
+      startPlaylistTopic,
+      updatePlaylistTopic,
+      pageSpeedInsightsTriggerTopic,
+      cacheTable,
+      observabilityBucket,
+      serviceRole,
+      cluster,
+      securityGroup
+    );
   }
 }

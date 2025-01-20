@@ -12,6 +12,7 @@ const createPlugins = (
   stack: Stack,
   startPlaylistTopic: Topic,
   updatePlaylistTopic: Topic,
+  pageSpeedInsightsTriggerTopic: Topic,
   serviceRole: IRole,
   fargateTaskDefinition: FargateTaskDefinition,
   cluster: Cluster,
@@ -41,6 +42,7 @@ const createPlugins = (
   const { pageSpeedInsightsProviderLambda } = createPageSpeedInsightsProviderLambda(
     stack,
     updatePlaylistTopic,
+    pageSpeedInsightsTriggerTopic,
     serviceRole,
     observabilityBucket,
   );
