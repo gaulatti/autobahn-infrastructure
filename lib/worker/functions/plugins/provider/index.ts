@@ -141,7 +141,7 @@ const createPageSpeedInsightsProviderLambda = (
    * Grant permissions to have cross-comunication between the two Lambdas
    */
   pageSpeedInsightsTriggerTopic.grantPublish(pageSpeedInsightsProviderLambda);
-  workerLambda.grantInvoke(pageSpeedInsightsProviderLambda);
+  pageSpeedInsightsProviderLambda.grantInvoke(workerLambda);
 
   /**
    * Add a subscription to the PageSpeedInsightsTriggerTopic

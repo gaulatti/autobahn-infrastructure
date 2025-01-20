@@ -114,12 +114,11 @@ const main = async (event: any): Promise<void> => {
        * Run the Workers
        */
       const params = {
-        Message: JSON.stringify({ url, id, category, strategy, retries }),
+        Message: JSON.stringify(playlist),
         TopicArn: process.env.TRIGGER_TOPIC_ARN,
       };
 
-      const data = await snsClient.send(new PublishCommand(params));
-      console.log({ data });
+      await snsClient.send(new PublishCommand(params));
     } catch (error) {
       throw new Error(`Error triggering PageSpeed Insights Worker (${error})`);
     }
@@ -129,16 +128,15 @@ const main = async (event: any): Promise<void> => {
    * Trigger the PageSpeed Insights Workers.
    */
   try {
-    for (const category of categories) {
-      for (const strategy of strategies) {
+    for (const currentCategory of categories) {
+      for (const currentStrategy of strategies) {
         const params = {
-          Message: JSON.stringify({ url, id, category, strategy, retries }),
+          Message: JSON.stringify({ ...playlist, category: currentCategory, strategy: currentStrategy }),
           TopicArn: process.env.TRIGGER_TOPIC_ARN,
         };
 
         try {
           const data = await snsClient.send(new PublishCommand(params));
-          console.log({ data });
         } catch (error) {
           console.error('Error publishing message:', error);
         }
