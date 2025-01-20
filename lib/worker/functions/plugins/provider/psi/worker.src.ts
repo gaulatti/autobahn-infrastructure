@@ -1,5 +1,5 @@
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import axios from 'axios';
 
 /**
@@ -74,8 +74,6 @@ const main = async (event: any): Promise<void> => {
         })
       );
 
-      console.log(`Uploaded ${outputFile} to S3 bucket ${bucketName}`);
-
       /**
        * Invoke the SEGUE Lambda.
        */
@@ -90,11 +88,9 @@ const main = async (event: any): Promise<void> => {
         new InvokeCommand({
           FunctionName: segueArn,
           InvocationType: 'RequestResponse',
-          Payload: Buffer.from(JSON.stringify(segueMessage)),
+          Payload: Buffer.from(JSON.stringify({ playlist: segueMessage })),
         })
       );
-
-      console.log(`Invoked SEGUE Lambda with message: ${JSON.stringify(segueMessage)}`);
     } catch (error: any) {
       console.error('Error fetching PageSpeed Insights or processing data:', error.message);
 
@@ -111,11 +107,9 @@ const main = async (event: any): Promise<void> => {
           new InvokeCommand({
             FunctionName: segueArn,
             InvocationType: 'RequestResponse',
-            Payload: Buffer.from(JSON.stringify(errorMessage)),
+            Payload: Buffer.from(JSON.stringify({ playlist: errorMessage })),
           })
         );
-
-        console.log(`Invoked SEGUE Lambda with error message: ${JSON.stringify(errorMessage)}`);
       } catch (invokeError: any) {
         console.error('Failed to invoke SEGUE Lambda for error handling:', invokeError.message);
       }

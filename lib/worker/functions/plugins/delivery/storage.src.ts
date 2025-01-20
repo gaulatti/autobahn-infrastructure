@@ -42,31 +42,38 @@ const main = async (event: any): Promise<void> => {
   } = event;
 
   /**
-   * Validate the internal Lighthouse output.
+   * List of plugin ARNs to check.
    */
-  const internalLighthouseOutput: { simplifiedResult: { mode: string } }[] =
-    output[`arn:aws:lambda:us-east-1:${process.env.AWS_ACCOUNT_ID}:function:AutobahnInternalLighthouseProviderPlugin`];
+  const plugins = [
+    `arn:aws:lambda:us-east-1:${process.env.AWS_ACCOUNT_ID}:function:AutobahnInternalLighthouseProviderPlugin`,
+    `arn:aws:lambda:us-east-1:${process.env.AWS_ACCOUNT_ID}:function:AutobahnPageSpeedInsightsProviderPlugin`,
+  ];
 
-  if (!internalLighthouseOutput) {
-    console.error('Internal Lighthouse output not found');
-    return;
+  /**
+   * Iterate over each plugin ARN and check conditions.
+   */
+  for (const plugin of plugins) {
+    const pluginOutput: { simplifiedResult: { mode: string } }[] = output[plugin];
+
+    if (!pluginOutput) {
+      console.warn(`Output for plugin ${plugin} not found`);
+      continue;
+    }
+
+    /**
+     * Check if the plugin output has both desktop and mobile modes.
+     */
+    const hasDesktop = pluginOutput.find((item) => item.simplifiedResult.mode === 'desktop');
+    const hasMobile = pluginOutput.find((item) => item.simplifiedResult.mode === 'mobile');
+
+    if (hasDesktop && hasMobile) {
+      allowedOutputs.push(plugin);
+    }
   }
 
-  /**
-   * Check if the internal Lighthouse output has both desktop and mobile modes.
-   */
-  const hasDesktop = internalLighthouseOutput.find((item) => {
-    return item.simplifiedResult.mode === 'desktop';
-  });
-  const hasMobile = internalLighthouseOutput.find((item) => {
-    return item.simplifiedResult.mode === 'mobile';
-  });
-
-  /**
-   * Add the internal Lighthouse output to the allowed outputs if it has both desktop and mobile modes.
-   */
-  if (hasDesktop && hasMobile) {
-    allowedOutputs.push(`arn:aws:lambda:us-east-1:${process.env.AWS_ACCOUNT_ID}:function:AutobahnInternalLighthouseProviderPlugin`);
+  if (allowedOutputs.length === 0) {
+    console.error('No valid outputs found');
+    return;
   }
 
   /**
@@ -84,8 +91,7 @@ const main = async (event: any): Promise<void> => {
   };
 
   try {
-    const data = await snsClient.send(new PublishCommand(params));
-    console.log('Message sent to SNS topic', data);
+    await snsClient.send(new PublishCommand(params));
   } catch (err) {
     console.error('Error sending message to SNS topic', err);
   }

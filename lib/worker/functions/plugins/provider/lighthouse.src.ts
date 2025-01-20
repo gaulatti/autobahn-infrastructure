@@ -121,8 +121,6 @@ const main = async (event: any): Promise<void> => {
   );
 
   if (!!action) {
-    console.log('Segue action detected, skipping Fargate task');
-
     /**
      * Get the object from S3.
      */
@@ -170,7 +168,6 @@ const main = async (event: any): Promise<void> => {
       }
     }
 
-    console.log('Retrying', JSON.stringify({ retries, failedUrl }));
     try {
       /**
        * Run the Fargate tasks

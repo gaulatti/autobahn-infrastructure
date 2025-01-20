@@ -166,7 +166,7 @@ const createPageSpeedInsightsProviderLambda = (
   /**
    * Grant permissions to read from the observability bucket
    */
-  observabilityBucket.grantRead(pageSpeedInsightsProviderLambda);
+  observabilityBucket.grantReadWrite(pageSpeedInsightsProviderLambda);
   observabilityBucket.grantWrite(workerLambda);
 
   return { pageSpeedInsightsProviderLambda };

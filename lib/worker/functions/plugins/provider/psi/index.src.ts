@@ -1,4 +1,4 @@
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { Readable } from 'stream';
@@ -30,6 +30,68 @@ const secretsManagerClient = new SecretsManagerClient();
  */
 const s3Client = new S3Client();
 
+/**
+ * Deeply merges the properties of the source object into the target object.
+ * If a property in the source object is an object itself, the function will
+ * recursively merge its properties into the corresponding object in the target.
+ *
+ * @template T - The type of the target object.
+ * @param {T} target - The target object to which properties will be merged.
+ * @param {Partial<T>} source - The source object containing properties to merge.
+ * @returns {T} - The target object with merged properties.
+ */
+function deepMerge<T>(target: T, source: Partial<T>): T {
+  for (const key of Object.keys(source) as (keyof T)[]) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      if (!target[key]) {
+        (target[key] as any) = {};
+      }
+      deepMerge(target[key] as any, source[key] as any);
+    } else {
+      target[key] = source[key] as T[keyof T];
+    }
+  }
+  return target;
+}
+
+/**
+ * Merges the contents of multiple JSON files into a single object.
+ *
+ * @param files - An array of strings, where each string is the content of a JSON file.
+ * @returns A single object containing the merged contents of all the JSON files.
+ *
+ * @throws Will log an error message if any file content cannot be parsed as JSON.
+ */
+function mergeOutputFiles(files: string[]): Record<string, any> {
+  let mergedData: Record<string, any> = {};
+
+  files.forEach((file) => {
+    try {
+      mergedData = deepMerge(mergedData, JSON.parse(file));
+    } catch (error) {
+      console.error(`Error reading or parsing file`, error);
+    }
+  });
+
+  return mergedData;
+}
+
+/**
+ * Main function to handle the event and process the playlist.
+ *
+ * @param {any} event - The event object containing the playlist information.
+ * @returns {Promise<void>} - A promise that resolves when the function completes.
+ *
+ * The function performs the following tasks:
+ * 1. Extracts necessary parameters from the event and playlist.
+ * 2. Retrieves a secret value from AWS Secrets Manager.
+ * 3. Checks if an action is present and handles existing files in S3.
+ * 4. If the status is 'FAILED' and retries exceed 5, publishes a failure message to an SNS topic.
+ * 5. If the status is 'FAILED' and retries are within limit, retries the process by publishing a message to an SNS topic.
+ * 6. Triggers PageSpeed Insights Workers for each category and strategy combination by publishing messages to an SNS topic.
+ *
+ * @throws {Error} - Throws an error if there is an issue triggering the PageSpeed Insights Worker.
+ */
 const main = async (event: any): Promise<void> => {
   const { playlist } = event;
 
@@ -38,7 +100,6 @@ const main = async (event: any): Promise<void> => {
    */
   const {
     id,
-    category,
     strategy,
     retries,
     status,
@@ -59,37 +120,79 @@ const main = async (event: any): Promise<void> => {
   );
 
   if (!!action) {
-    console.log('Segue action detected, skipping new worker');
-    /**
-     * Get the object from S3.
-     */
-    const response = await s3Client.send(
-      new GetObjectCommand({
-        Bucket: process.env.BUCKET_NAME,
-        Key: outputFile,
-      })
-    );
+    const expectedFiles = categories.map((cat) => `${id}.${cat}.${strategy}.json`);
 
-    const bodyContents = await streamToString(response.Body as Readable);
-
-    /**
-     * Extract the Lighthouse summary from the body contents.
-     */
-    const output = extractLighthouseSummary(bodyContents, strategy);
-
-    /**
-     * Publish the message to the SNS topic.
-     */
     try {
-      const params = {
-        Message: JSON.stringify({ output, id, key: SecretString }),
-        TopicArn: process.env.UPDATE_PLAYLIST_TOPIC_ARN,
-      };
+      const listResponse = await s3Client.send(
+        new ListObjectsV2Command({
+          Bucket: process.env.BUCKET_NAME,
+          Prefix: `${id}.`,
+        })
+      );
+      const existingFiles = listResponse.Contents?.map((obj) => obj.Key) || [];
 
-      const data = await snsClient.send(new PublishCommand(params));
-      return;
-    } catch (err) {
-      console.error('Error sending message to SNS topic', err);
+      /**
+       * Check if all expected files exist.
+       */
+      const missingFiles = expectedFiles.filter((file) => !existingFiles.includes(file));
+      if (missingFiles.length > 0) {
+        console.warn('Missing files, skipping process:', missingFiles);
+        return;
+      }
+
+      /**
+       * Get the contents of the files.
+       */
+      const fileContents = await Promise.all(
+        expectedFiles.map(async (file) => {
+          const response = await s3Client.send(
+            new GetObjectCommand({
+              Bucket: process.env.BUCKET_NAME,
+              Key: file,
+            })
+          );
+          return await streamToString(response.Body as Readable);
+        })
+      );
+
+      /**
+       * Merge the contents of the files.
+       */
+      const mergedContent = mergeOutputFiles(fileContents);
+      const mergedString = JSON.stringify(mergedContent);
+      /**
+       * Upload the merged file to S3.
+       */
+      const mergedFileKey = `${id}.${strategy}.json`;
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: process.env.BUCKET_NAME,
+          Key: mergedFileKey,
+          Body: mergedString,
+          ContentType: 'application/json',
+        })
+      );
+
+      /**
+       * Extract the Lighthouse summary from the body contents.
+       */
+      const output = extractLighthouseSummary(mergedString, strategy);
+      /**
+       * Publish the message to the SNS topic.
+       */
+      try {
+        const params = {
+          Message: JSON.stringify({ output, id, key: SecretString }),
+          TopicArn: process.env.UPDATE_PLAYLIST_TOPIC_ARN,
+        };
+
+        await snsClient.send(new PublishCommand(params));
+        return;
+      } catch (err) {
+        console.error('Error sending message to SNS topic', err);
+      }
+    } catch (error) {
+      console.error('Error listing objects', error);
     }
   }
 
@@ -108,7 +211,6 @@ const main = async (event: any): Promise<void> => {
       }
     }
 
-    console.log('Retrying', JSON.stringify({ retries, url }));
     try {
       /**
        * Run the Workers
