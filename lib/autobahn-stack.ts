@@ -39,16 +39,30 @@ import { createWorkerInfrastructure } from './worker';
 export class AutobahnStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
     /**
-     * Initialize VPC
+     * Optional: Lighthouse infrastructure.
+     * By default the provider is PageSpeed Insight, and in-house Lighthouse
+     * should be used only if there are targets that cannot be tested with PSI,
+     * mostly due to network reachability.
      */
-    const { vpc } = createVpc(this);
+    let vpc, cluster, securityGroup;
 
-    /**
-     * Create Cluster
-     */
-    const { cluster } = createCluster(this, vpc);
+    if (process.env.ENABLE_LIGHTHOUSE === 'true') {
+      /**
+       * Initialize VPC
+       */
+      vpc = createVpc(this);
+
+      /**
+       * Create Cluster
+       */
+      cluster = createCluster(this, vpc);
+
+      /**
+       * Create Security Group
+       */
+      securityGroup = createSecurityGroup(this, vpc);
+    }
 
     /**
      * Create Hosted Zone
@@ -63,7 +77,7 @@ export class AutobahnStack extends cdk.Stack {
     /**
      * Create SNS Topics
      */
-    const { triggerTopic, startPlaylistTopic, updatePlaylistTopic, pageSpeedInsightsTriggerTopic } = createTopics(this);
+    const { startPlaylistTopic, updatePlaylistTopic, pageSpeedInsightsTriggerTopic } = createTopics(this);
 
     /**
      * Create Cache Table
@@ -73,12 +87,7 @@ export class AutobahnStack extends cdk.Stack {
     /**
      * Create Buckets
      */
-    const { observabilityBucket, assetsBucket, frontendBucket } = createBuckets(this);
-
-    /**
-     * Create Security Group
-     */
-    const { securityGroup } = createSecurityGroup(this, vpc);
+    const { observabilityBucket, frontendBucket } = createBuckets(this);
 
     /**
      * Creates the permissions for the GitHub Actions autobuild.
@@ -131,13 +140,13 @@ export class AutobahnStack extends cdk.Stack {
      */
     createWorkerInfrastructure(
       this,
-      vpc,
       startPlaylistTopic,
       updatePlaylistTopic,
       pageSpeedInsightsTriggerTopic,
       cacheTable,
       observabilityBucket,
       serviceRole,
+      vpc,
       cluster,
       securityGroup
     );

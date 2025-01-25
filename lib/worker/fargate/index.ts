@@ -52,7 +52,7 @@ const createFargateTask = (stack: Stack, observabilityBucket: Bucket) => {
     },
   });
 
-  return { fargateTaskDefinition };
+  return fargateTaskDefinition;
 };
 
 export { createFargateTask };

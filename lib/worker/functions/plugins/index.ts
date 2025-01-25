@@ -14,46 +14,59 @@ const createPlugins = (
   updatePlaylistTopic: Topic,
   pageSpeedInsightsTriggerTopic: Topic,
   serviceRole: IRole,
-  fargateTaskDefinition: FargateTaskDefinition,
-  cluster: Cluster,
   observabilityBucket: Bucket,
-  securityGroup: SecurityGroup,
-  vpc: IVpc
+  fargateTaskDefinition?: FargateTaskDefinition,
+  cluster?: Cluster,
+  securityGroup?: SecurityGroup,
+  vpc?: IVpc
 ) => {
   /**
    * Trigger
    */
-  const { adhocTriggerLambda } = createAdHocTriggerLambda(stack, startPlaylistTopic, serviceRole);
+  createAdHocTriggerLambda(stack, startPlaylistTopic, serviceRole);
 
   /**
    * Provider
    */
-  const { lighthouseProviderLambda } = createAutobahnLighthouseProviderLambda(
-    stack,
-    updatePlaylistTopic,
-    serviceRole,
-    fargateTaskDefinition,
-    cluster,
-    observabilityBucket,
-    vpc,
-    securityGroup
-  );
-
-  const { pageSpeedInsightsProviderLambda } = createPageSpeedInsightsProviderLambda(
+  createPageSpeedInsightsProviderLambda(
     stack,
     updatePlaylistTopic,
     pageSpeedInsightsTriggerTopic,
     serviceRole,
-    observabilityBucket,
+    observabilityBucket
   );
 
   /**
    * Delivery
    */
-  const { autobahnStorageLambda } = createAutobahnStorageLambda(stack, updatePlaylistTopic, serviceRole);
-  const { autobahnSlackDeliveryLambda } = createAutobahnSlackDeliveryLambda(stack, updatePlaylistTopic, serviceRole);
+  createAutobahnStorageLambda(stack, updatePlaylistTopic, serviceRole);
+  createAutobahnSlackDeliveryLambda(stack, updatePlaylistTopic, serviceRole);
 
-  return { lighthouseProviderLambda };
+  /**
+   * Provider
+   */
+  if (fargateTaskDefinition && cluster && securityGroup && vpc) {
+    const { lighthouseProviderLambda } = createAutobahnLighthouseProviderLambda(
+      stack,
+      updatePlaylistTopic,
+      serviceRole,
+      observabilityBucket,
+      fargateTaskDefinition,
+      cluster,
+      vpc,
+      securityGroup
+    );
+
+    /**
+     * Add environment variables to the Fargate task definition
+     */
+    lighthouseProviderLambda.grantInvoke(fargateTaskDefinition.taskRole);
+    fargateTaskDefinition.grantRun(lighthouseProviderLambda);
+
+    return { lighthouseProviderLambda };
+  }
+
+  return;
 };
 
 export { createPlugins };

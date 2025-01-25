@@ -46,13 +46,11 @@ const createZoneCertificate = (stack: Stack) => {
  * @returns The created security group.
  */
 const createSecurityGroup = (stack: Stack, vpc: IVpc) => {
-  const securityGroup = new SecurityGroup(stack, `${stack.stackName}SecurityGroup`, {
+  return new SecurityGroup(stack, `${stack.stackName}SecurityGroup`, {
     securityGroupName: `${stack.stackName}SecurityGroup`,
     vpc,
     allowAllOutbound: true,
   });
-
-  return { securityGroup };
 };
 
 /**
@@ -126,11 +124,9 @@ const createCNAME = (stack: Stack, zone: IHostedZone, distribution: Distribution
  * @returns An object containing the retrieved VPC.
  */
 const createVpc = (stack: Stack) => {
-  const vpc = new Vpc(stack, `${stack.stackName}Vpc`, {
+  return new Vpc(stack, `${stack.stackName}Vpc`, {
     vpcName: `${stack.stackName}`,
   });
-
-  return { vpc };
 };
 
 export { createCNAME, createDistribution, createHostedZone, createSecurityGroup, createVpc, createZoneCertificate };

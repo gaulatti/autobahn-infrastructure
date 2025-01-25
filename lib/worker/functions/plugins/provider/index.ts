@@ -20,9 +20,9 @@ const createAutobahnLighthouseProviderLambda = (
   stack: Stack,
   updatePlaylistTopic: Topic,
   serviceRole: IRole,
+  observabilityBucket: Bucket,
   fargateTaskDefinition: FargateTaskDefinition,
   cluster: Cluster,
-  observabilityBucket: Bucket,
   vpc: IVpc,
   securityGroup: SecurityGroup
 ) => {

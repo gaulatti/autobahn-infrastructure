@@ -9,12 +9,10 @@ import { Cluster } from 'aws-cdk-lib/aws-ecs';
  * @returns An object containing the created cluster.
  */
 const createCluster = (stack: Stack, vpc: IVpc) => {
-  const cluster = new Cluster(stack, `${stack.stackName}CommonCluster`, {
+  return new Cluster(stack, `${stack.stackName}CommonCluster`, {
     clusterName: `${stack.stackName}Common`,
     vpc,
   });
-
-  return { cluster };
 };
 
 export { createCluster };
