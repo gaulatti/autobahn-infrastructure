@@ -75,7 +75,7 @@ const createAutobahnLighthouseProviderLambda = (
   /**
    * Grant permissions to read from the observability bucket
    */
-  observabilityBucket.grantRead(lighthouseProviderLambda);
+  observabilityBucket.grantReadWrite(lighthouseProviderLambda);
 
   return { lighthouseProviderLambda };
 };
